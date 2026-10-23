@@ -1,0 +1,102 @@
+{
+  "app_name": "Restaurant IQ 2.0 — Taste-to-Profit Agent",
+  "mode": "greenfield (owner confirmed 0→1), Next.js 16 App Router + TypeScript + Tailwind 4 + Supabase + Vercel, bun",
+  "deadline": "2026-10-30T23:45:00-04:00",
+  "gates": {
+    "G0": "repo safety + baseline (done: git init, docs/BUILD_BASELINE.md)",
+    "G1": "GBrain inspected/verified via MCP (done, new-session check pending owner)",
+    "G2": "schema + RLS migrations, typed contracts, seed demo tenant, Supabase auth",
+    "G3": "Qloo provider (hackathon base URL, X-Api-Key, GET) + normalizer + usage guard + labeled sample fallback + live verification once key exists",
+    "G4": "intake → evidence → opportunity (incl. reject) → finance → execution → evaluator; Decision Lab; Action Board; Business Memory; with/without-Qloo comparison",
+    "G5": "mobile-first UI, loading/empty/error states, a11y",
+    "G6": "unit (vitest) + integration + E2E (Playwright) + RLS cross-tenant tests + rate-limit tests",
+    "G7": "public GitHub repo (MIT) + Vercel deploy + Devpost docs",
+    "G8": "handoff docs + Chinese final report"
+  },
+  "chosen_modules": [
+    "M1 marketing landing + Try Live Demo CTA",
+    "M2 no-login demo (seeded synthetic tenant, anonymous rate limit)",
+    "M3 restaurant onboarding form (manual entry; sample dataset option)",
+    "M4 restaurant 360 snapshot (profile, menu categories, strengths, constraints, freshness, unknowns)",
+    "M5 Qloo taste discovery (server-side insights/search/tags/demographics; provenance; >=2 distinct signals)",
+    "M6 opportunity engine (3 ranked hypotheses + 'no viable opportunity' path, deterministic scoring)",
+    "M7 opportunity workspace / playbook (why audience, what Qloo changed, menu deps, channel tasks, risks, checklist)",
+    "M8 decision lab (deterministic unit economics, sensitivity)",
+    "M9 action board (state machine: draft→needs_approval→ready→in_progress→completed|canceled)",
+    "M10 business memory timeline (decision_events)",
+    "M11 with-Qloo vs without-Qloo comparison toggle",
+    "M12 trust & data panel (sources, freshness, provider state, sample/live labels)",
+    "M13 auth (Supabase email OTP) + private workspaces, org membership RLS",
+    "M14 POS connector interface (capability negotiation, 'Planned / not connected')"
+  ],
+  "data_entities": [
+    {"name": "organizations", "key_fields": ["id", "name", "is_demo", "created_at"]},
+    {"name": "organization_memberships", "key_fields": ["organization_id", "user_id", "role"]},
+    {"name": "restaurants", "key_fields": ["id", "organization_id", "name", "neighborhood", "city", "cuisine", "service_formats[]", "hours_summary", "cost_assumptions jsonb", "objectives jsonb", "pos_preference", "data_mode sample|live"]},
+    {"name": "menu_items", "key_fields": ["id", "restaurant_id", "name", "category", "price", "food_cost", "source", "is_signature"]},
+    {"name": "evidence_sources", "key_fields": ["id", "provider", "endpoint", "request_params_redacted jsonb", "retrieved_at", "freshness_ttl_seconds", "mode sample|live", "citation_url"]},
+    {"name": "evidence_records", "key_fields": ["id", "restaurant_id", "source_id", "type", "payload jsonb", "interpretation", "confidence_label"]},
+    {"name": "qloo_insights", "key_fields": ["id", "restaurant_id", "source_id", "kind entities|tags|demographics|heatmap", "normalized jsonb", "expires_at"]},
+    {"name": "analysis_runs", "key_fields": ["id", "restaurant_id", "trace_id", "status", "mode", "started_at", "finished_at", "error_class"]},
+    {"name": "agent_steps", "key_fields": ["id", "run_id", "agent", "status", "started_at", "finished_at", "input_summary jsonb", "output_summary jsonb", "tool_calls int"]},
+    {"name": "opportunity_hypotheses", "key_fields": ["id", "run_id", "restaurant_id", "rank", "title", "segment", "baseline_variant jsonb", "qloo_variant jsonb", "evidence_ids[]", "score_breakdown jsonb", "evidence_label", "disqualifiers[]", "status proposed|pursued|rejected"]},
+    {"name": "scenarios", "key_fields": ["id", "hypothesis_id", "assumptions jsonb", "results jsonb", "created_by"]},
+    {"name": "action_items", "key_fields": ["id", "hypothesis_id", "restaurant_id", "title", "status", "owner", "due_date", "evidence_ids[]", "requires_approval"]},
+    {"name": "approvals", "key_fields": ["id", "action_item_id", "approved_by", "decision", "note", "created_at"]},
+    {"name": "decision_events", "key_fields": ["id", "restaurant_id", "kind", "subject_id", "summary", "payload jsonb", "actor", "created_at immutable"]},
+    {"name": "outcome_measurements", "key_fields": ["id", "hypothesis_id", "period", "baseline jsonb", "actual jsonb", "attribution_note"]},
+    {"name": "usage_events", "key_fields": ["id", "provider", "endpoint", "cache_hit", "latency_ms", "cost_estimate", "error_class", "created_at"]},
+    {"name": "demo_rate_limits", "key_fields": ["key", "window_start", "count"]}
+  ],
+  "state_machines": [
+    {"name": "AnalysisRun", "states": ["queued", "running", "completed", "failed", "canceled"], "transitions": ["queued→running", "running→completed", "running→failed", "queued|running→canceled"]},
+    {"name": "AgentStep", "states": ["pending", "running", "succeeded", "failed", "skipped"], "transitions": ["pending→running", "running→succeeded|failed", "pending→skipped"]},
+    {"name": "Hypothesis", "states": ["proposed", "pursued", "rejected"], "transitions": ["proposed→pursued", "proposed→rejected"]},
+    {"name": "ActionItem", "states": ["draft", "needs_approval", "ready", "in_progress", "completed", "canceled"], "transitions": ["draft→needs_approval", "draft→ready (no external side effect)", "needs_approval→ready (approval row)", "ready→in_progress", "in_progress→completed", "any→canceled"]}
+  ],
+  "pages": [
+    {"route": "/", "role": "public", "module": "M1"},
+    {"route": "/demo", "role": "public (anonymous, rate-limited)", "module": "M2"},
+    {"route": "/demo/[restaurantId]", "role": "public read of seeded demo tenant", "module": "M4-M12"},
+    {"route": "/login", "role": "public", "module": "M13"},
+    {"route": "/app", "role": "member", "module": "dashboard"},
+    {"route": "/app/restaurants/new", "role": "member", "module": "M3"},
+    {"route": "/app/restaurants/[id]", "role": "member", "module": "M4 snapshot + M12"},
+    {"route": "/app/restaurants/[id]/taste", "role": "member", "module": "M5 + M11"},
+    {"route": "/app/restaurants/[id]/opportunities", "role": "member", "module": "M6"},
+    {"route": "/app/restaurants/[id]/opportunities/[hid]", "role": "member", "module": "M7 + M8"},
+    {"route": "/app/restaurants/[id]/actions", "role": "member", "module": "M9"},
+    {"route": "/app/restaurants/[id]/memory", "role": "member", "module": "M10"},
+    {"route": "/api/health", "role": "public", "module": "ops"}
+  ],
+  "workflows": [
+    {"trigger": "POST /api/restaurants (member)", "mutation": "validate (zod) → insert restaurants + menu_items → decision_events(kind=restaurant_created)"},
+    {"trigger": "POST /api/analysis (member or demo)", "mutation": "rate-limit → create analysis_runs(queued) → orchestrator runs Intake→Evidence→Opportunity→Finance→Execution→Evaluator with budgets/timeouts → persists evidence_sources/records, qloo_insights, hypotheses, draft action_items, agent_steps → run completed|failed"},
+    {"trigger": "EvidenceAgent", "mutation": "QlooProvider (cache TTL 24h, per-key daily quota, timeout 8s, 2 retries) → normalizer → evidence rows with mode=live|sample; live failure never substitutes sample silently"},
+    {"trigger": "PATCH /api/hypotheses/[id] status", "mutation": "proposed→pursued|rejected + decision_events"},
+    {"trigger": "POST /api/scenarios", "mutation": "deterministic economics (lib/business/margin) → scenarios row + decision_events"},
+    {"trigger": "PATCH /api/actions/[id]", "mutation": "validated state transition; requires_approval items need approvals row; decision_events"},
+    {"trigger": "GET /api/qloo/verify (server, key present)", "mutation": "known entity search + insights call → sanitized trace to usage_events; no DB writes of raw payload beyond normalized subset"}
+  ],
+  "files_to_create_or_change": [
+    "package.json", "tsconfig.json", "next.config.ts", "eslint.config.mjs", "postcss.config.mjs", "vitest.config.ts", "playwright.config.ts", ".env.example", "README.md", "LICENSE", "CLAUDE.md",
+    ".claude/rules/architecture.md", ".claude/rules/testing.md",
+    "supabase/config.toml", "supabase/migrations/0001_core.sql", "supabase/migrations/0002_rls.sql", "supabase/seed.sql",
+    "src/app/layout.tsx", "src/app/page.tsx", "src/app/(demo)/demo/**", "src/app/(auth)/login/**", "src/app/(app)/app/**", "src/app/api/**",
+    "src/lib/providers/qloo/{client,types,normalizer,guard,fixtures,index}.ts",
+    "src/lib/providers/pos/connector.ts",
+    "src/lib/agents/{orchestrator,intake,evidence,opportunity,finance,execution,evaluator,budget,trace}.ts",
+    "src/lib/business/{margin,scoring,decision}.ts",
+    "src/lib/db/{client,server,types}.ts", "src/lib/auth/*.ts", "src/lib/validation/*.ts", "src/lib/telemetry/*.ts",
+    "src/components/{ui,demo,restaurant,opportunity,evidence,charts}/**",
+    "tests/unit/**", "tests/integration/**", "tests/e2e/**",
+    "docs/** (see prompt §17)"
+  ],
+  "owner_decisions_required": [
+    "QLOO_API_KEY: request via https://forms.gle/zz12orkLHTAneLGz6 (hackathon guide); paste into .env.local and Vercel env when received",
+    "Supabase: approve creating NEW project 'restaurant-iq-2' (recommended; existing app-restaurantiq is in production use) — or name an alternative",
+    "Vercel: approve creating NEW project 'restaurant-iq-2' in team c8geek, deployed from a NEW public GitHub repo (requires `gh auth login` or a repo URL)",
+    "License: approve MIT for the public submission repo",
+    "Optional: ANTHROPIC_API_KEY for LLM-written narrative (core flow works without it)"
+  ]
+}
