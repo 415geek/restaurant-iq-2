@@ -12,6 +12,7 @@ export const WEIGHTS = { tasteFit: 0.3, operationalFit: 0.25, feasibility: 0.15,
 export const BASELINE_WEIGHTS = { tasteFit: 0, operationalFit: 0.4, feasibility: 0.2, economics: 0.4, evidenceQuality: 0 } as const;
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+const AGE_LABEL: Record<string, string> = { "24_and_younger": "24 and younger", "25_to_29": "25–29", "30_to_34": "30–34", "35_to_44": "35–44", "45_to_54": "45–54", "55_and_older": "55+" };
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
 
 function matchTags(tags: TagSignal[], substrings: string[]): TagSignal[] {
@@ -109,7 +110,7 @@ function tasteFit(t: HypothesisTemplate, ev: EvidenceBundle): { fit: number; cit
       const m = Math.max(...vals);
       if (m > 0) {
         fit = Math.min(1, fit + Math.min(0.2, m * 0.4));
-        citations.push({ kind: "demographic", id: d.signalId, name: `Age ${t.triggerAgeBuckets.join("/")}`, affinity: m, sourceId: ev.demographics.sourceId, note: `Target age buckets over-index for this cuisine (${m > 0 ? "+" : ""}${m.toFixed(2)} vs average)` });
+        citations.push({ kind: "demographic", id: d.signalId, name: `Age ${t.triggerAgeBuckets.map((b) => AGE_LABEL[b] ?? b).join(" / ")}`, affinity: m, sourceId: ev.demographics.sourceId, note: `Target age buckets over-index for this cuisine (${m > 0 ? "+" : ""}${m.toFixed(2)} vs average)` });
       } else notes.push("Target age buckets under-index for this cuisine");
     }
   }

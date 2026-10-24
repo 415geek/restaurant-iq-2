@@ -15,9 +15,8 @@ for (const [name, vp] of [["desktop", { width: 1440, height: 900 }], ["mobile-39
     await page.screenshot({ path: `${out}/${slug}-${name}.png`, fullPage: true });
   }
   await page.goto(base + `${DEMO}/opportunities`, { waitUntil: "networkidle" });
-  const first = page.getByRole("link", { name: "Open workspace →" }).first();
-  await first.click();
-  await page.waitForLoadState("networkidle");
+  const href = await page.getByRole("link", { name: "Open workspace →" }).first().getAttribute("href");
+  await page.goto(base + href, { waitUntil: "networkidle" });
   await page.screenshot({ path: `${out}/workspace-${name}.png`, fullPage: true });
   await ctx.close();
 }
