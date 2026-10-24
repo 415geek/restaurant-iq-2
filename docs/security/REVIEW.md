@@ -13,6 +13,6 @@
 | Prompt injection | n/a now | No LLM in the critical path; external content never becomes instructions |
 | Secrets in repo | ✅ | `.env*` ignored; `.env.example` has names only |
 | `SECURITY DEFINER` functions | reviewed | `is_org_member`, `can_read_restaurant`, `can_write_restaurant`, `create_organization` — fixed `search_path`, minimal logic, `create_organization` requires `auth.uid()` |
-| Supabase advisors | PENDING | run `get_advisors` after final migration (see RUNBOOK) |
+| Supabase advisors | ✅ | 2026-10-24: helper functions moved to non-exposed `private` schema, trigger functions got fixed `search_path`, `create_organization` revoked from anon (`0003_hardening.sql`); remaining INFO: operational tables intentionally have no policies (service role only) |
 
 Known limitations: rate limiting is per-IP (shared NAT users share a bucket); no CAPTCHA; email OTP relies on Supabase default rate limits.
