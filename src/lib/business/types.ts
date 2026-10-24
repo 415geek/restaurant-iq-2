@@ -1,5 +1,7 @@
 import type { AudienceAffinity, CulturalSignal, ProviderMode, TagSignal } from "@/lib/providers/qloo/types";
 import type { ScenarioAssumptions } from "./margin";
+import type { LText } from "@/i18n/locales";
+export type { LText };
 
 export interface RestaurantProfile {
   id: string;
@@ -51,7 +53,7 @@ export interface SignalCitation {
   name: string;
   affinity?: number;
   sourceId: string;
-  note: string; // why it matters for this hypothesis
+  note: LText; // why it matters for this hypothesis (localizable)
 }
 
 export interface ScoreBreakdown {
@@ -62,46 +64,46 @@ export interface ScoreBreakdown {
   evidenceQuality: number;
   composite: number;
   weights: Record<string, number>;
-  notes: string[];
+  notes: LText[];
 }
 
 export interface ChannelPlan {
-  name: string;
+  name: LText;
   status: "not_verified" | "verified" | "not_applicable";
-  task: string;
+  task: LText;
   link?: string; // official page when known, else undefined
 }
 
 export interface Playbook {
-  objective: string;
-  baseline: string;
-  segment: { label: string; rationale: string; citations: SignalCitation[] };
-  offering: { description: string; menuDependencies: string[]; scenarios: Array<{ label: string; assumptions: ScenarioAssumptions }> };
+  objective: LText;
+  baseline: LText;
+  segment: { label: LText; rationale: LText; citations: SignalCitation[] };
+  offering: { description: LText; menuDependencies: string[]; scenarios: Array<{ label: LText; assumptions: ScenarioAssumptions }> };
   channels: ChannelPlan[];
-  capacityChecklist: Array<{ item: string; owner: string; dueInDays: number }>;
-  marketing: { sampleMessage: string; creativeBrief: string; postingDraft: string };
+  capacityChecklist: Array<{ item: LText; owner: LText; dueInDays: number }>;
+  marketing: { sampleMessage: LText; creativeBrief: LText; postingDraft: LText };
   budgetCapUsd: number;
-  risks: string[];
-  stopConditions: string[];
-  successCriteria: string[];
-  measurement: { method: string; caveats: string[] };
-  approvalGate: string;
+  risks: LText[];
+  stopConditions: LText[];
+  successCriteria: LText[];
+  measurement: { method: LText; caveats: LText[] };
+  approvalGate: LText;
 }
 
 export interface Hypothesis {
   slug: string;
-  title: string;
+  title: string; // English (DB column); UI renders hyp.<slug>.title per locale
   segment: string;
   summary: string;
   rank: number;
   evidenceLabel: EvidenceLabel;
-  disqualifiers: string[];
-  missingEvidence: string[];
-  reasonsToAvoid: string[];
+  disqualifiers: LText[];
+  missingEvidence: LText[];
+  reasonsToAvoid: LText[];
   score: ScoreBreakdown;
   baselineScore: ScoreBreakdown; // without Qloo
   baselineRank: number;
-  qlooDelta: { rankChange: number; changedBy: SignalCitation[]; explanation: string };
+  qlooDelta: { rankChange: number; changedBy: SignalCitation[]; explanation: LText };
   citations: SignalCitation[];
   evidenceSourceIds: string[];
   defaultScenario: ScenarioAssumptions;
@@ -112,6 +114,6 @@ export interface OpportunityOutcome {
   hypotheses: Hypothesis[]; // ranked, includes not_recommended ones at the end
   viable: Hypothesis[]; // top 3 viable
   noViableOpportunity: boolean;
-  researchPlan: string[]; // when nothing is viable or evidence is thin
+  researchPlan: LText[]; // when nothing is viable or evidence is thin
   mode: ProviderMode;
 }

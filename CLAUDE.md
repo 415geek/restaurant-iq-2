@@ -25,3 +25,6 @@ Next.js 16 App Router, TypeScript strict, Tailwind 4, Supabase (Postgres + Auth 
 - Contracts: `docs/architecture/CONTRACTS.md` · Decisions: `docs/architecture/DECISIONS.md` · Map: `docs/architecture/REPO_MAP.md`
 - Plan: `plan.json` · Baseline: `docs/BUILD_BASELINE.md`
 - Rules: `.claude/rules/architecture.md`, `.claude/rules/testing.md`
+
+## Design System
+Always read DESIGN.md before making any visual or UI decisions. Colors, type, spacing and interaction patterns are defined there (sourced from the Restaurant IQ brand guide). Do not deviate without explicit owner approval. In QA mode, flag any code that does not match DESIGN.md.

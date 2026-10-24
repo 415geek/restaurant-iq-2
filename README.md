@@ -18,6 +18,10 @@ An independent commercial decision brain for independent restaurants, built for 
 6. **Action board:** draft → needs approval → ready → in progress → completed. Anything external waits for a human approval row.
 7. **Business memory:** immutable decision events with evidence snapshots and assumptions.
 
+## Languages & design
+
+UI and all generated content (hypotheses, citations, playbooks, tasks, decision events) render in **English, 中文 and Español** via keyed templates (`src/i18n`). Locale cookie `riq_locale`; switcher in the header / rail. Visual system follows the Restaurant IQ brand guide (coral `#FF6B35`, navy `#1B2A4A`, Plus Jakarta Sans / Noto Sans SC): white card UI, five-step journey bar, Why · Numbers · Plan slide-over, info tooltips instead of inline explanations. See `DESIGN.md`.
+
 ## Stack
 
 Next.js 16 (App Router) · TypeScript · Tailwind 4 · Supabase (Postgres, Auth, RLS) · zod · vitest · Playwright · bun · Vercel.

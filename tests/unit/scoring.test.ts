@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { scoreHypotheses } from "@/lib/business/scoring";
+import en from "@/i18n/en";
+import zh from "@/i18n/zh";
+import es from "@/i18n/es";
+import { formatLText, makeT } from "@/i18n/shared";
+const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(makeT(en), x);
 import type { EvidenceBundle, MenuItemLite, RestaurantProfile } from "@/lib/business/types";
 import { sampleCrossDomainSignals, sampleCuisineTags, sampleDemographics, samplePlaceSignals, sampleTagSignals } from "@/lib/providers/qloo/fixtures";
 
@@ -33,7 +38,7 @@ describe("scoreHypotheses", () => {
     expect(out.viable.length).toBeGreaterThan(0);
     const bar = out.hypotheses.find((h) => h.slug === "bar-program")!;
     expect(bar.evidenceLabel).toBe("not_recommended");
-    expect(bar.disqualifiers.join(" ")).toMatch(/liquor/);
+    expect(bar.disqualifiers.map(lt).join(" ")).toMatch(/liquor/);
     const late = out.hypotheses.find((h) => h.slug === "late-night-window")!;
     expect(late.evidenceLabel).toBe("not_recommended"); // conflicts with "2 cooks" / "without adding staff"
     expect(out.hypotheses.at(-1)!.evidenceLabel).toBe("not_recommended");
@@ -44,7 +49,7 @@ describe("scoreHypotheses", () => {
     const out = scoreHypotheses(profile, menu, ev("live"));
     for (const h of out.viable) {
       expect(h.citations.length).toBeGreaterThan(0);
-      expect(h.qlooDelta.explanation).toMatch(/baseline/);
+      expect(lt(h.qlooDelta.explanation)).toMatch(/no-Qloo ranking/);
       expect(h.evidenceSourceIds.length).toBeGreaterThan(0);
       expect(h.playbook.channels.every((c) => c.status === "not_verified")).toBe(true);
     }
@@ -57,16 +62,27 @@ describe("scoreHypotheses", () => {
     const out = scoreHypotheses(profile, menu, ev("sample"));
     for (const h of out.viable) {
       expect(h.evidenceLabel).toBe("requires_validation");
-      expect(h.playbook.risks.join(" ")).toMatch(/illustrative sample/);
+      expect(h.playbook.risks.map(lt).join(" ")).toMatch(/illustrative sample/);
     }
-    expect(out.researchPlan[0]).toMatch(/live Qloo key/);
+    expect(lt(out.researchPlan[0])).toMatch(/live Qloo key/);
   });
 
   it("produces no viable opportunity when the restaurant cannot execute anything", () => {
     const blocked: RestaurantProfile = { ...profile, serviceFormats: [], objectives: { constraints: ["no liquor license"] } };
     const out = scoreHypotheses(blocked, [], { ...ev("live"), tagAffinities: { data: [], sourceId: "s2" }, localPlaces: { data: [], sourceId: "s3" }, crossDomain: { data: [], sourceId: "s4" }, demographics: { data: [], sourceId: "s5" } });
     expect(out.noViableOpportunity).toBe(true);
-    expect(out.researchPlan.join(" ")).toMatch(/No hypothesis passes/);
+    expect(out.researchPlan.map(lt).join(" ")).toMatch(/Nothing passes/);
+  });
+
+  it("renders playbook and citations in all three locales without leftover keys", () => {
+    const out = scoreHypotheses(profile, menu, ev("live"));
+    const h = out.viable[0];
+    for (const loc of ["en", "zh", "es"] as const) {
+      const d = loc === "en" ? en : loc === "zh" ? zh : es;
+      const f = (x: Parameters<typeof formatLText>[1]) => formatLText(makeT(d), x);
+      const texts = [h.playbook.objective, h.playbook.marketing.postingDraft, h.playbook.segment.rationale, ...h.citations.map((c) => c.note), ...h.playbook.channels.map((c) => c.task), h.qlooDelta.explanation];
+      for (const x of texts) { const s = f(x); expect(s, loc).not.toMatch(/\{\w+\}/); expect(s, loc).not.toMatch(/^gen\./); }
+    }
   });
 
   it("is deterministic", () => {

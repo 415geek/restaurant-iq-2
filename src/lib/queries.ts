@@ -1,6 +1,6 @@
 import "server-only";
 import { getSsrClient } from "@/lib/db/ssr";
-import type { Hypothesis, MenuItemLite, RestaurantProfile, ScoreBreakdown, SignalCitation, Playbook } from "@/lib/business/types";
+import type { Hypothesis, LText, MenuItemLite, RestaurantProfile, ScoreBreakdown, SignalCitation, Playbook } from "@/lib/business/types";
 import type { AudienceAffinity, CulturalSignal, ProviderMode, TagSignal } from "@/lib/providers/qloo/types";
 import type { ScenarioAssumptions, ScenarioResult } from "@/lib/business/margin";
 
@@ -77,16 +77,16 @@ export async function getLatestEvidence(restaurantId: string, since?: string | n
 }
 
 export interface HypothesisView {
-  id: string; runId: string; rank: number; slug: string; title: string; segment: string; status: "proposed" | "pursued" | "rejected"; evidenceLabel: Hypothesis["evidenceLabel"]; disqualifiers: string[];
-  score: ScoreBreakdown; baselineScore: ScoreBreakdown; baselineRank: number; qlooDelta: Hypothesis["qlooDelta"]; citations: SignalCitation[]; summary: string; missingEvidence: string[]; reasonsToAvoid: string[]; defaultScenario: ScenarioAssumptions; playbook: Playbook; evidenceSourceIds: string[]; updatedAt: string;
+  id: string; runId: string; rank: number; slug: string; title: string; segment: string; status: "proposed" | "pursued" | "rejected"; evidenceLabel: Hypothesis["evidenceLabel"]; disqualifiers: LText[];
+  score: ScoreBreakdown; baselineScore: ScoreBreakdown; baselineRank: number; qlooDelta: Hypothesis["qlooDelta"]; citations: SignalCitation[]; summary: string; missingEvidence: LText[]; reasonsToAvoid: LText[]; defaultScenario: ScenarioAssumptions; playbook: Playbook; evidenceSourceIds: string[]; updatedAt: string;
 }
 
 function toHypothesisView(h: Record<string, unknown>): HypothesisView {
   const qv = (h.qloo_variant ?? {}) as Record<string, unknown>;
   const bv = (h.baseline_variant ?? {}) as Record<string, unknown>;
   return {
-    id: String(h.id), runId: String(h.run_id), rank: Number(h.rank), slug: String(h.slug), title: String(h.title), segment: String(h.segment), status: h.status as HypothesisView["status"], evidenceLabel: h.evidence_label as HypothesisView["evidenceLabel"], disqualifiers: (h.disqualifiers as string[]) ?? [],
-    score: h.score_breakdown as ScoreBreakdown, baselineScore: (bv.score as ScoreBreakdown) ?? (h.score_breakdown as ScoreBreakdown), baselineRank: Number(bv.rank ?? h.rank), qlooDelta: (qv.delta as Hypothesis["qlooDelta"]) ?? { rankChange: 0, changedBy: [], explanation: "" }, citations: (qv.citations as SignalCitation[]) ?? [], summary: String(qv.summary ?? ""), missingEvidence: (qv.missingEvidence as string[]) ?? [], reasonsToAvoid: (qv.reasonsToAvoid as string[]) ?? [], defaultScenario: qv.defaultScenario as ScenarioAssumptions, playbook: h.playbook as Playbook, evidenceSourceIds: (h.evidence_ids as string[]) ?? [], updatedAt: String(h.updated_at),
+    id: String(h.id), runId: String(h.run_id), rank: Number(h.rank), slug: String(h.slug), title: String(h.title), segment: String(h.segment), status: h.status as HypothesisView["status"], evidenceLabel: h.evidence_label as HypothesisView["evidenceLabel"], disqualifiers: (qv.disqualifiers as LText[] | undefined) ?? ((h.disqualifiers as string[]) ?? []),
+    score: h.score_breakdown as ScoreBreakdown, baselineScore: (bv.score as ScoreBreakdown) ?? (h.score_breakdown as ScoreBreakdown), baselineRank: Number(bv.rank ?? h.rank), qlooDelta: (qv.delta as Hypothesis["qlooDelta"]) ?? { rankChange: 0, changedBy: [], explanation: "" }, citations: (qv.citations as SignalCitation[]) ?? [], summary: String(qv.summary ?? ""), missingEvidence: (qv.missingEvidence as LText[]) ?? [], reasonsToAvoid: (qv.reasonsToAvoid as LText[]) ?? [], defaultScenario: qv.defaultScenario as ScenarioAssumptions, playbook: h.playbook as Playbook, evidenceSourceIds: (h.evidence_ids as string[]) ?? [], updatedAt: String(h.updated_at),
   };
 }
 
@@ -106,13 +106,13 @@ export async function getHypothesis(id: string): Promise<{ hypothesis: Hypothesi
   return { hypothesis: toHypothesisView(data as Record<string, unknown>), restaurantId: data.restaurant_id, scenarios: (sc ?? []).map((s) => ({ id: s.id, label: s.label, assumptions: s.assumptions, results: s.results, createdAt: s.created_at })) };
 }
 
-export interface ActionView { id: string; hypothesisId: string | null; hypothesisTitle: string | null; title: string; description: string | null; status: string; owner: string | null; dueDate: string | null; requiresApproval: boolean; externalSideEffect: boolean; evidenceIds: string[]; updatedAt: string; approvals: Array<{ decision: string; actorLabel: string; note: string | null; createdAt: string }> }
+export interface ActionView { id: string; hypothesisId: string | null; hypothesisSlug: string | null; hypothesisTitle: string | null; title: string; description: string | null; titleLt: LText | null; descriptionLt: LText | null; status: string; owner: string | null; dueDate: string | null; requiresApproval: boolean; externalSideEffect: boolean; evidenceIds: string[]; updatedAt: string; approvals: Array<{ decision: string; actorLabel: string; note: string | null; createdAt: string }> }
 
 export async function getActions(restaurantId: string): Promise<ActionView[]> {
   const supabase = await getSsrClient();
-  const { data } = await supabase.from("action_items").select("*, opportunity_hypotheses(title), approvals(decision,actor_label,note,created_at)").eq("restaurant_id", restaurantId).order("created_at");
+  const { data } = await supabase.from("action_items").select("*, opportunity_hypotheses(title,slug), approvals(decision,actor_label,note,created_at)").eq("restaurant_id", restaurantId).order("created_at");
   return (data ?? []).map((a) => ({
-    id: a.id, hypothesisId: a.hypothesis_id, hypothesisTitle: (a as { opportunity_hypotheses?: { title: string } | null }).opportunity_hypotheses?.title ?? null, title: a.title, description: a.description, status: a.status, owner: a.owner, dueDate: a.due_date, requiresApproval: a.requires_approval, externalSideEffect: a.external_side_effect, evidenceIds: a.evidence_ids ?? [], updatedAt: a.updated_at,
+    id: a.id, hypothesisId: a.hypothesis_id, hypothesisSlug: (a as { opportunity_hypotheses?: { slug: string } | null }).opportunity_hypotheses?.slug ?? null, hypothesisTitle: (a as { opportunity_hypotheses?: { title: string } | null }).opportunity_hypotheses?.title ?? null, title: a.title, description: a.description, titleLt: (a.title_lt as LText | null) ?? null, descriptionLt: (a.description_lt as LText | null) ?? null, status: a.status, owner: a.owner, dueDate: a.due_date, requiresApproval: a.requires_approval, externalSideEffect: a.external_side_effect, evidenceIds: a.evidence_ids ?? [], updatedAt: a.updated_at,
     approvals: ((a as { approvals?: Array<{ decision: string; actor_label: string; note: string | null; created_at: string }> }).approvals ?? []).map((p) => ({ decision: p.decision, actorLabel: p.actor_label, note: p.note, createdAt: p.created_at })),
   }));
 }

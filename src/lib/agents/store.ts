@@ -3,7 +3,10 @@
  * (server only) after the caller has already authorized the restaurant; the memory implementation backs tests.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Hypothesis, MenuItemLite, RestaurantProfile } from "@/lib/business/types";
+import type { Hypothesis, LText, MenuItemLite, RestaurantProfile } from "@/lib/business/types";
+import en from "@/i18n/en";
+import { formatLText, makeT } from "@/i18n/shared";
+const enText = (x: LText) => formatLText(makeT(en), x);
 import type { ProviderMode, SourceProvenance } from "@/lib/providers/qloo/types";
 import type { CacheEntry, GuardStore, UsageEvent } from "@/lib/providers/qloo/guard";
 
@@ -16,7 +19,7 @@ export interface EvidenceSourceInput { restaurantId: string; provenance: SourceP
 export interface EvidenceRecordInput { restaurantId: string; sourceId: string; type: string; payload: unknown; interpretation: string; confidenceLabel: "high" | "medium" | "low" | "requires_validation" }
 export interface QlooInsightInput { restaurantId: string; sourceId: string; kind: "entities" | "tags" | "demographics" | "heatmap" | "search"; normalized: unknown; expiresAt?: string }
 export interface HypothesisRow { id: string; runId: string; restaurantId: string; hypothesis: Hypothesis; status: "proposed" | "pursued" | "rejected" }
-export interface ActionItemInput { hypothesisId: string; restaurantId: string; title: string; description: string; owner?: string; dueDate?: string; requiresApproval: boolean; externalSideEffect: boolean; evidenceIds: string[] }
+export interface ActionItemInput { hypothesisId: string; restaurantId: string; title: string; description: string; titleLt?: LText; descriptionLt?: LText; owner?: string; dueDate?: string; requiresApproval: boolean; externalSideEffect: boolean; evidenceIds: string[] }
 export interface DecisionEventInput { restaurantId: string; kind: string; subjectId?: string; summary: string; payload?: unknown; actor: string }
 
 export interface AnalysisStore extends GuardStore {
@@ -158,8 +161,8 @@ export class SupabaseAnalysisStore implements AnalysisStore {
     const rows = hypotheses.map((h) => ({
       run_id: runId, restaurant_id: restaurantId, rank: h.rank, slug: h.slug, title: h.title, segment: h.segment,
       baseline_variant: { score: h.baselineScore, rank: h.baselineRank },
-      qloo_variant: { score: h.score, delta: h.qlooDelta, citations: h.citations, summary: h.summary, missingEvidence: h.missingEvidence, reasonsToAvoid: h.reasonsToAvoid, defaultScenario: h.defaultScenario },
-      evidence_ids: h.evidenceSourceIds, score_breakdown: h.score, evidence_label: h.evidenceLabel, disqualifiers: h.disqualifiers, status: "proposed", playbook: h.playbook,
+      qloo_variant: { score: h.score, delta: h.qlooDelta, citations: h.citations, summary: h.summary, missingEvidence: h.missingEvidence, reasonsToAvoid: h.reasonsToAvoid, disqualifiers: h.disqualifiers, defaultScenario: h.defaultScenario },
+      evidence_ids: h.evidenceSourceIds, score_breakdown: h.score, evidence_label: h.evidenceLabel, disqualifiers: h.disqualifiers.map(enText), status: "proposed", playbook: h.playbook,
     }));
     const { data, error } = await this.db.from("opportunity_hypotheses").insert(rows).select("id,slug");
     if (error) throw new Error(`db: ${error.message}`);
@@ -167,7 +170,7 @@ export class SupabaseAnalysisStore implements AnalysisStore {
   }
   async createActionItems(items: ActionItemInput[]) {
     if (!items.length) return [];
-    const { data, error } = await this.db.from("action_items").insert(items.map((i) => ({ hypothesis_id: i.hypothesisId, restaurant_id: i.restaurantId, title: i.title, description: i.description, owner: i.owner ?? null, due_date: i.dueDate ?? null, requires_approval: i.requiresApproval, external_side_effect: i.externalSideEffect, evidence_ids: i.evidenceIds, status: i.requiresApproval ? "needs_approval" : "draft" }))).select("id");
+    const { data, error } = await this.db.from("action_items").insert(items.map((i) => ({ hypothesis_id: i.hypothesisId, restaurant_id: i.restaurantId, title: i.title, description: i.description, title_lt: i.titleLt ?? null, description_lt: i.descriptionLt ?? null, owner: i.owner ?? null, due_date: i.dueDate ?? null, requires_approval: i.requiresApproval, external_side_effect: i.externalSideEffect, evidence_ids: i.evidenceIds, status: i.requiresApproval ? "needs_approval" : "draft" }))).select("id");
     if (error) throw new Error(`db: ${error.message}`);
     return (data ?? []).map((d) => String(d.id));
   }

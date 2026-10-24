@@ -12,7 +12,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const parsed = actionPatchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid patch" }, { status: 400 });
   const db = getServiceClient();
-  const { data: a } = await db.from("action_items").select("id, restaurant_id, title, status, requires_approval, external_side_effect").eq("id", id).maybeSingle();
+  const { data: a } = await db.from("action_items").select("id, restaurant_id, title, title_lt, status, requires_approval, external_side_effect").eq("id", id).maybeSingle();
   if (!a) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const access = await authorizeRestaurant(a.restaurant_id);
   if (access.kind === "none") return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -33,12 +33,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       const { error } = await db.from("approvals").insert({ action_item_id: a.id, restaurant_id: a.restaurant_id, approved_by: access.kind === "member" ? access.userId : null, actor_label: actorLabel(access), decision: "approved", note: parsed.data.approvalNote ?? null });
       if (error) return NextResponse.json({ error: "Approval failed" }, { status: 500 });
       hasApproval = true;
-      events.push({ kind: "action_approved", summary: `Approved "${a.title}"${parsed.data.approvalNote ? `: ${parsed.data.approvalNote}` : ""}`, payload: { actionId: a.id, externalSideEffect: a.external_side_effect } });
+      events.push({ kind: "action_approved", summary: `Approved "${a.title}"${parsed.data.approvalNote ? `: ${parsed.data.approvalNote}` : ""}`, payload: { lt: { key: "gen.evApproved", params: { title: a.title_lt ?? a.title } }, actionId: a.id, externalSideEffect: a.external_side_effect, note: parsed.data.approvalNote ?? null } });
     }
     const t = canTransition(from, to, { requiresApproval: a.requires_approval, hasApproval });
     if (!t.ok) return NextResponse.json({ error: t.reason }, { status: 409 });
     patch.status = to;
-    events.push({ kind: "action_status_changed", summary: `"${a.title}" moved ${from.replace("_", " ")} → ${to.replace("_", " ")}`, payload: { actionId: a.id, from, to } });
+    events.push({ kind: "action_status_changed", summary: `"${a.title}" moved ${from.replace("_", " ")} → ${to.replace("_", " ")}`, payload: { lt: { key: "gen.evMoved", params: { title: a.title_lt ?? a.title, from: { key: `actions.cols.${from}` }, to: { key: `actions.cols.${to}` } } }, actionId: a.id, from, to } });
   }
   if (Object.keys(patch).length) {
     const { error } = await db.from("action_items").update(patch).eq("id", id);

@@ -3,10 +3,10 @@
 Updated: 2026-10-24 (PT) · Deadline: 2026-10-30 23:45 ET
 
 ## Phase
-G0 ✅ · G1 ✅ (new-session recall check pending owner) · G2 ✅ · G3 ✅ sample mode / ⏸ live (no key) · G4 ✅ · G5 ✅ · G6 ✅ (unit 40, integration 3, E2E 24) · **G7 ⏸ blocked on owner (GitHub repo + Vercel)** · G8 docs written
+G0 ✅ · G1 ✅ (new-session recall check pending owner) · G2 ✅ (migrations 0001–0004) · G3 ✅ sample mode / ⏸ live (no key) · G4 ✅ · G5 ✅ **redesigned 2026-10-24 to brand-guide card system + EN/中文/ES** · G6 ✅ (unit 44, integration 3, E2E 27) · **G7 ⏸ blocked on owner (GitHub repo + Vercel)** · G8 docs written
 
 ## Passing checks (run 2026-10-24)
-lint ✅ · typecheck ✅ · unit 40 ✅ · integration (live Supabase RLS) 3 ✅ · build ✅ · E2E 24 ✅ (desktop/375/390) · demo analysis persisted ✅
+lint ✅ · typecheck ✅ · unit 44 ✅ · integration (live Supabase RLS) 3 ✅ · build ✅ · E2E 27 ✅ (desktop/375/390, 3 locales) · demo analysis regenerated with keyed templates ✅
 
 ## Blockers (owner)
 1. `QLOO_API_KEY` — request via the hackathon form; then set in `.env.local` + Vercel, run `/api/qloo/verify`, re-run demo analysis.

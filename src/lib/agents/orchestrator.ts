@@ -6,7 +6,11 @@
 import { randomUUID } from "node:crypto";
 import { scoreHypotheses } from "@/lib/business/scoring";
 import { computeScenario, sensitivity } from "@/lib/business/margin";
-import type { EvidenceBundle, Hypothesis, RestaurantProfile } from "@/lib/business/types";
+import type { EvidenceBundle, Hypothesis, LText, RestaurantProfile } from "@/lib/business/types";
+import en from "@/i18n/en";
+import { formatLText, makeT } from "@/i18n/shared";
+const tEn = makeT(en);
+const enText = (x: Parameters<typeof formatLText>[1]) => formatLText(tEn, x);
 import { QlooProvider, QlooError, type ProviderMode } from "@/lib/providers/qloo";
 import type { AnalysisStore, HypothesisRow } from "./store";
 
@@ -31,7 +35,7 @@ export interface AnalysisResult {
   noViableOpportunity: boolean;
   evidenceFailures: EvidenceBundle["failures"];
   evaluator: { passed: boolean; checks: Array<{ name: string; ok: boolean; detail: string }> };
-  researchPlan: string[];
+  researchPlan: LText[];
 }
 
 type AgentName = "IntakeAgent" | "EvidenceAgent" | "OpportunityAgent" | "FinanceAgent" | "ExecutionAgent" | "Evaluator";
@@ -121,10 +125,11 @@ export async function runAnalysis(opts: OrchestratorOptions): Promise<AnalysisRe
         .flatMap((r) => {
           const pb = r.hypothesis.playbook;
           const due = (d: number) => new Date(now().getTime() + d * 86_400_000).toISOString().slice(0, 10);
+          const titleLt = { key: `hyp.${r.hypothesis.slug}.title` };
           return [
-            ...pb.capacityChecklist.map((c) => ({ hypothesisId: r.id, restaurantId, title: c.item, description: `Capacity check for "${r.hypothesis.title}"`, owner: c.owner, dueDate: due(c.dueInDays), requiresApproval: false, externalSideEffect: false, evidenceIds: r.hypothesis.evidenceSourceIds })),
-            ...pb.channels.map((c) => ({ hypothesisId: r.id, restaurantId, title: `Verify channel: ${c.name}`, description: c.task, owner: "Owner", dueDate: due(7), requiresApproval: false, externalSideEffect: false, evidenceIds: r.hypothesis.evidenceSourceIds })),
-            { hypothesisId: r.id, restaurantId, title: `Publish launch post: ${r.hypothesis.title}`, description: pb.marketing.postingDraft, owner: "Owner", dueDate: due(10), requiresApproval: true, externalSideEffect: true, evidenceIds: r.hypothesis.evidenceSourceIds },
+            ...pb.capacityChecklist.map((c) => { const d = { key: "gen.taskCapacityDesc", params: { title: titleLt } }; return { hypothesisId: r.id, restaurantId, title: enText(c.item), description: enText(d), titleLt: c.item, descriptionLt: d, owner: enText(c.owner), dueDate: due(c.dueInDays), requiresApproval: false, externalSideEffect: false, evidenceIds: r.hypothesis.evidenceSourceIds }; }),
+            ...pb.channels.map((c) => { const t = { key: "gen.taskVerifyChannel", params: { name: c.name } }; return { hypothesisId: r.id, restaurantId, title: enText(t), description: enText(c.task), titleLt: t, descriptionLt: c.task, owner: enText({ key: "gen.pbOwner" }), dueDate: due(7), requiresApproval: false, externalSideEffect: false, evidenceIds: r.hypothesis.evidenceSourceIds }; }),
+            (() => { const t = { key: "gen.taskPublish", params: { title: titleLt } }; return { hypothesisId: r.id, restaurantId, title: enText(t), description: enText(pb.marketing.postingDraft), titleLt: t, descriptionLt: pb.marketing.postingDraft, owner: enText({ key: "gen.pbOwner" }), dueDate: due(10), requiresApproval: true, externalSideEffect: true, evidenceIds: r.hypothesis.evidenceSourceIds }; })(),
           ];
         });
       const ids = await store.createActionItems(items);
@@ -137,10 +142,11 @@ export async function runAnalysis(opts: OrchestratorOptions): Promise<AnalysisRe
       return { out: { passed: checks.every((c) => c.ok), checks }, summary: { passed: checks.every((c) => c.ok), failed: checks.filter((c) => !c.ok).map((c) => c.name) } };
     });
 
+    const evLt = { key: "gen.evAnalysis", params: { mode: provider.mode, n: outcome.viable.length, none: outcome.noViableOpportunity ? { key: "gen.evNone" } : "" } };
     await store.createDecisionEvent({
       restaurantId, kind: "analysis_completed", subjectId: run.id, actor,
-      summary: `Analysis completed in ${provider.mode} mode: ${outcome.viable.length} viable hypothes${outcome.viable.length === 1 ? "is" : "es"}${outcome.noViableOpportunity ? " (no viable opportunity)" : ""}.`,
-      payload: { traceId, mode: provider.mode, top: outcome.viable.map((h) => ({ slug: h.slug, label: h.evidenceLabel })), evidenceFailures: evidence.failures, evaluator: evaluator.passed },
+      summary: enText(evLt),
+      payload: { lt: evLt, traceId, mode: provider.mode, top: outcome.viable.map((h) => ({ slug: h.slug, label: h.evidenceLabel })), evidenceFailures: evidence.failures, evaluator: evaluator.passed },
     });
     await store.updateRun(run.id, { status: "completed", finishedAt: now().toISOString(), summary: { viable: outcome.viable.length, noViable: outcome.noViableOpportunity, evaluatorPassed: evaluator.passed, failures: evidence.failures.length } });
 
@@ -160,10 +166,10 @@ export async function collectEvidence(provider: QlooProvider, store: AnalysisSto
   const rid = profile.id;
   const conf = provider.mode === "live" ? ("medium" as const) : ("requires_validation" as const);
 
-  async function persist<T>(kind: "tags" | "entities" | "demographics" | "search", type: string, r: { data: T; provenance: Parameters<AnalysisStore["createEvidenceSource"]>[0]["provenance"] }, interpretation: string) {
+  async function persist<T>(kind: "tags" | "entities" | "demographics" | "search", type: string, r: { data: T; provenance: Parameters<AnalysisStore["createEvidenceSource"]>[0]["provenance"] }, interpretation: { key: string; params?: Record<string, string | number> }) {
     const sourceId = await store.createEvidenceSource({ restaurantId: rid, provenance: r.provenance, ttlSeconds: ttl });
     await store.createQlooInsight({ restaurantId: rid, sourceId, kind, normalized: r.data, expiresAt: new Date(Date.parse(r.provenance.retrievedAt) + ttl * 1000).toISOString() });
-    await store.createEvidenceRecord({ restaurantId: rid, sourceId, type, payload: { count: Array.isArray(r.data) ? r.data.length : 1 }, interpretation, confidenceLabel: conf });
+    await store.createEvidenceRecord({ restaurantId: rid, sourceId, type, payload: { count: Array.isArray(r.data) ? r.data.length : 1, lt: interpretation }, interpretation: enText(interpretation), confidenceLabel: conf });
     return sourceId;
   }
 
@@ -172,7 +178,7 @@ export async function collectEvidence(provider: QlooProvider, store: AnalysisSto
 
   budget.use();
   const cuisine = await provider.resolveCuisineTags(profile.cuisine);
-  const cuisineSrc = await persist("tags", "cuisine_tags", cuisine, `Cuisine "${profile.cuisine}" resolved to ${cuisine.data.length} Qloo place tag(s).`);
+  const cuisineSrc = await persist("tags", "cuisine_tags", cuisine, { key: "gen.evCuisine", params: { cuisine: profile.cuisine, n: cuisine.data.length } });
   const tagIds = cuisine.data.slice(0, 3).map((t) => t.tagId);
   if (!tagIds.length) {
     failures.push({ step: "resolveCuisineTags", errorClass: "not_found", message: "No Qloo tag matched the cuisine" });
@@ -185,10 +191,10 @@ export async function collectEvidence(provider: QlooProvider, store: AnalysisSto
 
   if (tagIds.length) {
     const tasks: Array<[string, () => Promise<void>]> = [
-      ["getTagAffinities", async () => { const r = await provider.getTagAffinities({ tagIds, geo }); tagAff = { data: r.data, sourceId: await persist("tags", "tag_affinities", r, `${r.data.length} place attributes ranked by taste affinity for this cuisine's audience near ${geo.localityQuery}.`) }; }],
-      ["getLocalPlaceAffinities", async () => { const r = await provider.getLocalPlaceAffinities({ tagIds, geo, take: 20 }); places = { data: r.data, sourceId: await persist("entities", "local_place_affinities", r, `${r.data.length} nearby places with affinity for this taste profile.`) }; }],
-      ["getCrossDomainAffinities", async () => { const r = await provider.getCrossDomainAffinities({ tagIds, geo }); cross = { data: r.data, failedDomains: r.failedDomains, sourceId: await persist("entities", "cross_domain_affinities", r, `${r.data.length} non-food entities (brands, podcasts, artists, shows) linked to this cuisine's fans.`) }; }],
-      ["getDemographics", async () => { const r = await provider.getDemographics({ tagIds }); demo = { data: r.data, sourceId: await persist("demographics", "demographic_affinity", r, "Age/gender affinity deltas (signed vs average) for the cuisine tags.") }; }],
+      ["getTagAffinities", async () => { const r = await provider.getTagAffinities({ tagIds, geo }); tagAff = { data: r.data, sourceId: await persist("tags", "tag_affinities", r, { key: "gen.evTags", params: { n: r.data.length, where: geo.localityQuery } }) }; }],
+      ["getLocalPlaceAffinities", async () => { const r = await provider.getLocalPlaceAffinities({ tagIds, geo, take: 20 }); places = { data: r.data, sourceId: await persist("entities", "local_place_affinities", r, { key: "gen.evPlaces", params: { n: r.data.length } }) }; }],
+      ["getCrossDomainAffinities", async () => { const r = await provider.getCrossDomainAffinities({ tagIds, geo }); cross = { data: r.data, failedDomains: r.failedDomains, sourceId: await persist("entities", "cross_domain_affinities", r, { key: "gen.evCross", params: { n: r.data.length } }) }; }],
+      ["getDemographics", async () => { const r = await provider.getDemographics({ tagIds }); demo = { data: r.data, sourceId: await persist("demographics", "demographic_affinity", r, { key: "gen.evDemo" }) }; }],
     ];
     for (const [name, fn] of tasks) {
       budget.use();
@@ -225,7 +231,7 @@ export function evaluate(hs: Hypothesis[], ev: EvidenceBundle): Array<{ name: st
     { name: "economics_consistent", ok: hs.every((h) => { const r = computeScenario(h.defaultScenario); return Math.abs(r.incrementalContributionProfit - r.contributionLostToCannibalization - r.adjustedIncrementalProfit) < 0.011; }), detail: "adjusted profit = contribution - cannibalization" },
     { name: "not_recommended_has_reason", ok: hs.filter((h) => h.evidenceLabel === "not_recommended").every((h) => h.disqualifiers.length > 0 || h.reasonsToAvoid.length > 0 || h.score.notes.length > 0), detail: "every rejection carries a reason" },
     { name: "sample_mode_labeled", ok: ev.mode === "live" || hs.every((h) => h.evidenceLabel === "not_recommended" || h.evidenceLabel === "requires_validation"), detail: "sample evidence cannot produce high/medium labels" },
-    { name: "approval_gate_present", ok: hs.every((h) => h.playbook.approvalGate.length > 0), detail: "external actions gated behind approval" },
+    { name: "approval_gate_present", ok: hs.every((h) => enText(h.playbook.approvalGate).length > 0), detail: "external actions gated behind approval" },
   ];
   return checks;
 }

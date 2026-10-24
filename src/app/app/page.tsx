@@ -1,30 +1,23 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/shell/SiteHeader";
-import { Badge, Button, Card, Empty, ModeBadge } from "@/components/ui";
+import { Button, Card, Chip, Empty } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { getMyRestaurants } from "@/lib/queries";
+import { getT } from "@/i18n";
 
 export const metadata = { title: "My restaurants" };
 
 export default async function AppHome() {
-  const mine = await getMyRestaurants();
+  const [mine, { t, locale }] = await Promise.all([getMyRestaurants(), getT()]);
   return (
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div><h1 className="text-2xl font-semibold tracking-tight">My restaurants</h1><p className="text-sm text-muted">Private workspaces. Only members of your organization can see them.</p></div>
-          <Button href="/app/restaurants/new">Add a restaurant</Button>
-        </div>
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-[28px] font-extrabold tracking-[-0.03em]">{t("dashboard.title")}</h1><p className="text-[14px] text-ink-2">{t("dashboard.body")}</p></div><Button href="/app/restaurants/new" variant="coral">{t("dashboard.add")}<Icon.arrowRight /></Button></div>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {mine.map((r) => (
-            <Card key={r.id} as="article">
-              <div className="flex items-start justify-between gap-2"><h2 className="font-semibold"><Link href={`/r/${r.id}`} className="hover:underline">{r.name}</Link></h2><ModeBadge mode={r.dataMode} /></div>
-              <p className="mt-1 text-sm text-ink-2">{r.cuisine} · {[r.neighborhood, r.city].filter(Boolean).join(", ")}</p>
-              <div className="mt-3"><Badge tone="muted">created {new Date(r.createdAt).toLocaleDateString()}</Badge></div>
-            </Card>
-          ))}
+          {mine.map((r) => (<Card key={r.id} as="article"><div className="flex items-start justify-between gap-2"><h2 className="text-[17px] font-bold"><Link href={`/r/${r.id}`} className="hover:underline">{r.name}</Link></h2><Chip tone={r.dataMode === "live" ? "good" : "warn"}>{r.dataMode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")}</Chip></div><p className="mt-1 text-[13.5px] text-ink-2">{r.cuisine} · {[r.neighborhood, r.city].filter(Boolean).join(", ")}</p><p className="mt-3 text-[12px] text-muted">{t("dashboard.created", { date: new Date(r.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : locale) })}</p></Card>))}
         </div>
-        {mine.length === 0 ? <div className="mt-6"><Empty title="No restaurants yet" body="Create a workspace with a few menu items and your objective. The analysis works without a POS." action={<Button href="/app/restaurants/new">Add a restaurant</Button>} /></div> : null}
+        {mine.length === 0 ? <div className="mt-6"><Empty title={t("dashboard.emptyT")} body={t("dashboard.emptyB")} action={<Button href="/app/restaurants/new" variant="coral">{t("dashboard.add")}</Button>} /></div> : null}
       </main>
     </>
   );

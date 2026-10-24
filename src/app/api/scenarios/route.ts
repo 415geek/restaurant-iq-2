@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const assumptions = scenarioAssumptionsSchema.safeParse(Object.fromEntries(Object.entries(parsed.data.assumptions).map(([k, v]) => [k, typeof v === "string" && k !== "periodLabel" ? Number(v) : v])));
   if (!assumptions.success) return NextResponse.json({ error: "Invalid assumptions", issues: assumptions.error.issues.map((i) => i.path.join(".")) }, { status: 400 });
   const db = getServiceClient();
-  const { data: h } = await db.from("opportunity_hypotheses").select("id, restaurant_id, title").eq("id", parsed.data.hypothesisId).maybeSingle();
+  const { data: h } = await db.from("opportunity_hypotheses").select("id, restaurant_id, title, slug").eq("id", parsed.data.hypothesisId).maybeSingle();
   if (!h) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const access = await authorizeRestaurant(h.restaurant_id);
   if (access.kind === "none") return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   await db.from("decision_events").insert({
     restaurant_id: h.restaurant_id, kind: "scenario_saved", subject_id: h.id,
     summary: `Saved scenario "${parsed.data.label}" for "${h.title}": adjusted weekly contribution ${results.adjustedIncrementalProfit >= 0 ? "+" : "-"}$${Math.abs(results.adjustedIncrementalProfit).toFixed(0)}`,
-    payload: { scenarioId: row.id, assumptions: assumptions.data, results }, actor: actorLabel(access),
+    payload: { lt: { key: "gen.evScenario", params: { label: parsed.data.label, title: { key: `hyp.${h.slug}.title` }, v: `${results.adjustedIncrementalProfit >= 0 ? "+" : "-"}$${Math.abs(results.adjustedIncrementalProfit).toFixed(0)}` } }, scenarioId: row.id, assumptions: assumptions.data, results }, actor: actorLabel(access),
   });
   return NextResponse.json({ ok: true, scenarioId: row.id, results });
 }

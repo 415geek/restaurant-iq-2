@@ -1,35 +1,32 @@
 import { notFound } from "next/navigation";
-import { Card, CardTitle, Empty } from "@/components/ui";
-import { CrossDomainCard, DemographicsCard, LocalPlacesCard, TagAffinityCard } from "@/components/taste/TasteViews";
-import { CompareToggle } from "@/components/opportunity/CompareToggle";
+import { Card, Empty } from "@/components/ui";
+import { StepBar } from "@/components/shell/StepBar";
+import { AttributesTile, AudienceTile, CompareRanking, CrossTile, PlacesTile } from "@/components/taste/TasteTiles";
 import { RunAnalysisButton } from "@/components/demo/RunAnalysisButton";
 import { getHypotheses, getLatestEvidence, getLatestRun, getRestaurantOverview } from "@/lib/queries";
-
-export const metadata = { title: "Taste signals" };
+import { getT } from "@/i18n";
 
 export default async function TastePage({ params }: PageProps<"/r/[id]/taste">) {
   const { id } = await params;
-  const [overview, run] = await Promise.all([getRestaurantOverview(id), getLatestRun(id)]);
+  const [overview, run, { t }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
   if (!overview) notFound();
-  if (!run || run.status !== "completed") {
-    return <Empty title="No taste evidence yet" body="Run an analysis to fetch Qloo signals (or the labeled sample fixture when no key is configured)." action={<RunAnalysisButton restaurantId={id} hasRun={!!run} />} />;
-  }
+  const base = `/r/${id}`;
+  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act") };
+  if (!run || run.status !== "completed") return <div className="grid gap-5"><StepBar current="signals" labels={labels} hrefs={{ snapshot: base }} /><Empty title={t("taste.emptyT")} body={t("taste.emptyB")} action={<RunAnalysisButton restaurantId={id} hasRun={!!run} />} /></div>;
   const [evidence, hypotheses] = await Promise.all([getLatestEvidence(id, run.startedAt), getHypotheses(id, run.id)]);
-  const src = (endpointType: string) => evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes(endpointType) || (endpointType === "tags-endpoint" && s.endpoint === "/v2/tags"));
+  const src = (type: string) => evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes(type));
   const failed = (run.steps.find((s) => s.agent === "EvidenceAgent")?.outputSummary.failures as string[] | undefined) ?? [];
   return (
-    <div className="grid gap-4">
-      {failed.length ? <Card className="border-bad/30"><p className="text-sm text-bad">Some evidence steps failed and were not substituted: {failed.join(", ")}.</p></Card> : null}
+    <div className="grid gap-5">
+      <StepBar current="signals" labels={labels} hrefs={{ snapshot: base, choose: `${base}/opportunities`, act: `${base}/actions` }} />
+      {failed.length ? <Card className="border-bad/30"><p className="text-[13px] text-bad">{t("taste.failed", { steps: failed.join(", ") })}</p></Card> : null}
       <div className="grid gap-4 lg:grid-cols-2">
-        <TagAffinityCard tags={evidence.tagAffinities} source={src("urn:tag")} mode={evidence.mode} />
-        <DemographicsCard demo={evidence.demographics} source={src("urn:demographics")} mode={evidence.mode} />
-        <CrossDomainCard items={evidence.crossDomain} source={evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes("brand") || (s.requestParams["filter.type"] ?? "").includes("|"))} mode={evidence.mode} />
-        <LocalPlacesCard places={evidence.localPlaces} source={src("urn:entity:place")} mode={evidence.mode} />
+        <AttributesTile tags={evidence.tagAffinities} source={src("urn:tag")} />
+        <AudienceTile demo={evidence.demographics} source={src("urn:demographics")} />
+        <CrossTile items={evidence.crossDomain} source={evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes("brand"))} />
+        <PlacesTile places={evidence.localPlaces} source={src("urn:entity:place")} />
       </div>
-      <Card>
-        <CardTitle hint="Same hypothesis catalog, two rankings. The toggle shows exactly which returned signal moved each recommendation.">With Qloo vs without Qloo</CardTitle>
-        <CompareToggle hypotheses={hypotheses} base={`/r/${id}`} mode={evidence.mode} />
-      </Card>
+      <CompareRanking hypotheses={hypotheses} base={base} mode={evidence.mode} />
     </div>
   );
 }

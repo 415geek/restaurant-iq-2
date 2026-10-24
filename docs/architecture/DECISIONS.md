@@ -8,3 +8,4 @@
 | 2026-10-23 | Deterministic opportunity + economics engine; LLM optional for narrative only | Prompt §5/§8; no ANTHROPIC key available; judges must see non-fabricated numbers | plan.json |
 | 2026-10-23 | Sample fixtures are synthetic, never captured Qloo payloads | Hackathon rule: no Qloo response data in public repo | CONTRACTS.md |
 | 2026-10-23 | License MIT (draft, pending owner approval) | Devpost requires visible OSS license | rules page |
+| 2026-10-24 | Redesign to brand-guide card system (Toast/DoorDash feel); EN/中文/ES with keyed generated content | Owner rejected the ledger direction as too dense; brand guide supplies palette and type | DESIGN.md, mockups in ~/.gstack/projects/QlooAgenticHackathon/designs |

@@ -1,30 +1,24 @@
-import { Badge, fmtDate } from "@/components/ui";
+"use client";
+import { Chip, fmtDate } from "@/components/ui";
+import { useI18n } from "@/i18n/client";
 import type { EventView } from "@/lib/queries";
+import type { LText } from "@/i18n/locales";
 
-const KIND: Record<string, { label: string; tone: "neutral" | "accent" | "good" | "warn" | "bad" | "muted" }> = {
-  restaurant_created: { label: "Workspace", tone: "neutral" },
-  analysis_completed: { label: "Analysis", tone: "accent" },
-  hypothesis_pursued: { label: "Decision", tone: "good" },
-  hypothesis_rejected: { label: "Decision", tone: "bad" },
-  scenario_saved: { label: "Scenario", tone: "neutral" },
-  action_approved: { label: "Approval", tone: "good" },
-  action_status_changed: { label: "Task", tone: "muted" },
-  outcome_recorded: { label: "Outcome", tone: "accent" },
-};
+const TONE: Record<string, "neutral" | "coral" | "good" | "bad" | "gold" | "muted" | "pos"> = { restaurant_created: "neutral", analysis_completed: "pos", hypothesis_pursued: "gold", hypothesis_rejected: "bad", scenario_saved: "neutral", action_approved: "good", action_status_changed: "muted", outcome_recorded: "coral" };
 
 export function Timeline({ events }: { events: EventView[] }) {
+  const { t, lt, locale } = useI18n();
   return (
     <ol className="relative ml-2 border-l border-border pl-5">
       {events.map((e) => {
-        const k = KIND[e.kind] ?? { label: e.kind, tone: "neutral" as const };
-        const p = e.payload as Record<string, unknown>;
+        const p = e.payload as { lt?: LText; top?: Array<{ slug: string; label: string }>; mode?: string; assumptions?: Record<string, unknown> };
         return (
           <li key={e.id} className="relative pb-5">
-            <span className="absolute -left-[1.6rem] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-bg bg-accent" aria-hidden />
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted"><Badge tone={k.tone}>{k.label}</Badge><time dateTime={e.createdAt}>{fmtDate(e.createdAt)}</time><span>· {e.actor}</span></div>
-            <p className="mt-1 text-sm">{e.summary}</p>
-            {e.kind === "analysis_completed" && Array.isArray(p.top) ? <p className="mt-0.5 text-xs text-muted">Top: {(p.top as Array<{ slug: string; label: string }>).map((t) => `${t.slug} [${t.label}]`).join(", ")} · mode {String(p.mode)} · trace {String(p.traceId ?? "").slice(0, 8)}</p> : null}
-            {e.kind === "scenario_saved" && p.assumptions ? <p className="mt-0.5 text-xs text-muted">Assumptions snapshot: price ${String((p.assumptions as Record<string, unknown>).salePrice)}, units {String((p.assumptions as Record<string, unknown>).incrementalUnits)}, food cost ${String((p.assumptions as Record<string, unknown>).foodCostPerUnit)}</p> : null}
+            <span className="absolute -left-[1.6rem] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-bg bg-coral" aria-hidden />
+            <div className="flex flex-wrap items-center gap-2 text-[12px] text-muted"><Chip tone={TONE[e.kind] ?? "neutral"}>{t(`memory.kinds.${e.kind}`)}</Chip><time dateTime={e.createdAt}>{fmtDate(e.createdAt, locale)}</time><span>· {e.actor}</span></div>
+            <p className="mt-1 text-[14px]">{p.lt ? lt(p.lt) : e.summary}</p>
+            {e.kind === "analysis_completed" && Array.isArray(p.top) ? <div className="mt-1 flex flex-wrap gap-1">{p.top.map((x) => <Chip key={x.slug} tone="muted">{t(`hyp.${x.slug}.title`)}</Chip>)}</div> : null}
+            {e.kind === "scenario_saved" && p.assumptions ? <p className="mt-0.5 text-[12px] text-muted">{t("memory.snapshot", { p: `$${p.assumptions.salePrice}`, u: String(p.assumptions.incrementalUnits), f: `$${p.assumptions.foodCostPerUnit}` })}</p> : null}
           </li>
         );
       })}

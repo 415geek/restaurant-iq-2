@@ -36,6 +36,8 @@ describe("runAnalysis (sample mode, memory store)", () => {
     expect(store.actions.length).toBeGreaterThan(0);
     expect(store.actions.filter((a) => a.externalSideEffect).every((a) => a.status === "needs_approval")).toBe(true);
     expect(store.events[0].kind).toBe("analysis_completed");
+    expect((store.events[0].payload as { lt: { key: string } }).lt.key).toBe("gen.evAnalysis");
+    expect(store.actions.every((a) => a.titleLt)).toBe(true);
     expect(res.evaluator.passed).toBe(true);
     expect(store.runs.get(res.runId)!.status).toBe("completed");
   });

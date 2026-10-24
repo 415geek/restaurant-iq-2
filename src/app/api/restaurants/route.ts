@@ -37,6 +37,6 @@ export async function POST(req: Request) {
   if (items.length) {
     await supabase.from("menu_items").insert(items.map((i, idx) => ({ restaurant_id: r.id, name: i.name, category: i.category, price: i.price, food_cost: i.foodCost, source: "manual", is_signature: idx === 0 })));
   }
-  await getServiceClient().from("decision_events").insert({ restaurant_id: r.id, kind: "restaurant_created", summary: `Workspace created for ${d.name}${items.length ? ` with ${items.length} menu items` : ""}`, payload: { menuItems: items.length, dataMode: process.env.QLOO_API_KEY ? "live" : "sample" }, actor: `user:${auth.user.id}` });
+  await getServiceClient().from("decision_events").insert({ restaurant_id: r.id, kind: "restaurant_created", summary: `Workspace created for ${d.name}${items.length ? ` with ${items.length} menu items` : ""}`, payload: { lt: { key: "gen.evCreated", params: { name: d.name, menu: items.length ? { key: "gen.evCreatedMenu", params: { n: items.length } } : "" } }, menuItems: items.length, dataMode: process.env.QLOO_API_KEY ? "live" : "sample" }, actor: `user:${auth.user.id}` });
   return NextResponse.json({ ok: true, restaurantId: r.id });
 }

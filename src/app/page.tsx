@@ -1,77 +1,41 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SiteHeader } from "@/components/shell/SiteHeader";
-import { Badge, Button } from "@/components/ui";
+import { Button, Chip } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
+import { getT } from "@/i18n";
+import { DEMO_RESTAURANT_ID } from "@/lib/queries";
 
-const STEPS = [
-  { n: "01", t: "Describe the restaurant", d: "Cuisine, neighborhood, formats, hours, a few menu costs, your objective and constraints. No POS needed." },
-  { n: "02", t: "Qloo taste discovery", d: "Server-side calls to Qloo's Insights API: which place attributes, demographics and non-food brands, podcasts and shows your cuisine's fans over-index for, near you." },
-  { n: "03", t: "Ranked hypotheses, not promises", d: "A deterministic engine scores taste fit, operational fit, feasibility and unit economics. It also says what not to pursue, and why." },
-  { n: "04", t: "Decision Lab + playbook", d: "Adjust price, units, food cost, fees, marketing and cannibalization; contribution margin and break-even recompute instantly. Tasks need your approval before anything goes external." },
-  { n: "05", t: "Business memory", d: "Every decision, assumption, approval and outcome is kept, independent of which POS you use next year." },
-];
-
-export default function Home() {
+export default async function Home() {
+  const { t } = await getT();
+  const steps = [["s1", "snapshot"], ["s2", "signals"], ["s3", "ideas"], ["s4", "memory"]] as const;
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-20">
-        <section className="pt-14 sm:pt-24">
-          <Badge tone="accent">Qloo Agentic Hackathon 2026 · open-source</Badge>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-            Your POS runs your restaurant.<br />
-            <span className="text-accent-ink">Restaurant IQ grows your business.</span>
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-ink-2">
-            An independent commercial decision brain for independent restaurants. It turns cross-domain taste intelligence from Qloo into ranked, costed, testable opportunities with execution playbooks and a lasting decision memory. Not another POS.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="/demo" size="lg">Try the live demo</Button>
-            <Button href="/login" variant="secondary" size="lg">Analyze my restaurant</Button>
+      <main className="flex-1">
+        <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-12 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+          <div>
+            <Chip tone="coral">{t("landing.kicker")}</Chip>
+            <h1 className="mt-4 text-[38px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{t("landing.h1a")}<br /><span className="text-coral">{t("landing.h1b")}</span></h1>
+            <p className="mt-5 max-w-xl text-[17px] text-ink-2">{t("landing.lead")}</p>
+            <div className="mt-7 flex flex-wrap gap-3"><Button href="/demo" variant="coral" size="lg">{t("landing.ctaDemo")}<Icon.arrowRight /></Button><Button href="/login" variant="secondary" size="lg">{t("landing.ctaOwn")}</Button></div>
+            <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>
           </div>
-          <p className="mt-3 text-sm text-muted">No account needed for the demo. The demo restaurant is synthetic and clearly labeled.</p>
+          {/* product composition: three real-looking cards, no screenshot */}
+          <div className="relative mx-auto mt-10 w-full max-w-md pb-8 lg:mt-0">
+            <div className="card p-5"><div className="mb-3 grid h-11 w-11 place-items-center rounded-xl bg-coral-soft text-coral-ink"><Icon.leaf width={22} height={22} /></div><div className="text-[18px] font-bold">{t("hyp.vegetarian-line.title")}</div><div className="text-[13px] text-ink-2">{t("hyp.vegetarian-line.segment")}</div><div className="mt-3 flex gap-1.5"><Chip ring={0.84}>{t("opps.taste", { v: "0.84" })}</Chip><Chip tone="good">{t("opps.lowEffort")}</Chip></div><div className="mt-4 text-[28px] font-extrabold tracking-[-0.02em]">$362 <span className="text-[13px] font-medium text-muted">{t("common.perWeek")}</span></div></div>
+            <div className="card absolute -bottom-8 -right-3 w-56 p-4 sm:-right-8"><div className="text-[10px] font-bold uppercase tracking-wide text-muted">{t("taste.withoutQloo")} → {t("taste.withQloo")}</div><div className="mt-1 flex items-center gap-2 text-[26px] font-extrabold"><span className="text-muted">#4</span><Icon.arrowRight className="text-coral" /><span className="text-coral-ink">#2</span></div><div className="text-[12px] text-ink-2">{t("hyp.boba-study-pairing.title")}</div></div>
+            <div className="card absolute -left-3 -top-12 w-44 p-3 sm:-left-10"><div className="flex items-center gap-2 text-[12px] font-semibold"><i className="h-2 w-2 rounded-full bg-warn" />{t("common.sampleData")}</div><div className="text-[11px] text-muted">{t("common.sources", { n: 5 })}</div></div>
+          </div>
         </section>
-
-        <section className="mt-16 grid gap-4 sm:mt-24 sm:grid-cols-2 lg:grid-cols-3" aria-label="What it does">
-          {[
-            ["Outside the four walls", "Most restaurant software reports what already sold. Restaurant IQ looks at who nearby loves what you make, and what else they love."],
-            ["Affinity is not demand", "Every number carries its source, freshness and interpretation. Taste affinity is shown as a relation, never as a sales forecast."],
-            ["A defensible 'no'", "Hypotheses that break a constraint, have negative per-unit contribution or lack evidence are marked not recommended, with reasons."],
-          ].map(([t, d]) => (
-            <div key={t} className="card p-5">
-              <h2 className="font-semibold">{t}</h2>
-              <p className="mt-1 text-sm text-ink-2">{d}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="mt-16 sm:mt-24">
-          <h2 className="text-2xl font-semibold tracking-tight">How a session works</h2>
-          <ol className="mt-6 grid gap-3 md:grid-cols-5">
-            {STEPS.map((s) => (
-              <li key={s.n} className="card p-4">
-                <div className="font-mono text-xs text-accent-ink">{s.n}</div>
-                <div className="mt-1 font-medium">{s.t}</div>
-                <p className="mt-1 text-sm text-ink-2">{s.d}</p>
-              </li>
-            ))}
+        <section className="mx-auto max-w-6xl px-4 pb-16 pt-10">
+          <h2 className="text-[24px] font-extrabold tracking-[-0.02em]">{t("landing.how")}</h2>
+          <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map(([k, icon], i) => { const I = Icon[icon]; return (<li key={k} className="card p-5"><div className="flex items-center gap-2 text-[12px] font-bold text-coral-ink"><I width={18} height={18} />0{i + 1}</div><div className="mt-2 text-[16px] font-bold">{t(`landing.${k}t`)}</div><p className="mt-1 text-[13.5px] text-ink-2">{t(`landing.${k}d`)}</p></li>); })}
           </ol>
         </section>
-
-        <section className="mt-16 card p-6 sm:mt-24 sm:p-8">
-          <h2 className="text-2xl font-semibold tracking-tight">With Qloo vs without Qloo</h2>
-          <p className="mt-2 max-w-3xl text-ink-2">
-            Generic advice says &quot;run a lunch special&quot;. With Qloo, the engine can see that this cuisine&apos;s fans in this neighborhood over-index for vegetarian-friendly places, a specific podcast and a specific apparel brand, and that the under-25 bucket skews positive. Those signals re-rank the hypotheses, change the target segment, and name the partner to call. The workspace shows exactly which returned signal moved each recommendation.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button href="/demo">Open the demo workspace</Button>
-            <Link href="https://docs.qloo.com/" className="inline-flex h-11 items-center text-sm text-accent-ink underline" target="_blank" rel="noreferrer">Qloo API docs</Link>
-          </div>
-        </section>
-
-        <footer className="mt-16 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-6 text-xs text-muted">
-          <span>Restaurant IQ 2.0 · Taste-to-Profit Agent · MIT License</span>
-          <span>Recommendations are hypotheses with stated assumptions. No profitability is promised.</span>
-        </footer>
+        <section className="mx-auto max-w-6xl px-4 pb-16"><div className="card grid gap-4 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center"><div><h2 className="text-[24px] font-extrabold tracking-[-0.02em]">{t("landing.compareT")}</h2><p className="mt-2 max-w-3xl text-[14.5px] text-ink-2">{t("landing.compareD")}</p></div><Button href={`/r/${DEMO_RESTAURANT_ID}/taste`} variant="primary">{t("taste.compareT")}<Icon.arrowRight /></Button></div></section>
+        <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-6 text-[12px] text-muted"><span className="flex items-center gap-2"><Image src="/brand/logo-mark.svg" alt="" width={18} height={18} />Restaurant IQ 2.0</span><span>{t("landing.footer")}</span><Link href="https://docs.qloo.com/" target="_blank" rel="noreferrer" className="underline">Qloo API</Link></footer>
       </main>
     </>
   );

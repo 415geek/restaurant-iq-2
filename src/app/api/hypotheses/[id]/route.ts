@@ -12,7 +12,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const parsed = hypothesisStatusSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "status must be pursued or rejected" }, { status: 400 });
   const db = getServiceClient();
-  const { data: h } = await db.from("opportunity_hypotheses").select("id, restaurant_id, title, status").eq("id", id).maybeSingle();
+  const { data: h } = await db.from("opportunity_hypotheses").select("id, restaurant_id, title, slug, status").eq("id", id).maybeSingle();
   if (!h) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const access = await authorizeRestaurant(h.restaurant_id);
   if (access.kind === "none") return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -21,10 +21,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (h.status !== "proposed") return NextResponse.json({ error: `Hypothesis already ${h.status}` }, { status: 409 });
   const { error } = await db.from("opportunity_hypotheses").update({ status: parsed.data.status }).eq("id", id);
   if (error) return NextResponse.json({ error: "Update failed" }, { status: 500 });
+  const lt = { key: parsed.data.status === "pursued" ? "gen.evPursued" : "gen.evRejected", params: { title: { key: `hyp.${h.slug}.title` } } };
   await db.from("decision_events").insert({
     restaurant_id: h.restaurant_id, kind: parsed.data.status === "pursued" ? "hypothesis_pursued" : "hypothesis_rejected", subject_id: id,
     summary: `${parsed.data.status === "pursued" ? "Pursuing" : "Rejected"} "${h.title}"${parsed.data.note ? `: ${parsed.data.note}` : ""}`,
-    payload: { note: parsed.data.note ?? null }, actor: actorLabel(access),
+    payload: { lt, note: parsed.data.note ?? null }, actor: actorLabel(access),
   });
   return NextResponse.json({ ok: true, status: parsed.data.status });
 }
