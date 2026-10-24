@@ -108,9 +108,12 @@ export async function getHypothesis(id: string): Promise<{ hypothesis: Hypothesi
 
 export interface ActionView { id: string; hypothesisId: string | null; hypothesisSlug: string | null; hypothesisTitle: string | null; title: string; description: string | null; titleLt: LText | null; descriptionLt: LText | null; status: string; owner: string | null; dueDate: string | null; requiresApproval: boolean; externalSideEffect: boolean; evidenceIds: string[]; updatedAt: string; approvals: Array<{ decision: string; actorLabel: string; note: string | null; createdAt: string }> }
 
-export async function getActions(restaurantId: string): Promise<ActionView[]> {
+/** Tasks for a restaurant; when `runId` is given, only tasks drafted for that analysis run's hypotheses. */
+export async function getActions(restaurantId: string, runId?: string | null): Promise<ActionView[]> {
   const supabase = await getSsrClient();
-  const { data } = await supabase.from("action_items").select("*, opportunity_hypotheses(title,slug), approvals(decision,actor_label,note,created_at)").eq("restaurant_id", restaurantId).order("created_at");
+  let q = supabase.from("action_items").select("*, opportunity_hypotheses!inner(title,slug,run_id), approvals(decision,actor_label,note,created_at)").eq("restaurant_id", restaurantId).order("created_at");
+  if (runId) q = q.eq("opportunity_hypotheses.run_id", runId);
+  const { data } = await q;
   return (data ?? []).map((a) => ({
     id: a.id, hypothesisId: a.hypothesis_id, hypothesisSlug: (a as { opportunity_hypotheses?: { slug: string } | null }).opportunity_hypotheses?.slug ?? null, hypothesisTitle: (a as { opportunity_hypotheses?: { title: string } | null }).opportunity_hypotheses?.title ?? null, title: a.title, description: a.description, titleLt: (a.title_lt as LText | null) ?? null, descriptionLt: (a.description_lt as LText | null) ?? null, status: a.status, owner: a.owner, dueDate: a.due_date, requiresApproval: a.requires_approval, externalSideEffect: a.external_side_effect, evidenceIds: a.evidence_ids ?? [], updatedAt: a.updated_at,
     approvals: ((a as { approvals?: Array<{ decision: string; actor_label: string; note: string | null; created_at: string }> }).approvals ?? []).map((p) => ({ decision: p.decision, actorLabel: p.actor_label, note: p.note, createdAt: p.created_at })),

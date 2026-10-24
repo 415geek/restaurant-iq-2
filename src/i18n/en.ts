@@ -96,6 +96,7 @@ const en = {
     formatLabel: { dine_in: "dine in", takeout: "takeout", third_party_delivery: "delivery apps", catering: "catering" },
   },
   snapshot: {
+    "hi": "Hi, {name}", "kpiIdeas": "Ideas worth testing", "kpiBest": "Best weekly contribution", "kpiTaste": "Top taste match", "kpiData": "Data & run", "nextSteps": "Next steps", "avg": "avg", "ofScreened": "of {t} screened", "stepsDone": "{d}/{n} steps", "chartT": "What this audience looks for", "chartH": "Taste affinity by place attribute, 0–1. Highest highlighted.", "audienceT": "Audience shape", "scenarios": "Conservative · Base · Premium", "now": "Now", "seeAll": "See all", "noIdeasYet": "Run the analysis to fill this dashboard.",
     title: "Snapshot",
     profile: "Profile", formats: "Formats", hours: "Hours", priceLevel: "Price level", avgTicket: "Avg ticket", pos: "POS",
     posNone: "none connected", posPlanned: "{pos} · not connected",
@@ -170,6 +171,7 @@ const en = {
     whyChips: { tag: "attribute", entity: "place / brand", demographic: "audience", menu: "menu" },
   },
   lab: {
+    "costMix": "Cost mix / week",
     title: "Decision Lab",
     hint: "Move the numbers. Everything recalculates. No model guesses.",
     primary: { salePrice: "Sell price", incrementalUnits: "Units / week", cannibalizationPct: "Replaces existing orders" },
@@ -191,6 +193,7 @@ const en = {
     },
   },
   actions: {
+    "kpiOpen": "Open tasks", "kpiApproval": "Waiting for approval", "kpiDone": "Done", "progress": "Progress",
     title: "Action board",
     hint: "Anything that touches the outside world waits for your approval.",
     emptyT: "No tasks yet", emptyB: "Run an analysis. Capacity checks, channel checks and one approval-gated launch post per idea are drafted.",

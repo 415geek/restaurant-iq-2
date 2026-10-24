@@ -6,6 +6,7 @@ import { Button, Stat, cx, fmtUsd } from "@/components/ui";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { useI18n } from "@/i18n/client";
 import { warnKey } from "@/lib/business/scoring";
+import { StackedBar, Tornado } from "@/components/charts";
 
 type Key = keyof ScenarioAssumptions;
 const PRIMARY: Array<{ key: Key; step: number; min: number; max: number; pct?: boolean }> = [
@@ -62,11 +63,8 @@ export function LabCore({ hypothesisId, initial, compact, canSave = true }: { hy
         </div>
         {!compact ? (
           <>
-            <div className="card p-4"><div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("lab.breakdown")}</div><ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[13px] sm:grid-cols-3">{([["ingredients", r.costs.ingredients], ["packaging", r.costs.packaging], ["labor", r.costs.incrementalLabor], ["delivery", r.costs.deliveryFees], ["card", r.costs.transactionFees], ["discounts", r.costs.discounts]] as const).map(([k, v]) => <li key={k} className="flex justify-between gap-2"><span className="text-ink-2">{t(`lab.${k}`)}</span><span className="tabular">{fmtUsd(v)}</span></li>)}</ul></div>
-            <div className="card p-4"><div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("lab.sensitivity")}</div>
-              <ul className="mt-2 space-y-1.5">{sens.map((s) => { const span = Math.max(1, ...sens.flatMap((x) => [Math.abs(x.up - x.base), Math.abs(x.down - x.base)])); const w = (v: number) => `${Math.min(50, (Math.abs(v - s.base) / span) * 50)}%`; return (
-                <li key={s.driver} className="grid grid-cols-[7rem_1fr] items-center gap-2 text-[12px]"><span className="truncate text-ink-2">{t(`lab.drivers.${s.driver}`)}</span><div className="relative h-2 rounded-full bg-surface-2" role="img" aria-label={`${s.driver}: ${fmtUsd(s.down)} → ${fmtUsd(s.up)}`}><div className="absolute left-1/2 top-0 h-2 w-px bg-border" /><div className={cx("absolute top-0 h-2 rounded-full", s.up >= s.base ? "bg-pos" : "bg-neg")} style={s.up >= s.base ? { left: "50%", width: w(s.up) } : { right: "50%", width: w(s.up) }} /><div className={cx("absolute top-0 h-2 rounded-full opacity-50", s.down >= s.base ? "bg-pos" : "bg-neg")} style={s.down >= s.base ? { left: "50%", width: w(s.down) } : { right: "50%", width: w(s.down) }} /></div></li>); })}</ul>
-            </div>
+            <div className="card p-4"><div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("lab.costMix")}</div><div className="mt-3"><StackedBar height={12} segments={([["ingredients", r.costs.ingredients, "var(--coral)"], ["packaging", r.costs.packaging, "#FF9F1C"], ["labor", r.costs.incrementalLabor, "#1B2A4A"], ["delivery", r.costs.deliveryFees, "#3B82F6"], ["card", r.costs.transactionFees, "#D4A843"], ["discounts", r.costs.discounts, "#9CA3AF"]] as const).filter(([, v]) => v > 0).map(([k, v, c]) => ({ label: t(`lab.${k}`), value: Math.round(v), color: c }))} /></div></div>
+            <div className="card p-4"><div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("lab.sensitivity")}</div><div className="mt-3"><Tornado rows={sens.map((s) => ({ label: t(`lab.drivers.${s.driver}`), down: s.down, base: s.base, up: s.up }))} format={(v) => fmtUsd(v)} /></div></div>
           </>
         ) : null}
         {r.warnings.length ? <ul className="rounded-xl bg-warn-soft p-3 text-[13px] text-warn-ink">{r.warnings.map((w) => <li key={w}>{lt(warnKey(w))}</li>)}</ul> : null}

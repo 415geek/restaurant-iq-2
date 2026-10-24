@@ -32,8 +32,8 @@
 ## Spacing & Layout
 - **Base unit:** 4px. Density: comfortable. Card padding 20px (16 on mobile). Section gap 24px.
 - **Layout:** desktop = 240px left rail + content (max 1120px) + optional 480px side sheet. Mobile (<1024px) = bottom tab bar (5 tabs), sheets become bottom drawers.
-- **Radius:** card 16px, chip/button 12px (pill 999px for chips), input 10px.
-- **Elevation:** cards `0 1px 2px rgba(17,24,39,.04)` + 1px neutral-200 border; sheets `-12px 0 40px rgba(17,24,39,.12)`.
+- **Radius:** card 20px, chip/button 12px (pill 999px for chips), input 10px.
+- **Elevation:** floating cards, no visible border: `0 6px 24px rgba(27,42,74,.06)`; canvas `#EFF1F5`; sheets `-12px 0 40px rgba(17,24,39,.12)`.
 
 ## Components
 - **Card:** white, border neutral-200, radius 16. Title (18/700), one-line meta (14/400, gray-600), chip row, one hero number (28/800), 1–2 buttons.
@@ -59,3 +59,4 @@
 |---|---|---|
 | 2026-10-24 | Replaced blue-SaaS card grid + ledger exploration with brand-guide card system | Owner: "Toast/DoorDash style, cards, few words"; brand guide supplies palette + type |
 | 2026-10-24 | Light-only for submission | Owner: main UI white; time-boxed |
+| 2026-10-24 | Dashboard idiom: KPI tiles (2 accent tiles coral/navy), highlighted-bar charts with avg line, donut, stacked progress, sparkline, tornado; floating cards (no border, soft shadow, radius 20) on #EFF1F5 canvas | Owner reference screenshots (Mondly / Breeze / PolluxUI style) |

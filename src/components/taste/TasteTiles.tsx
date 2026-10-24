@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Bar, Card, Chip, DivergingBar, H2, cx } from "@/components/ui";
+import { Card, Chip, DivergingBar, H2, cx } from "@/components/ui";
+import { MiniBars } from "@/components/charts";
 import { Icon } from "@/components/ui/Icon";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { useI18n } from "@/i18n/client";
@@ -18,7 +19,8 @@ function Source({ s }: { s?: EvidenceSourceView }) {
 export function AttributesTile({ tags, source }: { tags: TagSignal[]; source?: EvidenceSourceView }) {
   const { t } = useI18n();
   const sorted = [...tags].sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0)).slice(0, 7);
-  return (<Card><H2 hint={<>{t("taste.attributesH")}<InfoTip>{t("trust.affinityNote")}</InfoTip></>}>{t("taste.attributesT")}</H2>{sorted.length ? sorted.map((x) => <Bar key={x.tagId} value={x.affinity} label={x.name} />) : <p className="text-[13px] text-muted">{t("taste.noneReturned")}</p>}<Source s={source} /></Card>);
+  const avg = sorted.length ? sorted.reduce((a, x) => a + (x.affinity ?? 0), 0) / sorted.length : 0;
+  return (<Card><H2 hint={<>{t("taste.attributesH")}<InfoTip>{t("trust.affinityNote")}</InfoTip></>}>{t("taste.attributesT")}</H2>{sorted.length ? <MiniBars height={170} data={sorted.map((x) => ({ label: x.name, value: Math.round((x.affinity ?? 0) * 100) }))} refLine={Math.round(avg * 100)} refLabel={avg.toFixed(2)} labelFormatter={(v) => (v / 100).toFixed(2)} /> : <p className="text-[13px] text-muted">{t("taste.noneReturned")}</p>}<Source s={source} /></Card>);
 }
 
 export function AudienceTile({ demo, source }: { demo: AudienceAffinity[]; source?: EvidenceSourceView }) {

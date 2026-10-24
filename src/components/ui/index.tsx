@@ -45,7 +45,7 @@ export function Button({ children, href, variant = "primary", className, type = 
 }
 
 export function Card({ children, className, as: Tag = "section", padded = true }: { children: ReactNode; className?: string; as?: "section" | "div" | "article" | "li"; padded?: boolean }) {
-  return <Tag className={cx("card", padded && "p-4 sm:p-5", className)}>{children}</Tag>;
+  return <Tag className={cx("card", padded && "p-5 sm:p-6", className)}>{children}</Tag>;
 }
 
 export function H2({ children, hint, right, className }: { children: ReactNode; hint?: ReactNode; right?: ReactNode; className?: string }) {

@@ -41,6 +41,7 @@ const es: Dictionary = {
     formatLabel: { dine_in: "en local", takeout: "para llevar", third_party_delivery: "apps de delivery", catering: "catering" },
   },
   snapshot: {
+    "hi": "Hola, {name}", "kpiIdeas": "Ideas que vale la pena probar", "kpiBest": "Mejor contribución semanal", "kpiTaste": "Mayor afinidad", "kpiData": "Datos y ejecución", "nextSteps": "Próximos pasos", "avg": "prom.", "ofScreened": "de {t} evaluadas", "stepsDone": "{d}/{n} pasos", "chartT": "Qué busca esta audiencia", "chartH": "Afinidad por atributo de lugar, 0–1. La mayor resaltada.", "audienceT": "Perfil de audiencia", "scenarios": "Conservador · Base · Premium", "now": "Ahora", "seeAll": "Ver todo", "noIdeasYet": "Ejecuta el análisis para llenar este panel.",
     title: "Resumen", profile: "Perfil", formats: "Formatos", hours: "Horario", priceLevel: "Nivel de precio", avgTicket: "Ticket promedio", pos: "POS", posNone: "ninguno conectado", posPlanned: "{pos} · no conectado",
     menu: "Menú", items: "{n} platos", noMenu: "Aún no hay platos.", strengths: "Fortalezas", constraints: "Restricciones", goal: "Objetivo", noGoal: "Sin objetivo",
     strengthSignature: "Insignia: {names}", strengthDelivery: "Delivery ya activo", strengthFoodCost: "Costo de alimentos {pct}% en platos con costo",
@@ -86,6 +87,7 @@ const es: Dictionary = {
     whyChips: { tag: "atributo", entity: "lugar / marca", demographic: "audiencia", menu: "menú" },
   },
   lab: {
+    "costMix": "Mezcla de costos / semana",
     title: "Laboratorio de decisión", hint: "Mueve los números. Todo se recalcula. Sin adivinanzas de modelos.",
     primary: { salePrice: "Precio de venta", incrementalUnits: "Unidades / semana", cannibalizationPct: "Reemplaza pedidos existentes" },
     advanced: "Más supuestos",
@@ -99,6 +101,7 @@ const es: Dictionary = {
     warn: { negative: "La contribución por unidad es cero o negativa: más volumen no lo arregla.", zeroUnits: "Sin unidades asumidas: solo queda el gasto de marketing.", foodCost: "Costo de alimentos superior al 40% del precio neto.", deliveryNoFee: "Hay parte de delivery pero comisión 0%: confirma tarifas.", cannibNoLoss: "Hay pedidos reemplazados pero la contribución perdida es 0: confirma el margen base.", thin: "Margen fino: un pequeño cambio de costos lo vuelve negativo." },
   },
   actions: {
+    "kpiOpen": "Tareas abiertas", "kpiApproval": "Esperando aprobación", "kpiDone": "Hechas", "progress": "Progreso",
     title: "Tablero de acciones", hint: "Todo lo que toca el mundo exterior espera tu aprobación.",
     emptyT: "Aún sin tareas", emptyB: "Ejecuta un análisis. Se redactan chequeos de capacidad, verificación de canales y una publicación con aprobación por idea.",
     filter: "Idea", all: "Todas",

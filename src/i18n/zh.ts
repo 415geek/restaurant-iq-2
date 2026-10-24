@@ -41,6 +41,7 @@ const zh: Dictionary = {
     formatLabel: { dine_in: "堂食", takeout: "外带", third_party_delivery: "外卖平台", catering: "团餐" },
   },
   snapshot: {
+    "hi": "你好，{name}", "kpiIdeas": "值得测试的点子", "kpiBest": "最佳每周贡献", "kpiTaste": "最高口味匹配", "kpiData": "数据与运行", "nextSteps": "下一步", "avg": "平均", "ofScreened": "/ 共筛选 {t} 个", "stepsDone": "{d}/{n} 步", "chartT": "这群人在找什么", "chartH": "按场所属性的口味亲和度（0–1），最高者高亮。", "audienceT": "人群画像", "scenarios": "保守 · 基准 · 高价", "now": "当前", "seeAll": "查看全部", "noIdeasYet": "运行分析后仪表盘才会有数据。",
     title: "概览", profile: "基本信息", formats: "形式", hours: "营业时间", priceLevel: "价位", avgTicket: "客单价", pos: "POS", posNone: "未接入", posPlanned: "{pos} · 未接入",
     menu: "菜单", items: "{n} 项", noMenu: "还没有菜单。", strengths: "优势", constraints: "限制", goal: "目标", noGoal: "未填写目标",
     strengthSignature: "招牌：{names}", strengthDelivery: "已开通外卖", strengthFoodCost: "已计价菜品食材成本率 {pct}%",
@@ -86,6 +87,7 @@ const zh: Dictionary = {
     whyChips: { tag: "属性", entity: "场所 / 品牌", demographic: "人群", menu: "菜单" },
   },
   lab: {
+    "costMix": "每周成本构成",
     title: "决策实验室", hint: "拖动数字，一切实时重算，没有模型猜测。",
     primary: { salePrice: "售价", incrementalUnits: "每周份数", cannibalizationPct: "替代现有订单比例" },
     advanced: "更多假设",
@@ -99,6 +101,7 @@ const zh: Dictionary = {
     warn: { negative: "每份贡献为零或负：做得再多也无法弥补。", zeroUnits: "未假设任何份数：只剩营销支出。", foodCost: "食材成本超过净售价的 40%。", deliveryNoFee: "设置了外卖占比但抽成为 0%：请确认渠道费用。", cannibNoLoss: "设置了替代订单但损失贡献为 0：请确认基线毛利。", thin: "利润很薄：成本稍有变动就会转负。" },
   },
   actions: {
+    "kpiOpen": "待办任务", "kpiApproval": "等待审批", "kpiDone": "已完成", "progress": "进度",
     title: "行动板", hint: "任何对外动作都要等你审批。",
     emptyT: "还没有任务", emptyB: "运行分析后，会为每个点子生成产能检查、渠道核实和一条需审批的发布任务。",
     filter: "点子", all: "全部",

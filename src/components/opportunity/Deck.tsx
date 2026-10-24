@@ -10,6 +10,7 @@ import type { HypothesisView } from "@/lib/queries";
 import { LabCore } from "./LabCore";
 import { DecideButtons } from "./DecideButtons";
 import { PlanView } from "./PlanView";
+import { MiniBars } from "@/components/charts";
 
 function effortKey(h: HypothesisView) { const c = h.score.operationalFit; return c >= 0.8 ? "opps.lowEffort" : c >= 0.5 ? "opps.mediumEffort" : "opps.highEffort"; }
 
@@ -34,7 +35,10 @@ export function OpportunityCard({ h, onOpen, base }: { h: HypothesisView; onOpen
       {rejected ? (
         <p className="mt-3 text-[13px] text-ink-2">{[...h.disqualifiers, ...h.reasonsToAvoid].slice(0, 1).map(lt).join("") || t("opps.noSignal")}</p>
       ) : (
-        <div className="mt-4 flex items-baseline gap-1.5"><span className={cx("tabular text-[28px] font-extrabold tracking-[-0.02em]", econ.adjustedIncrementalProfit >= 0 ? "text-ink" : "text-bad")}>{fmtUsd(econ.adjustedIncrementalProfit)}</span><span className="text-[13px] text-muted">{t("common.perWeek")}<InfoTip>{t("lab.disclaimer")}</InfoTip></span></div>
+        <div className="mt-4 flex items-end justify-between gap-3">
+          <div className="flex items-baseline gap-1.5"><span className={cx("tabular text-[28px] font-extrabold tracking-[-0.02em]", econ.adjustedIncrementalProfit >= 0 ? "text-ink" : "text-bad")}>{fmtUsd(econ.adjustedIncrementalProfit)}</span><span className="text-[13px] text-muted">{t("common.perWeek")}<InfoTip>{t("lab.disclaimer")}</InfoTip></span></div>
+          <div className="w-20 shrink-0" title={(["tasteFit", "operationalFit", "feasibility", "economics", "evidenceQuality"] as const).map((k) => `${t(`opps.score.${k}`)} ${Math.round(h.score[k] * 100)}%`).join(" · ")}><MiniBars height={34} showLabels={false} data={(["tasteFit", "operationalFit", "feasibility", "economics", "evidenceQuality"] as const).map((k) => ({ label: t(`opps.score.${k}`), value: Math.round(h.score[k] * 100) }))} labelFormatter={(v) => `${v}%`} /></div>
+        </div>
       )}
       <div className="mt-auto flex gap-2 pt-4">
         <Button onClick={onOpen} variant="primary" size="sm">{t("opps.seeWhy")}</Button>
