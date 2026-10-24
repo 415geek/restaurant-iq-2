@@ -5,7 +5,6 @@ import { authorizeRestaurant, actorLabel } from "@/lib/auth/authorize";
 import { checkDemoRateLimit, clientIp } from "@/lib/demo/rate-limit";
 import { getServiceClient } from "@/lib/db/server";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   let body: unknown;

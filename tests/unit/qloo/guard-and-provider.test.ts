@@ -53,7 +53,7 @@ describe("QlooProvider", () => {
   });
 
   it("in live mode normalizes real-shaped responses with provenance", async () => {
-    const fetchImpl = vi.fn(async (url: string) =>
+    const fetchImpl = vi.fn(async () =>
       new Response(JSON.stringify({ success: true, results: { entities: [{ entity_id: "e1", name: "Place", subtype: "urn:entity:place", query: { affinity: 0.7 } }] } }), { status: 200 }),
     );
     const p = new QlooProvider({ apiKey: "k", fetchImpl: fetchImpl as unknown as typeof fetch, traceId: "tr1" });

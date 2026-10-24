@@ -6,7 +6,7 @@
 import { randomUUID } from "node:crypto";
 import { scoreHypotheses } from "@/lib/business/scoring";
 import { computeScenario, sensitivity } from "@/lib/business/margin";
-import type { EvidenceBundle, Hypothesis, MenuItemLite, RestaurantProfile } from "@/lib/business/types";
+import type { EvidenceBundle, Hypothesis, RestaurantProfile } from "@/lib/business/types";
 import { QlooProvider, QlooError, type ProviderMode } from "@/lib/providers/qloo";
 import type { AnalysisStore, HypothesisRow } from "./store";
 
@@ -34,7 +34,7 @@ export interface AnalysisResult {
   researchPlan: string[];
 }
 
-const AGENTS = ["IntakeAgent", "EvidenceAgent", "OpportunityAgent", "FinanceAgent", "ExecutionAgent", "Evaluator"] as const;
+type AgentName = "IntakeAgent" | "EvidenceAgent" | "OpportunityAgent" | "FinanceAgent" | "ExecutionAgent" | "Evaluator";
 
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -55,7 +55,7 @@ export async function runAnalysis(opts: OrchestratorOptions): Promise<AnalysisRe
   await store.updateRun(run.id, { status: "running", startedAt: now().toISOString() });
 
   let seq = 0;
-  async function step<T>(agent: (typeof AGENTS)[number], input: Record<string, unknown>, fn: (budget: { use: () => void }) => Promise<{ out: T; summary: Record<string, unknown> }>): Promise<T> {
+  async function step<T>(agent: AgentName, input: Record<string, unknown>, fn: (budget: { use: () => void }) => Promise<{ out: T; summary: Record<string, unknown> }>): Promise<T> {
     const s = await store.createStep({ runId: run.id, restaurantId, agent, seq: ++seq, inputSummary: input });
     await store.updateStep(s.id, { status: "running", startedAt: now().toISOString() });
     let calls = 0;

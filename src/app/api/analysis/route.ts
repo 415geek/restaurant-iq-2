@@ -7,7 +7,6 @@ import { SupabaseAnalysisStore } from "@/lib/agents/store";
 import { runAnalysis } from "@/lib/agents/orchestrator";
 import { createQlooProvider, QlooError } from "@/lib/providers/qloo";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {

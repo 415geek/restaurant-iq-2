@@ -4,7 +4,6 @@ import { createQlooProvider } from "@/lib/providers/qloo";
 import { getServiceClient } from "@/lib/db/server";
 import { SupabaseAnalysisStore } from "@/lib/agents/store";
 
-export const dynamic = "force-dynamic";
 
 /** Live Qloo verification: signed-in users only (prevents anonymous quota burn). Logs sanitized usage. */
 export async function GET() {

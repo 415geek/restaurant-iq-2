@@ -3,7 +3,6 @@ import { restaurantInputSchema, parseMenuText } from "@/lib/validation/schemas";
 import { getSsrClient } from "@/lib/db/ssr";
 import { getServiceClient } from "@/lib/db/server";
 
-export const dynamic = "force-dynamic";
 
 /** Create a restaurant inside the caller's organization (creates the org on first use). RLS-authorized via the user session. */
 export async function POST(req: Request) {
