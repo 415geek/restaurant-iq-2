@@ -19,7 +19,7 @@ const toneClass: Record<Tone, string> = {
 /** Pill chip. 12.5px/600. Optional affinity ring (0..1). */
 export function Chip({ tone = "neutral", children, ring, className, title }: { tone?: Tone; children: ReactNode; ring?: number; className?: string; title?: string }) {
   return (
-    <span title={title} className={cx("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[12.5px] font-semibold leading-4", toneClass[tone], className)}>
+    <span title={title} className={cx("inline-flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-2.5 py-1 text-[12.5px] font-semibold leading-4", toneClass[tone], className)}>
       {ring !== undefined ? <i className="ring" style={{ ["--v" as string]: Math.max(0, Math.min(1, ring)) }} aria-hidden /> : null}
       {children}
     </span>

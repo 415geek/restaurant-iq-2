@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Chip, cx } from "@/components/ui";
-import { Icon } from "@/components/ui/Icon";
+import { Button, Chip } from "@/components/ui";
 import { useI18n } from "@/i18n/client";
 import { ACTION_STATUSES, canTransition, type ActionStatus } from "@/lib/validation/schemas";
 import type { ActionView } from "@/lib/queries";
@@ -11,7 +10,7 @@ const COLS: ActionStatus[] = ["draft", "needs_approval", "ready", "in_progress",
 
 /** Status-grouped task list. Mobile: stacked groups; desktop: 3 columns. Text-light cards, one action row. */
 export function ActionBoard({ actions }: { actions: ActionView[] }) {
-  const { t, lt, locale } = useI18n();
+  const { t, lt } = useI18n();
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState("");
@@ -51,7 +50,7 @@ export function ActionBoard({ actions }: { actions: ActionView[] }) {
                         <div className="truncate text-[13.5px] font-semibold leading-5">{lt(a.titleLt ?? a.title)}</div>
                         <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-muted">{a.hypothesisSlug ? <Chip tone="coral">{t(`hyp.${a.hypothesisSlug}.title`)}</Chip> : null}{a.externalSideEffect ? <Chip tone="warn">{t("actions.external")}</Chip> : null}{a.owner ? <span>{a.owner}</span> : null}{a.dueDate ? <span>· {t("actions.due", { d: a.dueDate })}</span> : null}{a.approvals.length ? <span className="text-good-ink">· {t("actions.approvedBy", { who: a.approvals[0].actorLabel })}</span> : null}</div>
                       </div>
-                      <div className="flex shrink-0 flex-wrap gap-1">
+                      <div className="flex max-w-full shrink-0 flex-wrap gap-1 sm:max-w-[50%]">
                         {primary ? <Button size="sm" variant={a.status === "needs_approval" ? "coral" : "primary"} disabled={busy === a.id} onClick={() => move(a, primary)} className="h-8 px-2.5 text-[12px]">{a.status === "needs_approval" ? t("actions.approve") : t("actions.moveTo", { s: t(`actions.cols.${primary}`) })}</Button> : null}
                         {nexts.filter((n) => n !== primary).map((n) => <Button key={n} size="sm" variant="ghost" disabled={busy === a.id} onClick={() => move(a, n)} className="h-8 px-2 text-[12px]" title={lt(a.descriptionLt ?? a.description)}>{t("actions.moveTo", { s: t(`actions.cols.${n}`) })}</Button>)}
                       </div>
