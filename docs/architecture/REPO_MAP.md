@@ -8,6 +8,6 @@
 - `src/lib/db/` — Supabase clients (server/service-role, browser), generated types
 - `src/lib/auth/`, `src/lib/validation/`, `src/lib/telemetry/`
 - `src/components/` — ui, demo, restaurant, opportunity, evidence, charts
-- `supabase/migrations/` — 0001 core schema, 0002 RLS; `supabase/seed.sql` demo tenant
+- `supabase/migrations/` — 0001 core schema, 0002 RLS; `supabase/seed.sql` demo tenant · `scripts/` — run-demo-analysis, screenshots
 - `tests/unit`, `tests/integration`, `tests/e2e`
 - `docs/` — baseline, progress, architecture, dev-memory, product, security, tests, deployment, hackathon
