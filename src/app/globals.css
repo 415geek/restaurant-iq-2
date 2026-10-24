@@ -74,6 +74,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .sheet { box-shadow: var(--shadow-sheet); }
 .ring { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: conic-gradient(var(--coral) calc(var(--v, 0) * 360deg), var(--border) 0); }
 .hairline { border-top: 1px solid var(--border); }
+/* grid/flex children may always shrink below their content width (prevents phone-width overflow) */
+.grid > *, .flex > * { min-width: 0; }
+html, body { overflow-x: hidden; }
 .scroll-x { -ms-overflow-style: none; scrollbar-width: none; }
 .scroll-x::-webkit-scrollbar { display: none; }
 input[type="range"] { accent-color: var(--coral); }
