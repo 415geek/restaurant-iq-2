@@ -77,7 +77,7 @@ export function canTransition(from: ActionStatus, to: ActionStatus, opts: { requ
 
 // ---- TastePass ----
 export const momentSchema = z.object({
-  kind: z.enum(["holiday", "street", "community", "manual"]),
+  kind: z.enum(["holiday", "street", "community", "web", "manual"]),
   name: z.string().trim().min(2).max(90),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   theme: z.enum(["kids", "halloween", "family", "farmers_market", "night_market", "street_food", "running", "festival"]).optional(),

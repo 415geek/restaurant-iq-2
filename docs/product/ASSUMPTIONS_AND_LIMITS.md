@@ -19,3 +19,5 @@
 - Qloo describes people who like a *kind* of event (a theme tag), not the people at this specific event.
 - The theme classifier is keyword-based; the owner can change the theme on any row.
 - Live event feeds cover San Francisco only. Neighborhood distance uses approximate neighborhood centers.
+- Web events come from Google Events cards via SerpApi. They are labeled "found on the web" and link to the source so the owner can verify; dates without a year are assumed to be the next occurrence.
+- Live permit feeds: San Francisco, New York, Chicago. Other cities rely on web results and manual entry.

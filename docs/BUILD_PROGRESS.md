@@ -3,14 +3,15 @@
 Updated: 2026-10-28 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
 
 ## Phase
-G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migration 0006; holidays + DataSF street/community events + Qloo crowd fit → timed pass)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
+G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migrations 0006–0007; holidays + Nager.Date + SF/NYC/Chicago open data + SerpApi web events, daily rolling snapshot via cron; Qloo crowd fit → timed pass)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
 
 ## Passing checks (run 2026-10-28)
-lint ✅ · typecheck ✅ · unit + integration 79 ✅ · build ✅ · E2E 36 (32 pass, 4 desktop-only skips on phone projects) ✅
+lint ✅ · typecheck ✅ · unit + integration 86 ✅ · build ✅ · E2E 36 (32 pass, 4 desktop-only skips on phone projects) ✅
 
 ## Blockers (owner)
 1. Public GitHub repo: `gh auth login`, then `gh repo create restaurant-iq-2 --public --source . --push`.
-2. Vercel: `bunx vercel login`, then `vercel --prod` with env vars (Supabase URL/anon/service role, `QLOO_API_KEY`, `QLOO_BASE_URL`).
+2. Vercel: `bunx vercel login`, then `vercel --prod` with env vars (Supabase URL/anon/service role, `QLOO_API_KEY`, `QLOO_BASE_URL`, `CRON_SECRET`, `SERPAPI_API_KEY`). `vercel.json` registers the daily cron.
+4. SerpApi free plan for this key is exhausted until 2026-11-04 (250/250 used). Web events show "quota used up" until then.
 3. Supabase Auth: add the production URL to redirect URLs.
 
 ## Product pivot (2026-10-27)

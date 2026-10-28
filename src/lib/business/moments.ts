@@ -4,7 +4,7 @@
  */
 import { AGE_BUCKETS, type AudienceAffinity } from "@/lib/providers/qloo/types";
 
-export type MomentKind = "holiday" | "street" | "community" | "manual";
+export type MomentKind = "holiday" | "street" | "community" | "web" | "manual";
 export type ThemeKey = "kids" | "halloween" | "family" | "farmers_market" | "night_market" | "street_food" | "running" | "festival";
 
 /** Each theme maps to one Qloo tag that returned demographics in live testing (2026-10-28). */
@@ -25,7 +25,7 @@ const RULES: Array<[RegExp, ThemeKey]> = [
   [/trick|treat|kidz|\bkids?\b|children|preschool|school|storytime|toddler|bab(y|ies)/i, "kids"],
   [/farmers'? ?market/i, "farmers_market"],
   [/night market|after dark/i, "night_market"],
-  [/marathon|half|\b5k\b|\b10k\b|\brun\b|race|fun run|walk(athon)?\b/i, "running"],
+  [/marathon|half|\b5k\b|\b10k\b|\brun\b|race|fun run|trot|walk(athon)?\b/i, "running"],
   [/hallowe?en|haunt|spooky|crawl-?o-?ween|\bboo\b/i, "halloween"],
   [/festival|\bfest\b|\bfair\b|concert|music|jazz|parade|carnaval|pride|muertos/i, "festival"],
   [/block party|play street|community|neighbou?rs|family|dance party|picnic|potluck/i, "family"],

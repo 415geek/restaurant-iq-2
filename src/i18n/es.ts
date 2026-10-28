@@ -147,6 +147,14 @@ const es: Dictionary = {
     "noPlaces": "No hubo restaurantes coincidentes para esta ciudad."
   },
   moments: {
+    "webBadge": "web · verificar",
+    "verify": "fuente: {host} ↗",
+    "srcNever": "aún sin actualizar",
+    "srcQuota": "se agotó la cuota gratuita mensual de búsquedas. No se sustituyó nada; los resultados web vuelven cuando se renueve.",
+    "srcWebOff": "apagado (sin clave de búsqueda)",
+    "srcDailyCap": "omitido hoy para no pasar la cuota gratuita",
+    "srcNager": "Feriados verificados con Nager.Date (nacionales + estatales).",
+    "srcRolling": "Ventana móvil: los próximos {days} días, actualizada automáticamente cada día a las 6 am PT; los eventos pasados desaparecen.",
     "title": "Momentos",
     "hint": "Feriados, ferias callejeras, fiestas de cuadra y eventos comunitarios cerca de {place}. Elige uno, mira a quién atrae ese tipo de evento (Qloo) y programa un pase para ese día.",
     "filter": "Filtrar momentos",
@@ -155,6 +163,7 @@ const es: Dictionary = {
       "holiday": "Feriados",
       "street": "Eventos en la calle",
       "community": "Comunidad",
+      "web": "Encontrado en la web",
       "manual": "Agregados por ti"
     },
     "nearOnly": "A {mi} mi de {n}",

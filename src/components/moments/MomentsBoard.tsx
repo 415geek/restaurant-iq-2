@@ -5,13 +5,13 @@ import { Icon } from "@/components/ui/Icon";
 import { useI18n } from "@/i18n/client";
 import type { ThemeKey, FitLevel, MomentKind } from "@/lib/business/moments";
 
-export interface MomentItem { id: string; kind: MomentKind; name: string; date: string; start?: string; end?: string; where?: string; org?: string; miles?: number; theme: ThemeKey | null; source: string }
+export interface MomentItem { id: string; kind: MomentKind; name: string; date: string; start?: string; end?: string; where?: string; org?: string; miles?: number; theme: ThemeKey | null; source: string; link?: string }
 type Demo = { age: Record<string, number>; gender: Record<string, number> };
 type Fit = { mode: "live" | "sample"; crowd: Demo | null; yours: Demo | null; fit: { score: number; level: FitLevel } | null; cuisine: string; places: Array<{ entityId: string; name: string; affinity?: number }>; provenance?: { endpoint: string; retrievedAt: string }; error?: string };
 
 const THEMES: ThemeKey[] = ["kids", "halloween", "family", "farmers_market", "night_market", "street_food", "running", "festival"];
 const AGE: Array<[string, string]> = [["24_and_younger", "≤24"], ["25_to_29", "25–29"], ["30_to_34", "30–34"], ["35_to_44", "35–44"], ["45_to_54", "45–54"], ["55_and_older", "55+"]];
-const DOT: Record<MomentKind, string> = { holiday: "bg-coral", street: "bg-navy", community: "bg-good", manual: "bg-warn" };
+const DOT: Record<MomentKind, string> = { holiday: "bg-coral", street: "bg-navy", community: "bg-good", web: "bg-ink-2", manual: "bg-warn" };
 const NEAR_MILES = 1.5;
 const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 86400_000).toISOString().slice(0, 10);
 
@@ -54,7 +54,7 @@ export function MomentsBoard({ restaurantId, base, hid, today, items, neighborho
     setManual((s) => [m, ...s]); setKind("manual"); setDay(null); setForm((f) => ({ ...f, name: "" })); void check(m);
   }
 
-  const kinds: Array<"all" | MomentKind> = ["all", "holiday", "street", "community", "manual"];
+  const kinds: Array<"all" | MomentKind> = ["all", "holiday", "street", "community", "web", "manual"];
   return (
     <div className="grid gap-4">
       <Card>
@@ -94,7 +94,7 @@ export function MomentsBoard({ restaurantId, base, hid, today, items, neighborho
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5"><span className={cx("h-2 w-2 shrink-0 rounded-full", DOT[m.kind])} /><span className="text-[15px] font-semibold">{m.name}</span></div>
-                      <div className="mt-0.5 text-[12.5px] text-ink-2">{[m.start ? `${m.start}${m.end ? `–${m.end}` : ""}` : null, m.where, m.org, m.miles !== undefined ? t("moments.miles", { mi: m.miles }) : null].filter(Boolean).join(" · ") || t(`moments.kinds.${m.kind}`)}</div>
+                      <div className="mt-0.5 text-[12.5px] text-ink-2">{[m.start ? `${m.start}${m.end ? `–${m.end}` : ""}` : null, m.where, m.org, m.miles !== undefined ? t("moments.miles", { mi: m.miles }) : null].filter(Boolean).join(" · ") || t(`moments.kinds.${m.kind}`)}{m.kind === "web" ? <span className="ml-1 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-semibold text-ink-2">{t("moments.webBadge")}</span> : null}{m.link ? <a href={m.link} target="_blank" rel="noopener noreferrer nofollow" className="ml-1.5 text-pos underline-offset-2 hover:underline">{t("moments.verify", { host: new URL(m.link).hostname.replace(/^www\./, "") })}</a> : null}</div>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <label className="inline-flex items-center gap-1 text-[12px] text-muted">{t("moments.theme")}
                           <select value={m.theme ?? ""} onChange={(e) => setThemes((s) => ({ ...s, [m.id]: (e.target.value || null) as ThemeKey | null }))} className="h-8 rounded-lg border border-border bg-surface px-2 text-[12.5px] text-ink">

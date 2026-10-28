@@ -243,6 +243,14 @@ const en = {
     "noPlaces": "No overlapping restaurants returned for this city."
   },
   moments: {
+    "webBadge": "web · verify",
+    "verify": "source: {host} ↗",
+    "srcNever": "not refreshed yet",
+    "srcQuota": "monthly free search quota is used up. Nothing was substituted; web results return when it renews.",
+    "srcWebOff": "off (no search key configured)",
+    "srcDailyCap": "skipped today to stay inside the free quota",
+    "srcNager": "Public holidays cross-checked with Nager.Date (national + state).",
+    "srcRolling": "Rolling window: the next {days} days, refreshed automatically every day at 6 am PT; past events drop off.",
     "title": "Moments",
     "hint": "Holidays, street fairs, block parties and community events near {place}. Pick one, see who that kind of event draws (Qloo), and time a pass to that day.",
     "filter": "Filter moments",
@@ -251,6 +259,7 @@ const en = {
       "holiday": "Holidays",
       "street": "Street events",
       "community": "Community",
+      "web": "Found on the web",
       "manual": "Added by you"
     },
     "nearOnly": "Within {mi} mi of {n}",

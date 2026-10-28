@@ -11,6 +11,7 @@ test("moments calendar → who it draws → timed pass form", async ({ page }, i
   await expect(page.getByRole("heading", { name: "Moments", exact: true })).toBeVisible();
   await expect(page.getByTestId("moments-calendar")).toBeVisible();
   await expect(page.getByTestId("moments-sources")).toContainText("DataSF");
+  await expect(page.getByTestId("moments-sources")).toContainText("Rolling window");
   const rows = page.getByTestId("moment-row");
   await expect(rows.first()).toBeVisible();
   // no horizontal overflow on phones

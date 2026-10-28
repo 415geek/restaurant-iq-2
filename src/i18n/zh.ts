@@ -147,6 +147,14 @@ const zh: Dictionary = {
     "noPlaces": "这个城市没有返回重叠的餐厅。"
   },
   moments: {
+    "webBadge": "网上 · 请核实",
+    "verify": "来源：{host} ↗",
+    "srcNever": "尚未刷新",
+    "srcQuota": "本月免费搜索额度已用完。没有用任何数据替代；额度重置后恢复网上结果。",
+    "srcWebOff": "未开启（没有配置搜索 key）",
+    "srcDailyCap": "为保持在免费额度内，今天跳过",
+    "srcNager": "公共假日已用 Nager.Date（全国 + 本州）交叉核对。",
+    "srcRolling": "滚动窗口：未来 {days} 天，每天太平洋时间早上 6 点自动刷新，过期活动自动移除。",
     "title": "时机",
     "hint": "{place}附近的节假日、街会、街区派对和社区活动。选一个，看这类活动吸引什么人（Qloo），再做一张对准那天的 pass。",
     "filter": "筛选",
@@ -155,6 +163,7 @@ const zh: Dictionary = {
       "holiday": "节假日",
       "street": "街区活动",
       "community": "社区活动",
+      "web": "网上找到",
       "manual": "你添加的"
     },
     "nearOnly": "{n} {mi} 英里内",

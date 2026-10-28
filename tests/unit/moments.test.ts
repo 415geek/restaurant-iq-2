@@ -103,3 +103,62 @@ describe("moment validation", () => {
     expect(campaignCreateSchema.safeParse({ ...base, days: 121 }).success).toBe(false);
   });
 });
+
+import { normalizeChicagoRows, normalizeNycRows } from "@/lib/providers/events/city-feeds";
+import { inferDate, normalizeGoogleEvents } from "@/lib/providers/events/web-events";
+import { filterRegional } from "@/lib/providers/events/nager";
+
+describe("more city feeds (synthetic rows)", () => {
+  it("NYC keeps street fairs, block parties and markets; drops youth sports", () => {
+    const out = normalizeNycRows([
+      { event_id: "1", event_name: "Sample Avenue Festival", event_type: "Street Festival", start_date_time: "2026-11-07T10:00:00.000", end_date_time: "2026-11-07T18:00:00.000", event_borough: "Manhattan", event_location: "Sample Ave between 1st and 2nd" },
+      { event_id: "2", event_name: "Soccer - Non Regulation", event_type: "Sport - Youth", start_date_time: "2026-11-07T08:00:00.000", event_borough: "Brooklyn" },
+      { event_id: "3", event_name: "Sample Greenmarket", event_type: "Farmers Market", start_date_time: "2026-11-08T08:00:00.000", event_borough: "Queens" },
+    ]);
+    expect(out.map((e) => e.name)).toEqual(["Sample Avenue Festival", "Sample Greenmarket"]);
+    expect(out[0]).toMatchObject({ start: "10:00", end: "18:00", theme: "festival", where: "Sample Ave between 1st and 2nd · Manhattan" });
+    expect(out[1].theme).toBe("farmers_market");
+  });
+  it("Chicago keeps event and athletic permits, never reads requestor names, drops weddings and media", () => {
+    const out = normalizeChicagoRows([
+      { requestor_: "Private Person", park_number: "24", park_facility_name: "Sample Park", reservation_start_date: "2026-11-02T00:00:00.000", event_type: "Permit - Event 6/10,000+", event_description: "Sample Turkey Trot" },
+      { park_number: "5", park_facility_name: "Sample Park", reservation_start_date: "2026-11-02T00:00:00.000", event_type: "Venue Rental - Wedding", event_description: "Wedding" },
+      { park_number: "5", park_facility_name: "Sample Park", reservation_start_date: "2026-11-03T00:00:00.000", event_type: "Permit - Media: Filming Level 4", event_description: "Shoot" },
+      { park_number: "6", park_facility_name: "Sample Track", reservation_start_date: "2026-11-03T00:00:00.000", event_type: "Permit - Athletic T Cluster 3", event_description: "Sample Club Training (Non-exclusive Use)" },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(JSON.stringify(out)).not.toContain("Private Person");
+    expect(out[0]).toMatchObject({ name: "Sample Turkey Trot", theme: "running" });
+  });
+});
+
+describe("web events (Google Events shape, synthetic)", () => {
+  it("infers the year from a month-day label", () => {
+    expect(inferDate("Nov 7", "2026-10-28")).toBe("2026-11-07");
+    expect(inferDate("Jan 3", "2026-10-28")).toBe("2027-01-03");
+    expect(inferDate("Oct 28", "2026-10-28")).toBe("2026-10-28");
+    expect(inferDate("Someday", "2026-10-28")).toBeNull();
+  });
+  it("normalizes cards, keeps only https links, strips HTML, parses the start time", () => {
+    const out = normalizeGoogleEvents([
+      { title: "Sample <b>Night Market</b>", date: { start_date: "Nov 14", when: "Sat, Nov 14, 5 – 10 PM" }, address: ["Sample St", "San Francisco, CA"], venue: { name: "Sample Plaza" }, link: "https://example.com/e/1" },
+      { title: "Sample Talk", date: { start_date: "Nov 15", when: "Sun, Nov 15, 7:30 PM" }, link: "http://insecure.example/x" },
+      { title: "No date" },
+    ], "2026-10-28");
+    expect(out).toHaveLength(2);
+    expect(out[0]).toMatchObject({ name: "Sample Night Market", date: "2026-11-14", theme: "night_market", where: "Sample Plaza · Sample St, San Francisco, CA", link: "https://example.com/e/1" });
+    expect(out[1]).toMatchObject({ start: "19:30", link: undefined });
+  });
+});
+
+describe("Nager.Date regional filter", () => {
+  it("keeps national holidays and the restaurant's state only", () => {
+    const out = filterRegional([
+      { date: "2026-11-26", name: "Thanksgiving Day", global: true },
+      { date: "2026-11-27", name: "Day after Thanksgiving", global: false, counties: ["US-CA", "US-TX"] },
+      { date: "2026-03-02", name: "Texas Independence Day", global: false, counties: ["US-TX"] },
+    ], "US", "CA");
+    expect(out.map((h) => h.name)).toEqual(["Thanksgiving Day", "Day after Thanksgiving"]);
+    expect(out[1].regional).toBe(true);
+  });
+});
