@@ -12,9 +12,10 @@ const TABS = [
   { seg: "", key: "nav.snapshot", icon: "snapshot" },
   { seg: "taste", key: "nav.taste", icon: "signals" },
   { seg: "moments", key: "nav.moments", icon: "calendar" },
+  { seg: "data", key: "nav.data", icon: "database" },
   { seg: "opportunities", key: "nav.opportunities", icon: "ideas" },
   { seg: "passes", key: "nav.passes", icon: "ticket" },
-  { seg: "actions", key: "nav.actions", icon: "board" },
+  { seg: "actions", key: "nav.actions", icon: "board", desktopOnly: true },
   { seg: "memory", key: "nav.memory", icon: "memory" },
 ] as const;
 
@@ -55,7 +56,7 @@ export function WorkspaceShell({ base, children, header, signedIn }: { base: str
           {children}
         </main>
         <nav aria-label="Workspace" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-border bg-surface/95 backdrop-blur lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          {TABS.map((tab) => {
+          {TABS.filter((tab) => !("desktopOnly" in tab)).map((tab) => {
             const I = Icon[tab.icon]; const on = isActive(tab.seg);
             return (
               <Link key={tab.seg} href={tab.seg ? `${base}/${tab.seg}` : base} aria-current={on ? "page" : undefined} className={cx("flex h-14 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold", on ? "text-coral-ink" : "text-muted")}>

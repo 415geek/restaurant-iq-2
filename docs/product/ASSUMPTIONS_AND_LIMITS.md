@@ -21,3 +21,10 @@
 - Live event feeds cover San Francisco only. Neighborhood distance uses approximate neighborhood centers.
 - Web events come from Google Events cards via SerpApi. They are labeled "found on the web" and link to the source so the owner can verify; dates without a year are assumed to be the next occurrence.
 - Live permit feeds: San Francisco, New York, Chicago. Other cities rely on web results and manual entry.
+
+## Sales data
+- Direct POS/delivery connections are not built yet; file uploads work for every platform. Square/Clover OAuth is planned; Toast, DoorDash, Uber Eats and Grubhub APIs require partner approval.
+- Times without an offset are read as restaurant local time (America/Los_Angeles for now). Slash dates are month-first unless a value proves day-first.
+- One file per request, 4 MB max (hosting limit). Re-uploading an identical file is refused so nothing is counted twice.
+- Analysis describes the uploaded period only; it is not a forecast. Suggested actions are rules, and every pass still needs owner approval.
+- The Business Brain lives in this app's database. The developer GBrain never receives customer or operating data.

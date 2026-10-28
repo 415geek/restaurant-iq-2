@@ -26,7 +26,8 @@ export default async function NewPassPage({ params, searchParams }: PageProps<"/
   const h = data.hypothesis; const s = h.defaultScenario;
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
   const dep = h.playbook?.offering?.menuDependencies?.[0];
-  const menuItem = dep ?? overview.menu.find((m) => m.isSignature)?.name ?? overview.menu[0]?.name ?? "";
+  const wanted = str("item") ? overview.menu.find((m) => m.name.toLowerCase() === str("item")!.toLowerCase())?.name : undefined;
+  const menuItem = wanted ?? dep ?? overview.menu.find((m) => m.isSignature)?.name ?? overview.menu[0]?.name ?? "";
   const mi = overview.menu.find((m) => m.name === menuItem);
   const regular = Number(mi?.price ?? s.salePrice ?? 15);
   const variable = Number(mi?.foodCost ?? s.foodCostPerUnit ?? 0) + Number(s.packagingPerUnit ?? 0) + Number(s.otherVariableCostPerUnit ?? 0);
