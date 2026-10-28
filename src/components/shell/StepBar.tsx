@@ -2,10 +2,10 @@ import Link from "next/link";
 import { cx } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 
-export type StepKey = "snapshot" | "signals" | "choose" | "decide" | "act";
-const ORDER: StepKey[] = ["snapshot", "signals", "choose", "decide", "act"];
+export type StepKey = "snapshot" | "signals" | "choose" | "decide" | "act" | "prove";
+const ORDER: StepKey[] = ["snapshot", "signals", "choose", "decide", "act", "prove"];
 
-/** Five-step journey bar. `done` steps are green, `current` is coral. */
+/** Six-step journey bar (act = activate a TastePass, prove = claims and redemptions). `done` steps are green, `current` is coral. */
 export function StepBar({ current, labels, hrefs }: { current: StepKey; labels: Record<StepKey, string>; hrefs: Partial<Record<StepKey, string>> }) {
   const ci = ORDER.indexOf(current);
   return (

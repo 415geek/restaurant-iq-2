@@ -74,3 +74,26 @@ export function canTransition(from: ActionStatus, to: ActionStatus, opts: { requ
   if (from === "needs_approval" && to === "ready" && !opts.hasApproval) return { ok: false, reason: "An approval record is required" };
   return { ok: true };
 }
+
+// ---- TastePass ----
+export const campaignCreateSchema = z.object({
+  hypothesisId: z.string().uuid(),
+  offerName: z.string().trim().min(2).max(80),
+  menuItem: z.string().trim().min(1).max(80),
+  regularPrice: z.coerce.number().min(0).max(1000),
+  offerPrice: z.coerce.number().min(0).max(1000),
+  variableCost: z.coerce.number().min(0).max(1000),
+  feePct: z.coerce.number().min(0).max(0.5),
+  fixedSpend: z.coerce.number().min(0).max(100000),
+  maxRedemptions: z.coerce.number().int().min(1).max(10000),
+  days: z.coerce.number().int().min(1).max(60),
+  terms: z.string().trim().max(400).default(""),
+  approve: z.boolean().default(true),
+});
+export type CampaignCreate = z.infer<typeof campaignCreateSchema>;
+export const campaignPatchSchema = z.object({ action: z.enum(["end"]) });
+export const redeemSchema = z.object({
+  token: z.string().trim().min(6).max(16),
+  verifiedSale: z.coerce.number().min(0).max(10000).optional(),
+});
+export const passClaimSchema = z.object({ consent: z.literal(true) });

@@ -7,18 +7,20 @@ import { LabCore } from "@/components/opportunity/LabCore";
 import { DecideButtons } from "@/components/opportunity/DecideButtons";
 import { PlanView } from "@/components/opportunity/PlanView";
 import { getHypothesis } from "@/lib/queries";
+import { getActiveCampaignForHypothesis } from "@/lib/campaigns";
+import { Button } from "@/components/ui";
 import { getT, formatLText } from "@/i18n";
 
 export default async function HypothesisPage({ params }: PageProps<"/r/[id]/opportunities/[hid]">) {
   const { id, hid } = await params;
-  const [data, { t, locale }] = await Promise.all([getHypothesis(hid), getT()]);
+  const [data, campaign, { t, locale }] = await Promise.all([getHypothesis(hid), getActiveCampaignForHypothesis(hid), getT()]);
   if (!data || data.restaurantId !== id) notFound();
   const { hypothesis: h, scenarios } = data; const base = `/r/${id}`;
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act") };
+  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
   return (
     <div className="grid gap-5">
-      <StepBar current="decide" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/actions` }} />
+      <StepBar current="decide" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` }} />
       <div>
         <Link href={`${base}/opportunities`} className="inline-flex items-center gap-1 text-[13px] text-pos"><Icon.arrowLeft width={16} height={16} />{t("nav.opportunities")}</Link>
         <div className="mt-2 flex flex-wrap items-center gap-2"><h2 className="text-[26px] font-extrabold tracking-[-0.02em]">{t(`hyp.${h.slug}.title`)}</h2><Chip tone={LABEL_TONE[h.evidenceLabel]}>{t(`opps.labels.${h.evidenceLabel}`)}</Chip><Chip>#{h.rank} · {t("opps.sheet.baseline")} #{h.baselineRank}</Chip></div>
@@ -43,7 +45,7 @@ export default async function HypothesisPage({ params }: PageProps<"/r/[id]/oppo
         <LabCore hypothesisId={h.id} initial={h.defaultScenario} />
         {scenarios.length ? <div className="mt-4"><div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("lab.savedList")}</div><ul className="mt-1 divide-y divide-border text-[13px]">{scenarios.map((s) => <li key={s.id} className="flex flex-wrap justify-between gap-2 py-1.5"><span>{s.label} <span className="text-muted">· {fmtDate(s.createdAt, locale)}</span></span><span className={`tabular ${s.results.adjustedIncrementalProfit >= 0 ? "text-good-ink" : "text-bad"}`}>{fmtUsd(s.results.adjustedIncrementalProfit)}{t("common.perWeek")} · {s.assumptions.incrementalUnits} × {fmtUsd(Number(s.assumptions.salePrice), 2)}</span></li>)}</ul></div> : null}
       </Card>
-      <Card><H2>{t("steps.decide")}</H2><DecideButtons hypothesisId={h.id} status={h.status} />{h.reasonsToAvoid.length ? <ul className="mt-3 list-disc pl-4 text-[13px] text-ink-2">{h.reasonsToAvoid.map((r, i) => <li key={i}>{lt(r)}</li>)}</ul> : null}</Card>
+      <Card><H2>{t("steps.decide")}</H2><div className="flex flex-wrap items-center gap-3"><DecideButtons hypothesisId={h.id} status={h.status} />{h.status !== "rejected" ? (campaign ? <Button href={`${base}/passes/${campaign.id}`} variant="primary"><Icon.ticket width={18} height={18} />{t("pass.openPass")}</Button> : <Button href={`${base}/passes/new?h=${h.id}`} variant="primary"><Icon.ticket width={18} height={18} />{t("pass.createCta")}</Button>) : null}</div>{h.reasonsToAvoid.length ? <ul className="mt-3 list-disc pl-4 text-[13px] text-ink-2">{h.reasonsToAvoid.map((r, i) => <li key={i}>{lt(r)}</li>)}</ul> : null}</Card>
       <h3 className="text-[20px] font-extrabold tracking-[-0.02em]">{t("opps.sheet.plan")}</h3>
       <PlanView pb={h.playbook} />
       <p><Link href={`${base}/actions`} className="inline-flex items-center gap-1 text-[13px] text-pos">{t("nav.actions")} <Icon.arrowRight width={16} height={16} /></Link></p>

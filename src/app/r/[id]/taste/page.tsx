@@ -11,14 +11,14 @@ export default async function TastePage({ params }: PageProps<"/r/[id]/taste">) 
   const [overview, run, { t }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
   if (!overview) notFound();
   const base = `/r/${id}`;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act") };
+  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
   if (!run || run.status !== "completed") return <div className="grid gap-5"><StepBar current="signals" labels={labels} hrefs={{ snapshot: base }} /><Empty title={t("taste.emptyT")} body={t("taste.emptyB")} action={<RunAnalysisButton restaurantId={id} hasRun={!!run} />} /></div>;
   const [evidence, hypotheses] = await Promise.all([getLatestEvidence(id, run.startedAt), getHypotheses(id, run.id)]);
   const src = (type: string) => evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes(type));
   const failed = (run.steps.find((s) => s.agent === "EvidenceAgent")?.outputSummary.failures as string[] | undefined) ?? [];
   return (
     <div className="grid gap-5">
-      <StepBar current="signals" labels={labels} hrefs={{ snapshot: base, choose: `${base}/opportunities`, act: `${base}/actions` }} />
+      <StepBar current="signals" labels={labels} hrefs={{ snapshot: base, choose: `${base}/opportunities`, act: `${base}/passes` }} />
       {failed.length ? <Card className="border-bad/30"><p className="text-[13px] text-bad">{t("taste.failed", { steps: failed.join(", ") })}</p></Card> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         <AttributesTile tags={evidence.tagAffinities} source={src("urn:tag")} />

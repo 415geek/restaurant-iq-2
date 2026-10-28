@@ -9,14 +9,14 @@ function trackErrors(page: Page) {
   return errors;
 }
 
-test("landing → demo → snapshot shows sample pill and trust drawer", async ({ page }) => {
+test("landing → demo → snapshot shows data-mode pill and trust drawer", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Restaurant IQ grows your business");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Turn culture into customers");
   await page.getByRole("link", { name: /Try the live demo/ }).click();
   await expect(page).toHaveURL(new RegExp(DEMO));
   await expect(page.getByText("Synthetic demo")).toBeVisible();
-  const pill = page.getByRole("button", { name: /Sample data · \d+ sources/ });
+  const pill = page.getByRole("button", { name: /(Sample data|Live Qloo) · \d+ sources/ });
   await expect(pill).toBeVisible();
   await pill.click();
   await expect(page.getByRole("dialog", { name: "Trust & data" })).toBeVisible();
@@ -83,7 +83,7 @@ test("action board shows approval-gated external task", async ({ page }) => {
 test("business memory lists the analysis event", async ({ page }) => {
   await page.goto(`${DEMO}/memory`);
   await expect(page.getByRole("heading", { name: "Memory" })).toBeVisible();
-  await expect(page.getByText(/Analysis done in sample mode/).first()).toBeVisible();
+  await expect(page.getByText(/Analysis done in (sample|live) mode/).first()).toBeVisible();
 });
 
 test("language switch renders Chinese and Spanish", async ({ page }) => {
@@ -106,7 +106,7 @@ test("protected area redirects to login; health is honest about mode", async ({ 
 });
 
 test("no horizontal overflow on workspace pages", async ({ page }) => {
-  for (const path of [DEMO, `${DEMO}/taste`, `${DEMO}/opportunities`, `${DEMO}/actions`, `${DEMO}/memory`]) {
+  for (const path of [DEMO, `${DEMO}/taste`, `${DEMO}/opportunities`, `${DEMO}/passes`, `${DEMO}/actions`, `${DEMO}/memory`]) {
     await page.goto(path);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), path).toBe(false);
     const off = await page.evaluate(() => Array.from(document.querySelectorAll("button, a")).filter((el) => { if (el.closest(".scroll-x")) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.right > window.innerWidth + 1; }).map((el) => el.textContent?.trim().slice(0, 30)));

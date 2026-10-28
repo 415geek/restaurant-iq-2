@@ -8,7 +8,7 @@ import { DEMO_RESTAURANT_ID } from "@/lib/queries";
 
 export default async function Home() {
   const { t } = await getT();
-  const steps = [["s1", "snapshot"], ["s2", "signals"], ["s3", "ideas"], ["s4", "memory"]] as const;
+  const steps = [["s1", "signals"], ["s2", "ideas"], ["s3", "ticket"], ["s4", "check"]] as const;
   return (
     <>
       <SiteHeader />
@@ -21,11 +21,14 @@ export default async function Home() {
             <div className="mt-7 flex flex-wrap gap-3"><Button href="/demo" variant="coral" size="lg">{t("landing.ctaDemo")}<Icon.arrowRight /></Button><Button href="/login" variant="secondary" size="lg">{t("landing.ctaOwn")}</Button></div>
             <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>
           </div>
-          {/* product composition: three real-looking cards, no screenshot */}
-          <div className="relative mx-auto mt-10 w-full max-w-md pb-8 lg:mt-0">
-            <div className="card p-5"><div className="mb-3 grid h-11 w-11 place-items-center rounded-xl bg-coral-soft text-coral-ink"><Icon.leaf width={22} height={22} /></div><div className="text-[18px] font-bold">{t("hyp.vegetarian-line.title")}</div><div className="text-[13px] text-ink-2">{t("hyp.vegetarian-line.segment")}</div><div className="mt-3 flex gap-1.5"><Chip ring={0.84}>{t("opps.taste", { v: "0.84" })}</Chip><Chip tone="good">{t("opps.lowEffort")}</Chip></div><div className="mt-4 text-[28px] font-extrabold tracking-[-0.02em]">$362 <span className="text-[13px] font-medium text-muted">{t("common.perWeek")}</span></div></div>
-            <div className="card absolute -bottom-8 -right-3 w-56 p-4 sm:-right-8"><div className="text-[10px] font-bold uppercase tracking-wide text-muted">{t("taste.withoutQloo")} → {t("taste.withQloo")}</div><div className="mt-1 flex items-center gap-2 text-[26px] font-extrabold"><span className="text-muted">#4</span><Icon.arrowRight className="text-coral" /><span className="text-coral-ink">#2</span></div><div className="text-[12px] text-ink-2">{t("hyp.boba-study-pairing.title")}</div></div>
-            <div className="card absolute -left-3 -top-12 w-44 p-3 sm:-left-10"><div className="flex items-center gap-2 text-[12px] font-semibold"><i className="h-2 w-2 rounded-full bg-warn" />{t("common.sampleData")}</div><div className="text-[11px] text-muted">{t("common.sources", { n: 5 })}</div></div>
+          {/* product composition: the three acts, built from our own UI pieces (no stored Qloo data) */}
+          <div className="relative mx-auto mt-10 w-full max-w-md pb-10 lg:mt-0">
+            <div className="card overflow-hidden">
+              <div className="bg-navy p-5 text-white"><div className="text-[12px] text-white/70">{t("pass.title")}</div><div className="mt-1 text-[22px] font-extrabold leading-tight">{t("hyp.vegetarian-line.title")}</div><div className="mt-2 flex items-baseline gap-2"><span className="tabular text-[34px] font-extrabold text-coral">$6.00</span><span className="text-[13px] text-white/60 line-through">$7.00</span></div></div>
+              <div className="flex items-center justify-between gap-3 p-4"><div className="rounded-xl border-2 border-dashed border-coral bg-coral-soft px-3 py-2 font-mono text-[18px] font-extrabold tracking-[0.15em] text-navy">K7QX·M4RT</div><Chip tone="coral">{t("pass.pub.left", { n: 49, max: 50 })}</Chip></div>
+            </div>
+            <div className="card absolute -bottom-6 -right-3 w-48 p-4 sm:-right-8" style={{ background: "var(--coral)", color: "white" }}><div className="text-[12px] text-white/80">{t("pass.redeemed")}</div><div className="mt-1 flex items-center gap-2 text-[30px] font-extrabold leading-none"><span className="text-white/60">0</span><Icon.arrowRight /><span>1</span></div><div className="mt-1 text-[11px] text-white/80">{t("pass.result.ok")}</div></div>
+            <div className="card absolute -left-3 -top-10 w-44 p-3 sm:-left-10"><div className="flex items-center gap-2 text-[12px] font-semibold"><i className="h-2 w-2 rounded-full bg-good" />{t("common.liveQloo")}</div><div className="text-[11px] text-muted">{t("landing.s1t")}</div></div>
           </div>
         </section>
         <section className="mx-auto max-w-6xl px-4 pb-16 pt-10">

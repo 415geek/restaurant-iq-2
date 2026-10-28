@@ -25,13 +25,13 @@ export default async function SnapshotPage({ params }: PageProps<"/r/[id]">) {
   const steps = run?.steps ?? []; const stepsOk = steps.filter((s) => s.status === "succeeded").length;
   const open = actions.filter((a) => a.status !== "completed" && a.status !== "canceled");
   const next = [...open.filter((a) => a.status === "needs_approval").slice(0, 1), ...open.filter((a) => a.status !== "needs_approval")].filter((a, i, arr) => arr.findIndex((x) => x.hypothesisSlug === a.hypothesisSlug) === i || i === 0).slice(0, 3);
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act") };
+  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
   const scenarioPts = best ? best.h.playbook.offering.scenarios.map((s) => computeScenario(s.assumptions).adjustedIncrementalProfit) : [];
 
   return (
     <div className="grid gap-5">
-      <StepBar current="snapshot" labels={labels} hrefs={done ? { signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/actions` } : {}} />
+      <StepBar current="snapshot" labels={labels} hrefs={done ? { signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` } : {}} />
       {!done ? (
         <Card className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-[18px] font-bold">{t("snapshot.noRunT")}</div><p className="text-[13.5px] text-ink-2">{t("snapshot.noIdeasYet")}</p></div><RunAnalysisButton restaurantId={id} hasRun={!!run} /></Card>
       ) : (

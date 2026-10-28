@@ -84,3 +84,8 @@ input[type="range"] { accent-color: var(--coral); }
 @keyframes slide-up { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }
 .anim-sheet { animation: slide-in 200ms ease-out; }
 .anim-drawer { animation: slide-up 200ms ease-out; }
+
+/* TastePass: a counter that just changed pulses once */
+@keyframes kpi-flash { 0% { box-shadow: 0 0 0 0 rgba(255,107,53,.55); transform: scale(1); } 40% { box-shadow: 0 0 0 8px rgba(255,107,53,0); transform: scale(1.02); } 100% { box-shadow: 0 6px 24px rgba(27,42,74,.06); transform: scale(1); } }
+.kpi-flash { animation: kpi-flash 1.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .kpi-flash { animation: none; outline: 2px solid var(--coral); } }

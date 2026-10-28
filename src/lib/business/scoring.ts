@@ -80,7 +80,8 @@ function tasteFit(t: HypothesisTemplate, ev: EvidenceBundle): { fit: number; cit
   if (placeHits.length) {
     const best = placeHits.reduce((a, b) => ((b.affinity ?? 0) > (a.affinity ?? 0) ? b : a));
     fit = Math.max(fit, (best.affinity ?? 0.5) * 0.9);
-    citations.push({ kind: "entity", id: best.entityId, name: best.name, affinity: best.affinity, sourceId: ev.localPlaces.sourceId, note: K("gen.citePlace", { level: L(levelOf(best.affinity)) }) });
+    const matched = best.tags.find((tg) => t.triggerTags.some((s) => tg.id.toLowerCase().includes(s) || tg.name.toLowerCase().includes(s)));
+    citations.push({ kind: "entity", id: best.entityId, name: matched ? `${best.name} · ${matched.name}` : best.name, affinity: best.affinity, sourceId: ev.localPlaces.sourceId, note: K("gen.citePlace", { level: L(levelOf(best.affinity)) }) });
   }
   if (t.triggerAgeBuckets?.length && ev.demographics.data.length) {
     const d = ev.demographics.data[0];
