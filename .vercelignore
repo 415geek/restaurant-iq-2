@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+.playwright-cli
+test-results
+playwright-report
+.next
+node_modules
+coverage
