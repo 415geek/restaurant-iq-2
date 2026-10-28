@@ -1,7 +1,7 @@
 # Devpost submission — TastePass by Restaurant IQ
 
 **Live demo URL:** PENDING (recorded here the moment the Vercel deployment is verified)
-**Public repository:** PENDING (GitHub, MIT license visible in About)
+**Public repository:** https://github.com/415geek/restaurant-iq-2 (MIT license visible in About)
 **Deadline:** Oct 30, 2026, 11:45 pm EDT
 
 ## Project des## Project description (paste into Devpost)
