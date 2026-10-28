@@ -10,10 +10,10 @@ lint ✅ · typecheck ✅ · unit + integration 112 ✅ · build ✅ · E2E 45 (
 
 ## Blockers (owner)
 1. ✅ Public repo: https://github.com/415geek/restaurant-iq-2 (MIT, created 2026-10-28).
-2. Vercel: `bunx vercel login`, then `vercel --prod` with env vars (Supabase URL/anon/service role, `QLOO_API_KEY`, `QLOO_BASE_URL`, `CRON_SECRET`, `SERPAPI_API_KEY`). `vercel.json` registers the daily cron.
+2. ✅ Production: https://restaurant-iq-2.vercel.app (Vercel hobby team `c8geeks-projects`, deployed 2026-10-28; full Playwright suite green against prod: 37 pass, 8 desktop-only skips). Deploy again with `bunx vercel deploy --prod --scope c8geeks-projects`. Env vars with env vars (Supabase URL/anon/service role, `QLOO_API_KEY`, `QLOO_BASE_URL`, `CRON_SECRET`, `SERPAPI_API_KEY`). `vercel.json` registers the daily cron.
 5. `ANTHROPIC_API_KEY` is empty: AI column mapping and PDF/photo reading are disabled (shown with a reason). Rules handle the sample files.
 4. SerpApi free plan for this key is exhausted until 2026-11-04 (250/250 used). Web events show "quota used up" until then.
-3. Supabase Auth: add the production URL to redirect URLs.
+3. Supabase Auth (owner, dashboard): add `https://restaurant-iq-2.vercel.app/**` to Authentication → URL Configuration → Redirect URLs (the demo needs no login).
 
 ## Product pivot (2026-10-27)
 Positioning moved from "decision report" to **TastePass: Qloo affinity → owner-approved offer → real redemption signal**. Reason: comparable entries (TasteTest, Carte Locale, Overlap, Encore) stop at recommendations; none closes the loop to a measured outcome. Plan: `~/.claude/plans/swirling-dancing-acorn.md`.
