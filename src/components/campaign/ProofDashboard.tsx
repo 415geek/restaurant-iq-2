@@ -1,4 +1,5 @@
 "use client";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chip, cx, fmtUsd } from "@/components/ui";
 import { KpiTile } from "@/components/charts";
@@ -38,7 +39,7 @@ export function ProofDashboard({ campaignId, initial, maxRedemptions }: { campai
       <div className="card p-4">
         <div className="mb-2 flex items-center justify-between"><span className="text-[13px] font-bold">{t("pass.recentT")}</span><span className="text-[11.5px] text-muted">{t("pass.proveHint")}</span></div>
         {s.recent.length ? (
-          <ul className="divide-y divide-border text-[13px]" data-testid="recent">{s.recent.map((r, i) => <li key={i} className="flex items-center justify-between gap-2 py-1.5"><span className="font-mono tracking-wider">{r.tokenHint}</span><span className="flex items-center gap-2"><span className="text-muted">{new Date(r.at).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}</span><Chip tone={r.status === "redeemed" ? "good" : r.status === "expired" ? "neutral" : "warn"}>{t(`pass.status.${r.status}`)}</Chip></span></li>)}</ul>
+          <ul className="divide-y divide-border text-[13px]" data-testid="recent">{s.recent.map((r, i) => <li key={i} className="flex items-center justify-between gap-2 py-1.5"><span className="font-mono tracking-wider">{r.tokenHint}</span><span className="flex items-center gap-2"><span className="text-muted">{new Date(r.at).toLocaleTimeString(locale, { timeZone: DISPLAY_TZ, hour: "numeric", minute: "2-digit" })}</span><Chip tone={r.status === "redeemed" ? "good" : r.status === "expired" ? "neutral" : "warn"}>{t(`pass.status.${r.status}`)}</Chip></span></li>)}</ul>
         ) : <p className={cx("text-[13px] text-ink-2")}>{t("pass.recentEmpty")}</p>}
       </div>
     </div>

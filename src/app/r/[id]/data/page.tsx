@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import { Button, Card, Chip, H2, cx, fmtUsd } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { KpiTile } from "@/components/charts";
@@ -74,7 +75,7 @@ export default async function DataPage({ params }: PageProps<"/r/[id]/data">) {
             <KpiTile accent="navy" label={t("data.kpi.orders")} value={a.orders.toLocaleString(locale)} sub={a.lineLevel ? t("data.kpi.lines", { n: a.rows.toLocaleString(locale) }) : undefined} />
             <KpiTile label={t("data.kpi.net")} value={fmtUsd(a.netSales)} />
             <KpiTile label={t("data.kpi.ticket")} value={a.avgTicket === null ? "—" : fmtUsd(a.avgTicket, 2)} />
-            <KpiTile label={t("data.kpi.period")} value={<span className="text-[17px]">{a.from ? new Date(a.from).toLocaleDateString(locale, { month: "short", day: "numeric" }) : "—"} – {a.to ? new Date(a.to).toLocaleDateString(locale, { month: "short", day: "numeric" }) : "—"}</span>} sub={t("data.kpi.weeks", { n: a.weeks })} />
+            <KpiTile label={t("data.kpi.period")} value={<span className="text-[17px]">{a.from ? new Date(a.from).toLocaleDateString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric" }) : "—"} – {a.to ? new Date(a.to).toLocaleDateString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric" }) : "—"}</span>} sub={t("data.kpi.weeks", { n: a.weeks })} />
           </div>
 
           {actions.length ? (
@@ -122,7 +123,7 @@ export default async function DataPage({ params }: PageProps<"/r/[id]/data">) {
       {uploads.length ? (
         <Card>
           <H2>{t("data.uploadsT")}</H2>
-          <ul className="divide-y divide-border text-[13px]" data-testid="uploads-list">{uploads.map((u) => <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><div className="min-w-0"><div className="truncate font-semibold">{u.file_name}</div><div className="text-[12px] text-ink-2">{t(`data.platforms.${u.platform}`)} · {t("data.done", { n: u.imported_count, r: u.rejected_count })} · {t(`data.method.${u.mapping_method === "ai_document" ? "ai" : u.mapping_method}`)} · {new Date(u.created_at).toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div></div><DeleteUpload id={u.id} /></li>)}</ul>
+          <ul className="divide-y divide-border text-[13px]" data-testid="uploads-list">{uploads.map((u) => <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><div className="min-w-0"><div className="truncate font-semibold">{u.file_name}</div><div className="text-[12px] text-ink-2">{t(`data.platforms.${u.platform}`)} · {t("data.done", { n: u.imported_count, r: u.rejected_count })} · {t(`data.method.${u.mapping_method === "ai_document" ? "ai" : u.mapping_method}`)} · {new Date(u.created_at).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div></div><DeleteUpload id={u.id} /></li>)}</ul>
         </Card>
       ) : null}
 
@@ -132,11 +133,11 @@ export default async function DataPage({ params }: PageProps<"/r/[id]/data">) {
           <div className="grid content-start gap-3">
             {memGroups.length ? memGroups.map(([k, list]) => (
               <div key={k}><div className="mb-1 text-[11.5px] font-bold uppercase tracking-wide text-muted">{t(`data.brainKinds.${k}`)}</div>
-                <ul className="grid gap-1">{list.slice(0, 5).map((m) => <li key={m.id} className="flex items-center justify-between gap-2 rounded-lg bg-surface-2 px-2.5 py-1.5 text-[12.5px]"><span className="truncate">{k === "action" ? t(`data.act.${m.key}.short`) : m.title}</span><span className="shrink-0 text-[11px] text-muted">{t("data.uses", { n: m.uses })} · {new Date(m.updatedAt).toLocaleDateString(locale, { month: "short", day: "numeric" })}</span></li>)}</ul></div>
+                <ul className="grid gap-1">{list.slice(0, 5).map((m) => <li key={m.id} className="flex items-center justify-between gap-2 rounded-lg bg-surface-2 px-2.5 py-1.5 text-[12.5px]"><span className="truncate">{k === "action" ? t(`data.act.${m.key}.short`) : m.title}</span><span className="shrink-0 text-[11px] text-muted">{t("data.uses", { n: m.uses })} · {new Date(m.updatedAt).toLocaleDateString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric" })}</span></li>)}</ul></div>
             )) : <p className="text-[13px] text-ink-2">{t("data.brainEmpty")}</p>}
           </div>
           <div><div className="mb-1 text-[11.5px] font-bold uppercase tracking-wide text-muted">{t("data.brainLog")}</div>
-            <ol className="grid gap-1.5 border-l-2 border-border pl-3 text-[12.5px]">{events.map((e) => <li key={e.id}><span className="text-[11px] text-muted">{new Date(e.created_at as string).toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span> · {lt((e.payload as { lt?: unknown })?.lt) || (e.summary as string)}</li>)}</ol>
+            <ol className="grid gap-1.5 border-l-2 border-border pl-3 text-[12.5px]">{events.map((e) => <li key={e.id}><span className="text-[11px] text-muted">{new Date(e.created_at as string).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span> · {lt((e.payload as { lt?: unknown })?.lt) || (e.summary as string)}</li>)}</ol>
           </div>
         </div>
         <p className="mt-3 text-[12px] text-muted">{t("data.brainNote")}</p>

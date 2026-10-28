@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Chip, fmtUsd } from "@/components/ui";
@@ -22,7 +23,7 @@ export default async function PublicPassPage({ params }: PageProps<"/p/[slug]">)
   const { count } = await getServiceClient().from("pass_claims").select("id", { count: "exact", head: true }).eq("campaign_id", c.id);
   const claimed = count ?? 0;
   const closed = passClosedReason(c, claimed);
-  const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { month: "short", day: "numeric" });
+  const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric" });
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-4">
       <header className="mb-4 flex items-center justify-between">

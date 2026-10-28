@@ -1,4 +1,5 @@
 "use client";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import { useEffect, useState } from "react";
 import { Button, Chip } from "@/components/ui";
 import { useI18n } from "@/i18n/client";
@@ -20,7 +21,7 @@ export function PassClaim({ slug, active, closedReason }: { slug: string; active
       <div className="grid gap-3 text-center" data-testid="claimed">
         <div className="text-[13px] font-semibold text-ink-2">{t("pass.pub.showCode")}</div>
         <div className="rounded-2xl border-2 border-dashed border-coral bg-coral-soft px-3 py-5 font-mono text-[34px] font-extrabold tracking-[0.18em] text-navy" data-testid="pass-token" aria-live="polite">{res.token.slice(0, 4)}<span className="text-coral">·</span>{res.token.slice(4)}</div>
-        <div className="text-[13px] text-ink-2">{t("pass.pub.expires", { date: new Date(res.expires_at!).toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })}</div>
+        <div className="text-[13px] text-ink-2">{t("pass.pub.expires", { date: new Date(res.expires_at!).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })}</div>
         <Chip tone="warn" className="mx-auto">{t("pass.pub.save")}</Chip>
       </div>
     );

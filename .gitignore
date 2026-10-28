@@ -17,3 +17,4 @@ playwright-report
 
 # local browser-tool snapshots (may contain live provider data)
 .playwright-cli/
+.env*

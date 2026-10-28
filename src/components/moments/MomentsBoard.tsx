@@ -1,4 +1,5 @@
 "use client";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import { useMemo, useState } from "react";
 import { Button, Card, Chip, DivergingBar, H2, cx } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
@@ -151,7 +152,7 @@ function FitPanel({ f, m, href }: { f: Fit; m: MomentItem; href: string | null }
       {f.places.length ? <div className="text-[12.5px] text-ink-2"><span className="font-semibold text-ink">{t("moments.placesT")}: </span>{f.places.map((p) => p.name).join(" · ")}</div> : null}
       <p className="text-[12px] text-muted">{t("moments.honesty")}</p>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {f.provenance ? <span className="text-[11.5px] text-muted">{t("common.source")} · {f.provenance.endpoint} · signal.interests.tags · {new Date(f.provenance.retrievedAt).toLocaleString(locale, { hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}</span> : <span />}
+        {f.provenance ? <span className="text-[11.5px] text-muted">{t("common.source")} · {f.provenance.endpoint} · signal.interests.tags · {new Date(f.provenance.retrievedAt).toLocaleString(locale, { timeZone: DISPLAY_TZ, hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}</span> : <span />}
         {href ? <Button variant="coral" href={href} size="sm"><Icon.ticket width={16} height={16} />{t("moments.planFor", { name: m.name.slice(0, 40) })}</Button> : null}
       </div>
     </div>

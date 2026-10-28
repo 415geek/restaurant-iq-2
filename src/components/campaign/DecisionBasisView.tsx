@@ -1,4 +1,5 @@
 import { Chip, DivergingBar, cx } from "@/components/ui";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import type { DecisionBasis } from "@/lib/pass-evidence";
 import type { SignalCitation } from "@/lib/business/types";
 import type { LText } from "@/i18n/locales";
@@ -8,7 +9,7 @@ type T = (k: string, p?: Record<string, string | number>) => string;
 
 /** "Why this offer": the frozen decision basis. Server component; used on the pass form (preview) and the campaign page (stored). */
 export function DecisionBasisView({ basis, citations, t, lt, locale }: { basis: DecisionBasis | null; citations: SignalCitation[]; t: T; lt: (x: LText) => string; locale: string }) {
-  const when = (iso?: string) => (iso ? new Date(iso).toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "");
+  const when = (iso?: string) => (iso ? new Date(iso).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "");
   return (
     <div className="grid gap-3 text-[13px]" data-testid="decision-basis">
       {basis ? <div className="flex flex-wrap items-center gap-2"><Chip tone="coral">{t(`pass.basis.source.${basis.source}`)}</Chip>{basis.anchor ? <span className="font-semibold">{basis.anchor.name}</span> : basis.moment ? <span className="font-semibold">{basis.moment.name} · {basis.moment.date}</span> : <span className="font-semibold">{t(`hyp.${basis.idea.slug}.title`)}</span>}</div> : null}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import type { ReactNode } from "react";
 
 export function cx(...parts: Array<string | false | null | undefined>) { return parts.filter(Boolean).join(" "); }
@@ -108,7 +109,7 @@ export function Empty({ title, body, action }: { title: ReactNode; body?: ReactN
 
 export function fmtDate(iso: string | null | undefined, locale = "en") {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString(locale === "zh" ? "zh-CN" : locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleString(locale === "zh" ? "zh-CN" : locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 export function fmtUsd(n: number | null | undefined, digits = 0) {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";

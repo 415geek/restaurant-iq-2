@@ -1,4 +1,5 @@
 "use client";
+import { DISPLAY_TZ } from "@/lib/display-tz";
 import { useState } from "react";
 import { Button, Card, Chip, DivergingBar, H2, cx } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
@@ -66,7 +67,7 @@ export function AnchorCard({ restaurantId, city, passHref }: { restaurantId: str
           </div>
           <p className="rounded-xl bg-surface-2 p-2.5 text-[12.5px] text-ink-2">{t("anchor.honesty")}</p>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            {res.provenance ? <span className="text-[11.5px] text-muted">{t("common.source")} · {res.provenance.endpoint} · signal.interests.entities · {new Date(res.provenance.retrievedAt).toLocaleString(locale, { hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}</span> : <span />}
+            {res.provenance ? <span className="text-[11.5px] text-muted">{t("common.source")} · {res.provenance.endpoint} · signal.interests.entities · {new Date(res.provenance.retrievedAt).toLocaleString(locale, { timeZone: DISPLAY_TZ, hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}</span> : <span />}
             {passHref ? <Button href={`${passHref}&anchor=${encodeURIComponent(a.name)}&aid=${encodeURIComponent(a.entityId)}`} variant="coral"><Icon.ticket width={18} height={18} />{t("anchor.cta", { name: a.name })}</Button> : null}
           </div>
         </div>
