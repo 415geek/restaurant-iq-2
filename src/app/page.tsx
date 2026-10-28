@@ -22,12 +22,12 @@ export default async function Home() {
             <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>
           </div>
           {/* product composition: the three acts, built from our own UI pieces (no stored Qloo data) */}
-          <div className="relative mx-auto mt-10 w-full max-w-md pb-10 lg:mt-0">
+          <div className="relative mx-auto mt-10 w-full max-w-md pb-20 lg:mt-0">
             <div className="card overflow-hidden">
               <div className="bg-navy p-5 text-white"><div className="text-[12px] text-white/70">{t("pass.title")}</div><div className="mt-1 text-[22px] font-extrabold leading-tight">{t("hyp.vegetarian-line.title")}</div><div className="mt-2 flex items-baseline gap-2"><span className="tabular text-[34px] font-extrabold text-coral">$6.00</span><span className="text-[13px] text-white/60 line-through">$7.00</span></div></div>
               <div className="flex items-center justify-between gap-3 p-4"><div className="rounded-xl border-2 border-dashed border-coral bg-coral-soft px-3 py-2 font-mono text-[18px] font-extrabold tracking-[0.15em] text-navy">K7QX·M4RT</div><Chip tone="coral">{t("pass.pub.left", { n: 49, max: 50 })}</Chip></div>
             </div>
-            <div className="card absolute -bottom-6 -right-3 w-48 p-4 sm:-right-8" style={{ background: "var(--coral)", color: "white" }}><div className="text-[12px] text-white/80">{t("pass.redeemed")}</div><div className="mt-1 flex items-center gap-2 text-[30px] font-extrabold leading-none"><span className="text-white/60">0</span><Icon.arrowRight /><span>1</span></div><div className="mt-1 text-[11px] text-white/80">{t("pass.result.ok")}</div></div>
+            <div className="card absolute -bottom-16 -right-3 w-48 p-4 sm:-right-8" style={{ background: "var(--coral)", color: "white" }}><div className="text-[12px] text-white/80">{t("pass.redeemed")}</div><div className="mt-1 flex items-center gap-2 text-[30px] font-extrabold leading-none"><span className="text-white/60">0</span><Icon.arrowRight /><span>1</span></div><div className="mt-1 text-[11px] text-white/80">{t("pass.result.ok")}</div></div>
             <div className="card absolute -left-3 -top-10 w-44 p-3 sm:-left-10"><div className="flex items-center gap-2 text-[12px] font-semibold"><i className="h-2 w-2 rounded-full bg-good" />{t("common.liveQloo")}</div><div className="text-[11px] text-muted">{t("landing.s1t")}</div></div>
           </div>
         </section>

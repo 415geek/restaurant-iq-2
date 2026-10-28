@@ -11,13 +11,21 @@ for (const locale of ["en", "zh", "es"]) {
     const ctx = await browser.newContext({ viewport: vp, deviceScaleFactor: 1 });
     await ctx.addCookies([{ name: "riq_locale", value: locale, url: base }]);
     const page = await ctx.newPage();
-    const pages: Array<[string, string]> = locale === "en" ? [["landing", "/"], ["snapshot", DEMO], ["taste", `${DEMO}/taste`], ["opportunities", `${DEMO}/opportunities`], ["actions", `${DEMO}/actions`], ["memory", `${DEMO}/memory`], ["login", "/login"]] : [["landing", "/"], ["opportunities", `${DEMO}/opportunities`]];
+    const pages: Array<[string, string]> = locale === "en" ? [["landing", "/"], ["snapshot", DEMO], ["taste", `${DEMO}/taste`], ["opportunities", `${DEMO}/opportunities`], ["passes", `${DEMO}/passes`], ["actions", `${DEMO}/actions`], ["memory", `${DEMO}/memory`], ["login", "/login"]] : [["landing", "/"], ["opportunities", `${DEMO}/opportunities`], ["passes", `${DEMO}/passes`]];
     for (const [slug, path] of pages) { await page.goto(base + path, { waitUntil: "networkidle" }); await page.screenshot({ path: `${out}/${slug}-${locale}-${name}.png`, fullPage: true }); }
     await page.goto(base + `${DEMO}/opportunities`, { waitUntil: "networkidle" });
     await page.getByRole("button", { name: /See why|看原因|Ver por qué/ }).first().click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: `${out}/sheet-${locale}-${name}.png`, fullPage: false });
     if (locale === "en") { const href = await page.getByRole("link", { name: /^Open$/ }).first().getAttribute("href"); await page.goto(base + href, { waitUntil: "networkidle" }); await page.screenshot({ path: `${out}/workspace-${locale}-${name}.png`, fullPage: true }); }
+    // TastePass: campaign proof page and the public guest page
+    await page.goto(base + `${DEMO}/passes`, { waitUntil: "networkidle" });
+    const camp = await page.locator(`a[href*="/passes/"]`).first().getAttribute("href").catch(() => null);
+    if (camp) {
+      await page.goto(base + camp, { waitUntil: "networkidle" }); await page.screenshot({ path: `${out}/campaign-${locale}-${name}.png`, fullPage: true });
+      const pub = await page.getByTestId("public-link").textContent().catch(() => null);
+      if (pub) { await page.goto(base + new URL(pub).pathname, { waitUntil: "networkidle" }); await page.screenshot({ path: `${out}/pass-public-${locale}-${name}.png`, fullPage: true }); }
+    }
     await ctx.close();
   }
 }
