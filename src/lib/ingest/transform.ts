@@ -66,11 +66,34 @@ export function normalizeChannel(v: string | undefined, platform: Platform): Cha
 const normStatus = (v: string | undefined): NormalizedRecord["status"] => { const s = (v ?? "").toLowerCase(); return /refund/.test(s) ? "refunded" : /cancel|void|reject|fail/.test(s) ? "cancelled" : "completed"; };
 
 export type RejectReason = "no_date" | "no_amount";
+
+type Unkeyed = Omit<NormalizedRecord, "dedupe_key">;
+/**
+ * Identity of a sale across files. Orders key on platform + order id; item lines on order id + item + occurrence;
+ * rows without an order id on time + item + amount + occurrence; daily summaries on platform + day.
+ * Two identical lines inside one file stay two lines (occurrence index); the same line in a second, overlapping file is skipped.
+ */
+export function withDedupeKeys(rows: Unkeyed[], tz: string): NormalizedRecord[] {
+  const seen = new Map<string, number>();
+  const day = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+  const out: NormalizedRecord[] = [];
+  for (const r of rows) {
+    const base = r.grain === "day" ? `d|${r.platform}|${day(r.ordered_at)}`
+      : r.grain === "order" && r.order_id ? `o|${r.platform}|${r.order_id}`
+      : r.order_id ? `l|${r.platform}|${r.order_id}|${(r.item_name ?? "").toLowerCase()}`
+      : `x|${r.platform}|${r.ordered_at}|${(r.item_name ?? "").toLowerCase()}|${r.gross_sales ?? r.net_sales ?? r.payout ?? ""}`;
+    const n = (seen.get(base) ?? 0) + 1; seen.set(base, n);
+    if (r.grain === "order" && r.order_id && n > 1) continue; // one row per order id in an order-level export
+    out.push({ ...r, dedupe_key: `${base}|${n}`.slice(0, 300) });
+  }
+  return out;
+}
 export function applyMapping(rows: string[][], headers: string[], mapping: ColumnMapping[], opts: { platform: Platform; tz: string }): { records: NormalizedRecord[]; rejected: Array<{ row: number; reason: RejectReason }> } {
   const col = (t: string) => { const m = mapping.find((x) => x.target === t); return m ? headers.indexOf(m.column) : -1; };
   const idx = Object.fromEntries(["ordered_at", "ordered_date", "ordered_time", "order_id", "platform", "channel", "item_name", "quantity", "status", ...MONEY_TARGETS].map((t) => [t, col(t)]));
   const get = (r: string[], t: string) => (idx[t] >= 0 ? r[idx[t]] : undefined);
-  const records: NormalizedRecord[] = []; const rejected: Array<{ row: number; reason: RejectReason }> = [];
+  const records: Unkeyed[] = []; const rejected: Array<{ row: number; reason: RejectReason }> = [];
+  const grain: NormalizedRecord["grain"] = idx.item_name >= 0 ? "line" : idx.order_id >= 0 || idx.ordered_time >= 0 || idx.ordered_at >= 0 ? "order" : "day";
   const dateCol = idx.ordered_at >= 0 ? idx.ordered_at : idx.ordered_date;
   const dayFirst = dateCol >= 0 && detectDayFirst(rows.map((r) => r[dateCol] ?? ""));
   rows.forEach((r, i) => {
@@ -88,10 +111,13 @@ export function applyMapping(rows: string[][], headers: string[], mapping: Colum
     if (money.discounts !== null) money.discounts = Math.abs(money.discounts);
     const platform = normalizePlatform(get(r, "platform"), opts.platform);
     const q = get(r, "quantity") ? Number(String(get(r, "quantity")).replace(/,/g, "")) : NaN;
+    const rawAt = get(r, "ordered_at"); const rawTime = get(r, "ordered_time");
+    const has_time = rawAt !== undefined ? !!parseTimeParts(rawAt.replace(/^\S+/, "")) || /T\d{2}:\d{2}/.test(rawAt) : !!(rawTime && parseTimeParts(rawTime));
     records.push({
+      grain, has_time,
       platform, channel: normalizeChannel(get(r, "channel"), platform), order_id: get(r, "order_id")?.trim().slice(0, 80) || null, ordered_at: at,
       item_name: item, quantity: Number.isFinite(q) ? q : null, ...money, status: normStatus(get(r, "status")), row_ref: i + 1,
     });
   });
-  return { records, rejected };
+  return { records: withDedupeKeys(records, opts.tz), rejected };
 }

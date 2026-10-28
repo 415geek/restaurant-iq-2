@@ -142,6 +142,15 @@ export async function runAnalysis(opts: OrchestratorOptions): Promise<AnalysisRe
       return { out: { passed: checks.every((c) => c.ok), checks }, summary: { passed: checks.every((c) => c.ok), failed: checks.filter((c) => !c.ok).map((c) => c.name) } };
     });
 
+    // A failed evaluator blocks publication: the run is marked failed and pages keep showing the last run that passed.
+    if (!evaluator.passed) {
+      const failed = evaluator.checks.filter((c) => !c.ok).map((c) => c.name);
+      const blockedLt = { key: "gen.evBlocked", params: { checks: failed.join(", ") } };
+      await store.createDecisionEvent({ restaurantId, kind: "analysis_blocked", subjectId: run.id, actor, summary: enText(blockedLt), payload: { lt: blockedLt, traceId, failed } });
+      await store.updateRun(run.id, { status: "failed", errorClass: "evaluator_failed", finishedAt: now().toISOString(), summary: { evaluatorPassed: false, failed } });
+      return { runId: run.id, traceId, mode: provider.mode, status: "failed", hypotheses: rows, viableCount: 0, noViableOpportunity: true, evidenceFailures: evidence.failures, evaluator, researchPlan: outcome.researchPlan };
+    }
+
     const evLt = { key: "gen.evAnalysis", params: { mode: provider.mode, n: outcome.viable.length, none: outcome.noViableOpportunity ? { key: "gen.evNone" } : "" } };
     await store.createDecisionEvent({
       restaurantId, kind: "analysis_completed", subjectId: run.id, actor,

@@ -101,7 +101,8 @@ export function KpiTile({ label, value, sub, visual, className, accent }: { labe
   return (
     <div className={cx("card flex flex-col p-4 sm:p-5", (dark || coral) && "text-white", className)} style={dark ? { background: "var(--navy)" } : coral ? { background: "var(--coral)" } : undefined}>
       <div className={cx("text-[12.5px] font-medium", dark || coral ? "text-white/80" : "text-ink-2")}>{label}</div>
-      <div className="mt-1 flex items-baseline gap-2"><span className="tabular text-[30px] font-extrabold leading-none tracking-[-0.03em]">{value}</span>{sub ? <span className={cx("text-[12px]", dark || coral ? "text-white/70" : "text-muted")}>{sub}</span> : null}</div>
+      <div className="mt-1 tabular text-[30px] font-extrabold leading-none tracking-[-0.03em]">{value}</div>
+      {sub ? <div className={cx("mt-1 truncate text-[12px] leading-4", dark || coral ? "text-white/75" : "text-muted")}>{sub}</div> : null}
       {visual ? <div className="mt-3">{visual}</div> : null}
     </div>
   );

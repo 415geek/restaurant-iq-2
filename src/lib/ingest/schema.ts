@@ -22,6 +22,12 @@ export interface NormalizedRecord {
   platform: Platform; channel: Channel; order_id: string | null; ordered_at: string; item_name: string | null; quantity: number | null;
   gross_sales: number | null; discounts: number | null; net_sales: number | null; tax: number | null; tip: number | null;
   platform_fees: number | null; payout: number | null; refunds: number | null; status: "completed" | "refunded" | "cancelled"; row_ref: number;
+  /** order = one row per order, line = one row per item line, day = a daily summary (never counted as an order) */
+  grain: "order" | "line" | "day";
+  /** false when the source had a date but no time of day (then the row is kept out of hour-of-week analysis) */
+  has_time: boolean;
+  /** stable identity across files, so overlapping reports do not count the same order twice */
+  dedupe_key: string;
 }
 
 export const mappingInputSchema = z.array(z.object({

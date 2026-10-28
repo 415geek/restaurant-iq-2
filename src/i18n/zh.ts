@@ -14,7 +14,7 @@ const zh: Dictionary = {
     sampleBadge: "示例数据", sampleTitle: "示例数据集：仅作示意，不是 Qloo 实时数据", liveBadge: "Qloo 实时", syntheticDemo: "合成演示", syntheticBody: "不是真实店铺，为评审而生成。",
     notConnected: "未接入 Qloo 实时数据。以下信号为示意样例，每张卡片都有标注。",
   },
-  nav: { snapshot: "概览", taste: "口味信号", opportunities: "机会", actions: "行动板", memory: "记忆", passes: "TastePass", data: "销售数据", moments: "时机" },
+  nav: { short: { snapshot: "概览", taste: "信号", moments: "时机", data: "数据", opportunities: "机会", passes: "Pass", memory: "记忆" }, snapshot: "概览", taste: "口味信号", opportunities: "机会", actions: "行动板", memory: "记忆", passes: "TastePass", data: "销售数据", moments: "时机" },
   steps: { snapshot: "概览", signals: "信号", choose: "选择", decide: "决策", act: "启用", prove: "验证" },
   landing: {
     kicker: "Qloo Agentic Hackathon 2026 · 开源",
@@ -41,6 +41,7 @@ const zh: Dictionary = {
     formatLabel: { dine_in: "堂食", takeout: "外带", third_party_delivery: "外卖平台", catering: "团餐" },
   },
   snapshot: {
+    recT: "本周推荐实验", recWhy: "为什么（Qloo）", recNot: "不选这个", recCta: "规划这个实验", recSee: "查看证据", recNote: "下一步由你定价格、名额和预算。没有你的批准不会上线。",
     "hi": "你好，{name}", "kpiIdeas": "值得测试的点子", "kpiBest": "最佳每周贡献", "kpiTaste": "最高口味匹配", "kpiData": "数据与运行", "nextSteps": "下一步", "avg": "平均", "ofScreened": "/ 共筛选 {t} 个", "stepsDone": "{d}/{n} 步", "chartT": "这群人在找什么", "chartH": "按场所属性的口味亲和度（0–1），最高者高亮。", "audienceT": "人群画像", "scenarios": "保守 · 基准 · 高价", "now": "当前", "seeAll": "查看全部", "noIdeasYet": "运行分析后仪表盘才会有数据。",
     title: "概览", profile: "基本信息", formats: "形式", hours: "营业时间", priceLevel: "价位", avgTicket: "客单价", pos: "POS", posNone: "未接入", posPlanned: "{pos} · 未接入",
     menu: "菜单", items: "{n} 项", noMenu: "还没有菜单。", strengths: "优势", constraints: "限制", goal: "目标", noGoal: "未填写目标",
@@ -70,7 +71,7 @@ const zh: Dictionary = {
     age: { "24_and_younger": "≤24", "25_to_29": "25–29", "30_to_34": "30–34", "35_to_44": "35–44", "45_to_54": "45–54", "55_and_older": "55+" },
     gender: { male: "男性", female: "女性" },
     compareT: "有 Qloo 与没有 Qloo", compareH: "同一组点子，两种排序。看看是哪个信号改变了排名。",
-    withQloo: "有 Qloo", withoutQloo: "没有 Qloo", withNote: "按 Qloo 实时证据排序。", withSampleNote: "按示例数据排序。", withoutNote: "通用基线：只看运营与经济性。",
+    withQloo: "有 Qloo", withoutQloo: "没有 Qloo", withNote: "按 Qloo 实时证据排序。", withSampleNote: "按示例数据排序。", withoutNote: "相同的点子、约束和权重，只去掉 Qloo 的输入（口味匹配设为中性）。名次不同不代表结果更好。",
     generic: "通用", movedUp: "↑ {n}（因 Qloo）", movedDown: "↓ {n}（因 Qloo）", changedBy: "改变因素", noSegment: "没有口味证据时无法确定人群",
   },
   opps: {
@@ -79,7 +80,7 @@ const zh: Dictionary = {
     noneBody: "没有点子通过限制、证据和经济性筛选。这是一个有效结论。调整限制或成本、接入 Qloo 实时数据后重新运行。",
     seeWhy: "看原因", decide: "决策", open: "打开", screenedOut: "已筛除", screenedOutN: "另有 {n} 个", showReasons: "显示原因", hideReasons: "隐藏原因",
     compareCardT: "没有 Qloo", compareCardB: "切到通用排序，看卡片怎么变。", compare: "对比", whyNot: "为什么不", noSignal: "没有 Qloo 信号支持这个点子",
-    labels: { high: "证据充分", medium: "证据中等", low: "证据不足", requires_validation: "先验证", not_recommended: "不推荐" },
+    labels: { high: "信号匹配强", medium: "信号匹配中", low: "信号匹配弱", requires_validation: "先验证", not_recommended: "不推荐" },
     status: { proposed: "待定", pursued: "推进中", rejected: "已拒绝" },
     taste: "口味 {v}", lowEffort: "容易做", mediumEffort: "中等难度", highEffort: "难度高", contribution: "调整后贡献", cm: "边际 {v}%", breakEven: "盈亏平衡 {n} 份", breakEvenNA: "无法盈亏平衡",
     sheet: { why: "原因", numbers: "数字", plan: "计划", whyTitle: "为什么是它？", withoutQloo: "没有 Qloo", withQloo: "有 Qloo", sameRank: "排名不变，人群更清晰", moved: "变动 {n}", pursue: "推进", reject: "拒绝", fullLab: "打开完整实验室", decided: "已记录决策：{status}。", menuHas: "你已经有 {n} 道菜", missing: "待验证", avoid: "注意", scoreT: "评分", composite: "综合", baseline: "基线" },
@@ -113,7 +114,7 @@ const zh: Dictionary = {
     title: "记忆", hint: "每一次输入、证据快照、决策、假设和审批。只增不改。换 POS 也不丢。",
     emptyT: "还没有记录", emptyB: "决策、情景和审批会出现在这里。",
     whyT: "为什么需要它", whyB: "POS 记得卖了什么，但不记得你为什么改菜单、用了什么证据、又决定不做什么。",
-    kinds: { restaurant_created: "工作区", analysis_completed: "分析", hypothesis_pursued: "决策", hypothesis_rejected: "决策", scenario_saved: "情景", action_approved: "审批", action_status_changed: "任务", outcome_recorded: "结果", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "领取", pass_redeemed: "核销", data_analyzed: "上传", data_imported: "导入", data_deleted: "删除", brain_learned: "大脑", insight_generated: "洞察", moment_explored: "时机", anchor_explored: "锚点" },
+    kinds: { restaurant_created: "工作区", analysis_completed: "分析", hypothesis_pursued: "决策", hypothesis_rejected: "决策", scenario_saved: "情景", action_approved: "审批", action_status_changed: "任务", outcome_recorded: "结果", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "领取", pass_redeemed: "核销", data_analyzed: "上传", data_imported: "导入", data_deleted: "删除", brain_learned: "大脑", insight_generated: "洞察", analysis_blocked: "已阻止", moment_explored: "时机", anchor_explored: "锚点" },
     top: "前列", mode: "模式", snapshot: "售价 {p}，份数 {u}，食材成本 {f}",
   },
   anchor: {
@@ -468,6 +469,7 @@ const zh: Dictionary = {
     "breakEvenNone": "无法回本",
     "breakEvenHint": "覆盖固定花费所需的核销次数",
     "bestCase": "全部 pass 都被使用",
+    "exposureHint": "没人核销时，固定投入全部损失。未计入：本来就会全价消费的客人、未填入的人工时间。",
     "exposure": "最坏亏损",
     "go": "可以做",
     "noGo": "不要做", "goCaution": "可以做，但要小心",
@@ -486,6 +488,7 @@ const zh: Dictionary = {
     "approving": "批准中…",
     "approveNote": "你的批准会记入记忆。演示餐厅的 pass 是沙盒：不兑换真实食物。",
     "failed": "创建 pass 失败。",
+    "basis": {"source": {"idea": "来自点子", "anchor": "文化锚点", "moment": "本地时机"}, "anchorNote": "老板选择的文化锚点", "placeNote": "{name} 的粉丝也去这里", "momentNote": "人群重合：{level}", "error": "创建这张 pass 时没能刷新 Qloo 证据（{e}）。没有用任何数据替代。", "whereT": "{name} 的粉丝在附近去哪吃", "whoT": "{name} 的粉丝是谁", "fit": "{theme}人群与你菜系的受众：{level}（{score}）。", "rejectedT": "考虑过但没选的方案", "frozen": "依据于 {at} 冻结。信号匹配描述的是口味重合，不是预期利润。"},
     "whyT": "为什么是这个优惠",
     "whyHint": "这个点子背后的 Qloo 信号。口味亲和度是一种关联，不是需求。",
     "liveT": "分享",
@@ -614,7 +617,7 @@ const zh: Dictionary = {
     risk: { lunchCannib: "午市套餐可能替代常客的全价订单。", vegLabel: "未经核实请标“素食”而非“纯素”。", lowTicket: "客单价低；需要非高峰座位。", lateLabor: "需要额外人工和深夜安全方案。", groupCapacity: "高峰期需要桌位；外带包装成本。", brunchUnproven: "新时段，该菜系需求未经验证。", licensing: "办证周期和费用。", partnerUnverified: "合作方意愿未核实；亲和度不等于协议。", commission: "抽成高；菜品需耐运输。" },
     taskCapacityDesc: "“{title}”的产能检查", taskVerifyChannel: "核实渠道：{name}", taskPublish: "发布上线帖：{title}",
     rpConnect: "接入 Qloo 实时密钥并重新运行，替换示意信号。", rpRetry: "重试失败的证据步骤：{steps}。", rpNone: "没有点子通过运营和经济性筛选。调整限制或补充菜品成本后重新运行。", rpBaseline: "任何实验前先统计两周工作日午市客流。", rpChannels: "投放营销前先核实渠道资格和费用。",
-    evAnalysis: "在{mode}模式下完成分析：{n} 个可行点子{none}。", evNone: "（没有可行点子）", evPursued: "推进“{title}”", evRejected: "拒绝“{title}”", evScenario: "为“{title}”保存情景“{label}”：每周调整后贡献 {v}", evApproved: "已审批“{title}”", evMoved: "“{title}”从 {from} 移至 {to}", evCreated: "已为 {name} 创建工作区{menu}", evCreatedMenu: "，含 {n} 道菜",
+    evBlocked: "分析被阻止：评估检查未通过（{checks}）。继续显示上一次的结果。", evAnalysis: "在{mode}模式下完成分析：{n} 个可行点子{none}。", evNone: "（没有可行点子）", evPursued: "推进“{title}”", evRejected: "拒绝“{title}”", evScenario: "为“{title}”保存情景“{label}”：每周调整后贡献 {v}", evApproved: "已审批“{title}”", evMoved: "“{title}”从 {from} 移至 {to}", evCreated: "已为 {name} 创建工作区{menu}", evCreatedMenu: "，含 {n} 道菜",
     evCuisine: "菜系“{cuisine}”匹配到 {n} 个 Qloo 场所标签。", evTags: "{where} 附近按口味亲和度排序的 {n} 个场所属性。", evPlaces: "{n} 个与此口味画像有亲和度的附近场所。", evCross: "{n} 个与该菜系粉丝关联的非餐饮实体。", evDemo: "菜系标签的年龄/性别亲和度偏差。",
   },
 };

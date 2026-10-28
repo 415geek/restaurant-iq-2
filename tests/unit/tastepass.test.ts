@@ -12,7 +12,7 @@ describe("TastePass economics", () => {
     expect(e.decision).toBe("go");
     expect(e.discountPerRedemption).toBe(2.5);
     expect(e.bestCaseContribution).toBe(365);
-    expect(e.maxExposure).toBe(0);
+    expect(e.maxExposure).toBe(60); // nobody redeems → the fixed spend is lost
   });
   it("zero contribution is NO-GO with no break-even", () => {
     const e = computePassEconomics({ ...base, offerPrice: 4.6, feePct: 0 });
@@ -25,6 +25,16 @@ describe("TastePass economics", () => {
     const e = computePassEconomics({ ...base, offerPrice: 3 });
     expect(e.decision).toBe("no_go");
     expect(e.maxExposure).toBeGreaterThan(60);
+  });
+  it("worst-case loss takes the worse end point: zero redemptions vs all redemptions", () => {
+    // reviewer repro: $100 fixed, $5 contribution, cap 30 → full redemption still nets -$50, zero redemption loses $100
+    const e = computePassEconomics({ regularPrice: 10, offerPrice: 5, variableCost: 0, feePct: 0, fixedSpend: 100, maxRedemptions: 30 });
+    expect(e.contributionPerRedemption).toBe(5);
+    expect(e.bestCaseContribution).toBe(50);
+    expect(e.maxExposure).toBe(100);
+    expect(computePassEconomics({ ...base, fixedSpend: 0 }).maxExposure).toBe(0);
+    const neg = computePassEconomics({ ...base, offerPrice: 3, feePct: 0, fixedSpend: 10, maxRedemptions: 10 }); // −1.6 each
+    expect(neg.maxExposure).toBe(26); // 10 + 1.6 × 10
   });
   it("flags break-even above the cap and deep discounts", () => {
     const e = computePassEconomics({ ...base, fixedSpend: 1000, offerPrice: 7.9 });

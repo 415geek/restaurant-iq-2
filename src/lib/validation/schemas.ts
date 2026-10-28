@@ -98,6 +98,8 @@ export const campaignCreateSchema = z.object({
   terms: z.string().trim().max(400).default(""),
   approve: z.boolean().default(true),
   moment: momentSchema.optional(),
+  anchor: z.object({ entityId: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9-]+$/), name: z.string().trim().min(1).max(80) }).optional(),
+  requestId: z.string().uuid().optional(), // idempotency: retries of the same submit create one campaign
 });
 export type CampaignCreate = z.infer<typeof campaignCreateSchema>;
 export const campaignPatchSchema = z.object({ action: z.enum(["end"]) });

@@ -60,7 +60,7 @@ export function WorkspaceShell({ base, children, header, signedIn }: { base: str
             const I = Icon[tab.icon]; const on = isActive(tab.seg);
             return (
               <Link key={tab.seg} href={tab.seg ? `${base}/${tab.seg}` : base} aria-current={on ? "page" : undefined} className={cx("flex h-14 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold", on ? "text-coral-ink" : "text-muted")}>
-                <I width={22} height={22} /><span className="block w-full truncate px-0.5 text-center">{t(tab.key)}</span>
+                <I width={22} height={22} /><span className="block w-full truncate px-0.5 text-center">{t(tab.key.replace("nav.", "nav.short."))}</span>
               </Link>
             );
           })}

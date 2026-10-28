@@ -92,4 +92,19 @@ test("cultural anchor resolves through Qloo and offers a fan pass", async ({ pag
   await result.getByRole("link", { name: /Make a pass for/ }).click();
   await expect(page.getByRole("heading", { name: "Activate a TastePass" })).toBeVisible();
   await expect(page.locator("input").first()).toHaveValue(/fans/);
+  // the anchor's own Qloo evidence (not the original idea's) is what the pass will be created from
+  const basis = page.getByTestId("decision-basis");
+  await expect(basis).toContainText("Cultural anchor");
+  await expect(basis).toContainText(/Where .* fans eat nearby/);
+  await expect(basis).toContainText("Considered, not chosen");
+});
+
+test("worst-case loss counts the fixed spend when nobody redeems", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "form math runs once");
+  await page.goto(`${DEMO}/opportunities`);
+  const href = await page.locator(`a[href*="/opportunities/"]`).first().getAttribute("href");
+  await page.goto(`${DEMO}/passes/new?h=${href!.split("/").pop()}&anchor=x&aid=invalid`);
+  const fixed = page.getByLabel(/Fixed test spend/);
+  await fixed.fill("100");
+  await expect(page.getByTestId("exposure")).toHaveText("$100");
 });

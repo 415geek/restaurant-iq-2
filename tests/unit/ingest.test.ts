@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import { readFileSync } from "node:fs";
 import { parseFile } from "@/lib/ingest/parse";
-import { detectPlatform, headerFingerprint, mappingGaps, normHeader, ruleMapping } from "@/lib/ingest/rules";
+import { detectPlatform, headerFingerprint, mappingGaps, normHeader, redactSample, ruleMapping } from "@/lib/ingest/rules";
 import { applyMapping, parseMoney, toUtcIso } from "@/lib/ingest/transform";
 import { analyzeSales, suggestActions } from "@/lib/ingest/analyze";
 
@@ -89,5 +89,52 @@ describe("analysis (deterministic)", () => {
     const cancelled = recs.filter((r) => r.status === "cancelled").length;
     expect(cancelled).toBeGreaterThan(0);
     expect(analyzeSales(recs.filter((r) => r.status !== "cancelled")).orders).toBe(a.orders);
+  });
+});
+
+describe("privacy before AI", () => {
+  it("redacts flagged columns and email/phone/card-looking cells, keeps dates and money", () => {
+    const headers = ["Customer Name", "Note", "Date", "Total", "Order"];
+    const rows = [["Sample Person", "call 415-555-0100 or a@b.com", "10/12/2026", "$1,234.50", "A-17"], ["Sample Two", "4111 1111 1111 1111", "2026-10-12", "12.00", "A-18"]];
+    const out = redactSample(headers, rows, ruleMapping(headers, rows));
+    expect(out[0][0]).toBe("[redacted]"); expect(out[0][1]).toBe("[redacted]"); expect(out[1][1]).toBe("[redacted]");
+    expect(out[0][2]).toBe("10/12/2026"); expect(out[0][3]).toBe("$1,234.50"); expect(out[0][4]).toBe("A-17");
+  });
+});
+
+describe("overlapping reports and grain", () => {
+  const H = ["Order ID", "Date", "Time", "Total"];
+  const m = ruleMapping(H, [["A1", "2026-10-12", "12:00", "20.00"]]);
+  it("the same order twice in one order-level file counts once (reviewer repro)", () => {
+    const { records } = applyMapping([["A1", "2026-10-12", "12:00", "20.00"], ["A1", "2026-10-12", "12:00", "20.00"]], H, m, { platform: "other", tz: "America/Los_Angeles" });
+    expect(records).toHaveLength(1);
+    const a = analyzeSales(records); expect(a.orders).toBe(1); expect(a.netSales).toBe(20);
+  });
+  it("a second, overlapping file produces the same dedupe keys", () => {
+    const one = applyMapping([["A1", "2026-10-12", "12:00", "20.00"]], H, m, { platform: "other", tz: "America/Los_Angeles" }).records;
+    const week = applyMapping([["A1", "2026-10-12", "12:00", "20.00"], ["A2", "2026-10-13", "13:00", "15.00"]], H, m, { platform: "other", tz: "America/Los_Angeles" }).records;
+    expect(week.map((r) => r.dedupe_key)).toContain(one[0].dedupe_key);
+  });
+  it("two identical item lines inside one order are both kept", () => {
+    const L = ["Order ID", "Date", "Time", "Item", "Total"];
+    const { records } = applyMapping([["A1", "2026-10-12", "12:00", "Tea", "5"], ["A1", "2026-10-12", "12:00", "Tea", "5"]], L, ruleMapping(L, [["A1", "2026-10-12", "12:00", "Tea", "5"]]), { platform: "other", tz: "America/Los_Angeles" });
+    expect(records).toHaveLength(2); expect(new Set(records.map((r) => r.dedupe_key)).size).toBe(2);
+  });
+  it("daily summaries are not orders, are out of the hour view, and yield to order data on the same day", () => {
+    const D = ["Date", "Total"];
+    const days = applyMapping([["2026-10-12", "500.00"], ["2026-10-14", "300.00"]], D, ruleMapping(D, [["2026-10-12", "500.00"]]), { platform: "other", tz: "America/Los_Angeles" }).records;
+    expect(days.every((r) => r.grain === "day" && !r.has_time)).toBe(true);
+    const order = applyMapping([["A1", "2026-10-12", "12:00", "20.00"]], H, m, { platform: "other", tz: "America/Los_Angeles" }).records;
+    const a = analyzeSales([...days, ...order]);
+    expect(a.orders).toBe(1);
+    expect(a.netSales).toBe(320); // Oct 12 summary ignored (order data covers it), Oct 14 summary kept
+    expect(a.summaryDays).toBe(1);
+    expect(a.heat.flat().reduce((x, y) => x + y, 0)).toBeGreaterThan(0);
+  });
+  it("orders with a date but no time stay out of the weekday × hour view", () => {
+    const N = ["Order ID", "Date", "Total"];
+    const { records } = applyMapping([["A1", "2026-10-12", "20.00"]], N, ruleMapping(N, [["A1", "2026-10-12", "20.00"]]), { platform: "other", tz: "America/Los_Angeles" });
+    expect(records[0].has_time).toBe(false);
+    const a = analyzeSales(records); expect(a.orders).toBe(1); expect(a.untimedOrders).toBe(1); expect(a.heat.flat().every((v) => v === 0)).toBe(true);
   });
 });

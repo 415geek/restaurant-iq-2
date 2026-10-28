@@ -91,3 +91,20 @@ describe("scoreHypotheses", () => {
     expect(a).toBe(b);
   });
 });
+
+describe("controlled With/Without Qloo comparison", () => {
+  const empty = (b: EvidenceBundle): EvidenceBundle => ({ ...b, tagAffinities: { ...b.tagAffinities, data: [] }, localPlaces: { ...b.localPlaces, data: [] }, crossDomain: { ...b.crossDomain, data: [] }, demographics: { ...b.demographics, data: [] } });
+  it("uses the same weights for both rankings", () => {
+    const out = scoreHypotheses(profile, menu, ev("live"));
+    for (const h of out.hypotheses) expect(h.baselineScore.weights).toEqual(h.score.weights);
+  });
+  it("without any Qloo signal, nothing moves: rank changes are attributable to Qloo inputs only", () => {
+    const out = scoreHypotheses(profile, menu, empty(ev("live")));
+    for (const h of out.hypotheses) expect(h.qlooDelta.rankChange).toBe(0);
+  });
+  it("disqualified ideas sit last in both rankings", () => {
+    const out = scoreHypotheses(profile, menu, ev("live"));
+    const n = out.hypotheses.length; const dq = out.hypotheses.filter((h) => h.disqualifiers.length);
+    for (const h of dq) { expect(h.rank).toBeGreaterThan(n - dq.length); expect(h.baselineRank).toBeGreaterThan(n - dq.length); }
+  });
+});

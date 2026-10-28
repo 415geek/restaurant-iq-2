@@ -14,7 +14,7 @@ const es: Dictionary = {
     sampleBadge: "Datos de muestra", sampleTitle: "Conjunto de muestra: ilustrativo, no son datos reales de Qloo", liveBadge: "Qloo en vivo", syntheticDemo: "Demo sintética", syntheticBody: "No es un negocio real. Creado para evaluación.",
     notConnected: "Qloo en vivo no conectado. Las señales son una muestra ilustrativa, marcada en cada tarjeta.",
   },
-  nav: { snapshot: "Resumen", taste: "Señales de gusto", opportunities: "Oportunidades", actions: "Tablero", memory: "Memoria", passes: "TastePass", data: "Datos", moments: "Momentos" },
+  nav: { short: { snapshot: "Inicio", taste: "Señales", moments: "Momentos", data: "Ventas", opportunities: "Ideas", passes: "Pase", memory: "Memoria" }, snapshot: "Resumen", taste: "Señales de gusto", opportunities: "Oportunidades", actions: "Tablero", memory: "Memoria", passes: "TastePass", data: "Datos", moments: "Momentos" },
   steps: { snapshot: "Resumen", signals: "Señales", choose: "Elegir", decide: "Decidir", act: "Activar", prove: "Probar" },
   landing: {
     kicker: "Qloo Agentic Hackathon 2026 · código abierto",
@@ -41,6 +41,7 @@ const es: Dictionary = {
     formatLabel: { dine_in: "en local", takeout: "para llevar", third_party_delivery: "apps de delivery", catering: "catering" },
   },
   snapshot: {
+    recT: "Experimento de esta semana", recWhy: "Por qué (Qloo)", recNot: "Este no", recCta: "Planear este experimento", recSee: "Ver la evidencia", recNote: "Luego defines precio, tope y presupuesto. Nada sale sin tu aprobación.",
     "hi": "Hola, {name}", "kpiIdeas": "Ideas que vale la pena probar", "kpiBest": "Mejor contribución semanal", "kpiTaste": "Mayor afinidad", "kpiData": "Datos y ejecución", "nextSteps": "Próximos pasos", "avg": "prom.", "ofScreened": "de {t} evaluadas", "stepsDone": "{d}/{n} pasos", "chartT": "Qué busca esta audiencia", "chartH": "Afinidad por atributo de lugar, 0–1. La mayor resaltada.", "audienceT": "Perfil de audiencia", "scenarios": "Conservador · Base · Premium", "now": "Ahora", "seeAll": "Ver todo", "noIdeasYet": "Ejecuta el análisis para llenar este panel.",
     title: "Resumen", profile: "Perfil", formats: "Formatos", hours: "Horario", priceLevel: "Nivel de precio", avgTicket: "Ticket promedio", pos: "POS", posNone: "ninguno conectado", posPlanned: "{pos} · no conectado",
     menu: "Menú", items: "{n} platos", noMenu: "Aún no hay platos.", strengths: "Fortalezas", constraints: "Restricciones", goal: "Objetivo", noGoal: "Sin objetivo",
@@ -70,7 +71,7 @@ const es: Dictionary = {
     age: { "24_and_younger": "≤24", "25_to_29": "25–29", "30_to_34": "30–34", "35_to_44": "35–44", "45_to_54": "45–54", "55_and_older": "55+" },
     gender: { male: "hombres", female: "mujeres" },
     compareT: "Con Qloo vs sin Qloo", compareH: "Mismas ideas, dos rankings. Mira qué señal movió cada una.",
-    withQloo: "Con Qloo", withoutQloo: "Sin Qloo", withNote: "Ordenado con evidencia Qloo en vivo.", withSampleNote: "Ordenado con la muestra.", withoutNote: "Base genérica: solo operación y economía.",
+    withQloo: "Con Qloo", withoutQloo: "Sin Qloo", withNote: "Ordenado con evidencia Qloo en vivo.", withSampleNote: "Ordenado con la muestra.", withoutNote: "Mismas ideas, restricciones y pesos; solo se quitan las entradas de Qloo (afinidad neutral). Un puesto distinto no prueba un mejor resultado.",
     generic: "genérico", movedUp: "↑ {n} con Qloo", movedDown: "↓ {n} con Qloo", changedBy: "Cambiado por", noSegment: "Sin audiencia sin evidencia de gusto",
   },
   opps: {
@@ -79,7 +80,7 @@ const es: Dictionary = {
     noneBody: "Nada pasó los filtros de restricciones, evidencia y economía. Es un resultado válido. Ajusta restricciones o costos, conecta Qloo en vivo y vuelve a ejecutar.",
     seeWhy: "Ver por qué", decide: "Decidir", open: "Abrir", screenedOut: "Descartadas", screenedOutN: "{n} más", showReasons: "Ver razones", hideReasons: "Ocultar razones",
     compareCardT: "Sin Qloo", compareCardB: "Cambia al ranking genérico y mira cómo se mueven.", compare: "Comparar", whyNot: "Por qué no", noSignal: "Ninguna señal de Qloo respalda esta idea",
-    labels: { high: "Evidencia alta", medium: "Evidencia media", low: "Evidencia baja", requires_validation: "Validar primero", not_recommended: "No recomendada" },
+    labels: { high: "Señal fuerte", medium: "Señal media", low: "Señal débil", requires_validation: "Validar primero", not_recommended: "No recomendada" },
     status: { proposed: "propuesta", pursued: "en marcha", rejected: "rechazada" },
     taste: "Gusto {v}", lowEffort: "Poco esfuerzo", mediumEffort: "Esfuerzo medio", highEffort: "Mucho esfuerzo", contribution: "contribución ajustada", cm: "MC {v}%", breakEven: "equilibrio {n} unidades", breakEvenNA: "sin punto de equilibrio",
     sheet: { why: "Por qué", numbers: "Números", plan: "Plan", whyTitle: "¿Por qué esta?", withoutQloo: "Sin Qloo", withQloo: "Con Qloo", sameRank: "mismo puesto, audiencia más clara", moved: "se movió {n}", pursue: "Adoptar", reject: "Rechazar", fullLab: "Abrir laboratorio", decided: "Decisión registrada: {status}.", menuHas: "Ya tienes {n} platos", missing: "Por verificar", avoid: "Cuidado", scoreT: "Puntaje", composite: "Compuesto", baseline: "base" },
@@ -113,7 +114,7 @@ const es: Dictionary = {
     title: "Memoria", hint: "Cada entrada, evidencia, decisión, supuesto y aprobación. Solo se agrega. Sobrevive a un cambio de POS.",
     emptyT: "Aún no hay registros", emptyB: "Decisiones, escenarios y aprobaciones aparecen aquí.",
     whyT: "Por qué existe", whyB: "Un POS recuerda qué se vendió. No recuerda por qué cambiaste el menú, qué evidencia usaste ni qué decidiste no hacer.",
-    kinds: { restaurant_created: "Espacio", analysis_completed: "Análisis", hypothesis_pursued: "Decisión", hypothesis_rejected: "Decisión", scenario_saved: "Escenario", action_approved: "Aprobación", action_status_changed: "Tarea", outcome_recorded: "Resultado", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Reclamo", pass_redeemed: "Canje", data_analyzed: "Carga", data_imported: "Importación", data_deleted: "Eliminación", brain_learned: "Cerebro", insight_generated: "Hallazgo", moment_explored: "Momento", anchor_explored: "Ancla" },
+    kinds: { restaurant_created: "Espacio", analysis_completed: "Análisis", hypothesis_pursued: "Decisión", hypothesis_rejected: "Decisión", scenario_saved: "Escenario", action_approved: "Aprobación", action_status_changed: "Tarea", outcome_recorded: "Resultado", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Reclamo", pass_redeemed: "Canje", data_analyzed: "Carga", data_imported: "Importación", data_deleted: "Eliminación", brain_learned: "Cerebro", insight_generated: "Hallazgo", analysis_blocked: "Bloqueado", moment_explored: "Momento", anchor_explored: "Ancla" },
     top: "Mejores", mode: "modo", snapshot: "precio {p}, unidades {u}, costo {f}",
   },
   anchor: {
@@ -468,6 +469,7 @@ const es: Dictionary = {
     "breakEvenNone": "nunca",
     "breakEvenHint": "Canjes necesarios para cubrir el gasto fijo",
     "bestCase": "Si se usan todos los pases",
+    "exposureHint": "Si nadie canjea, se pierde el gasto fijo. No incluye: clientes que pagarían precio completo ni tiempo de personal no listado.",
     "exposure": "Pérdida máxima",
     "go": "SÍ",
     "noGo": "NO", "goCaution": "SÍ, con cautela",
@@ -486,6 +488,7 @@ const es: Dictionary = {
     "approving": "Aprobando…",
     "approveNote": "Tu aprobación queda en Memoria. Los pases del restaurante demo son de prueba: sin comida real.",
     "failed": "No se pudo crear el pase.",
+    "basis": {"source": {"idea": "Desde una idea", "anchor": "Ancla cultural", "moment": "Momento local"}, "anchorNote": "Ancla cultural elegida por el dueño", "placeNote": "Los fans de {name} también van aquí", "momentNote": "Coincidencia de público: {level}", "error": "No se pudo actualizar la evidencia de Qloo al crear este pase ({e}). No se sustituyó nada.", "whereT": "Dónde comen cerca los fans de {name}", "whoT": "Quiénes son los fans de {name}", "fit": "Público de {theme} vs el de tu cocina: {level} ({score}).", "rejectedT": "Consideradas, no elegidas", "frozen": "Base congelada {at}. La señal describe afinidad de gusto, no ganancia esperada."},
     "whyT": "Por qué esta oferta",
     "whyHint": "Las señales de Qloo detrás de la idea. La afinidad es una relación, no demanda.",
     "liveT": "Compartir",
@@ -614,7 +617,7 @@ const es: Dictionary = {
     risk: { lunchCannib: "El menú de almuerzo puede reemplazar pedidos a precio completo de clientes habituales.", vegLabel: "Etiqueta vegetariano, no vegano, salvo verificación.", lowTicket: "Ticket bajo; requiere mesas fuera de hora pico.", lateLabor: "Requiere personal extra y plan de seguridad nocturna.", groupCapacity: "Requiere mesas en hora pico; costo de empaque para llevar.", brunchUnproven: "Franja nueva con demanda no probada para esta cocina.", licensing: "Plazo y costo de la licencia.", partnerUnverified: "Interés del socio sin verificar; afinidad no es acuerdo.", commission: "Mucha comisión; el plato debe viajar bien." },
     taskCapacityDesc: "Chequeo de capacidad para “{title}”", taskVerifyChannel: "Verificar canal: {name}", taskPublish: "Publicar lanzamiento: {title}",
     rpConnect: "Conecta una clave de Qloo en vivo y vuelve a ejecutar para reemplazar señales ilustrativas.", rpRetry: "Reintenta los pasos de evidencia fallidos: {steps}.", rpNone: "Nada pasa los filtros operativos y económicos. Revisa restricciones o agrega costos del menú y vuelve a ejecutar.", rpBaseline: "Cuenta cubiertos del almuerzo entre semana durante dos semanas antes de cualquier experimento.", rpChannels: "Verifica elegibilidad y tarifas de canales antes de gastar en marketing.",
-    evAnalysis: "Análisis listo en modo {mode}: {n} idea(s) viable(s){none}.", evNone: " (ninguna idea viable)", evPursued: "Adoptada “{title}”", evRejected: "Rechazada “{title}”", evScenario: "Escenario “{label}” guardado para “{title}”: contribución semanal ajustada {v}", evApproved: "Aprobada “{title}”", evMoved: "“{title}” pasó de {from} → {to}", evCreated: "Espacio creado para {name}{menu}", evCreatedMenu: " con {n} platos",
+    evBlocked: "Análisis bloqueado: fallaron las verificaciones ({checks}). Se mantienen los resultados anteriores.", evAnalysis: "Análisis listo en modo {mode}: {n} idea(s) viable(s){none}.", evNone: " (ninguna idea viable)", evPursued: "Adoptada “{title}”", evRejected: "Rechazada “{title}”", evScenario: "Escenario “{label}” guardado para “{title}”: contribución semanal ajustada {v}", evApproved: "Aprobada “{title}”", evMoved: "“{title}” pasó de {from} → {to}", evCreated: "Espacio creado para {name}{menu}", evCreatedMenu: " con {n} platos",
     evCuisine: "Cocina “{cuisine}” resuelta a {n} etiqueta(s) de lugar de Qloo.", evTags: "{n} atributos de lugar ordenados por afinidad cerca de {where}.", evPlaces: "{n} lugares cercanos con afinidad por este perfil.", evCross: "{n} entidades no gastronómicas vinculadas a los fans de esta cocina.", evDemo: "Deltas de afinidad por edad/género para las etiquetas de cocina.",
   },
 };

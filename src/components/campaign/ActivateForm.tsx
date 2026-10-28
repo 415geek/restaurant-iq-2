@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n/client";
 import type { MomentInput } from "@/lib/validation/schemas";
 import { Icon } from "@/components/ui/Icon";
 
-export interface ActivateDefaults { offerName: string; menuItem: string; regularPrice: number; offerPrice: number; variableCost: number; feePct: number; fixedSpend: number; maxRedemptions: number; days: number; terms: string; moment?: MomentInput }
+export interface ActivateDefaults { offerName: string; menuItem: string; regularPrice: number; offerPrice: number; variableCost: number; feePct: number; fixedSpend: number; maxRedemptions: number; days: number; terms: string; moment?: MomentInput; anchor?: { entityId: string; name: string } }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return <label className="grid gap-1"><span className="text-[12.5px] font-semibold text-ink-2">{label}</span>{children}{hint ? <span className="text-[11.5px] text-muted">{hint}</span> : null}</label>;
@@ -20,6 +20,7 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
   const { t, locale } = useI18n(); const router = useRouter();
   const [v, setV] = useState(defaults);
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [requestId] = useState(() => globalThis.crypto.randomUUID()); // one id per form: double clicks and retries create one campaign
   const num = (k: keyof ActivateDefaults) => (e: React.ChangeEvent<HTMLInputElement>) => setV((s) => ({ ...s, [k]: e.target.value === "" ? 0 : Number(e.target.value) }));
   const str = (k: keyof ActivateDefaults) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [k]: e.target.value }));
   const e = useMemo(() => computePassEconomics({ ...v, feePct: v.feePct / 100 }), [v]);
@@ -27,7 +28,7 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
 
   async function approve() {
     setBusy(true); setErr("");
-    const res = await fetch("/api/campaigns", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hypothesisId, ...v, feePct: v.feePct / 100, approve: true }) });
+    const res = await fetch("/api/campaigns", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hypothesisId, ...v, feePct: v.feePct / 100, approve: true, requestId }) });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) { setBusy(false); setErr(j.error ?? t("pass.failed")); return; }
     router.push(`/r/${restaurantId}/passes/${j.id}`);
@@ -55,7 +56,7 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
           <KpiTile accent={noGo ? "white" : "coral"} label={t("pass.contribution")} value={<span className={noGo ? "text-bad" : undefined} data-testid="contribution">{fmtUsd(e.contributionPerRedemption, 2)}</span>} visual={<span className={cx("block text-[11.5px] leading-4", noGo ? "text-muted" : "text-white/80")}>{t("pass.contributionHint")}</span>} />
           <KpiTile accent="navy" label={t("pass.breakEven")} value={e.breakEvenRedemptions === null ? t("pass.breakEvenNone") : e.breakEvenRedemptions} sub={e.breakEvenRedemptions === null ? undefined : t("pass.ofCap", { max: v.maxRedemptions })} />
           <KpiTile label={t("pass.bestCase")} value={<span className={e.bestCaseContribution >= 0 ? "text-good-ink" : "text-bad"}>{fmtUsd(e.bestCaseContribution)}</span>} />
-          <KpiTile label={t("pass.exposure")} value={fmtUsd(e.maxExposure)} />
+          <KpiTile label={t("pass.exposure")} value={<span data-testid="exposure">{fmtUsd(e.maxExposure)}</span>} visual={<span className="block text-[11.5px] leading-4 text-muted">{t("pass.exposureHint")}</span>} />
         </div>
         <div className="card p-4">
           <div className="flex flex-wrap items-center gap-2"><Chip tone={noGo ? "bad" : e.reasons.length ? "warn" : "good"} className="text-[13px]">{noGo ? t("pass.noGo") : e.reasons.length ? t("pass.goCaution") : t("pass.go")}</Chip>{e.reasons.map((r) => <span key={r} className={cx("text-[13px]", r === "negative_contribution" ? "font-semibold text-bad" : "text-warn-ink")}>{t(`pass.reasons.${r}`)}</span>)}</div>

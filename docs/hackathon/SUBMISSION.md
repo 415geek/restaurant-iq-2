@@ -10,7 +10,7 @@
 
 AI can invent a thousand marketing ideas. An independent restaurant owner, with no growth manager and a slow Tuesday afternoon, needs one idea that reaches a real person, fits the kitchen, and can be measured. TastePass by Restaurant IQ does that loop end to end.
 
-**1. Read the taste.** A bounded six-agent workflow (Intake → Evidence → Opportunity → Finance → Execution → Evaluator) calls the Qloo API server-side. `/v2/tags` resolves "Taiwanese / Chinese noodles" to restaurant genre tags. `/v2/insights` returns the place attributes this audience over-indexes on (split by tag type: genre, ambience, customer identity, dishes), nearby places with `feature.explainability`, cross-domain brands, podcasts, artists and shows, and age/gender skew.
+**1. Read the taste.** A bounded six-stage workflow (deterministic steps with tool calls, budgets and an evaluator gate) (Intake → Evidence → Opportunity → Finance → Execution → Evaluator) calls the Qloo API server-side. `/v2/tags` resolves "Taiwanese / Chinese noodles" to restaurant genre tags. `/v2/insights` returns the place attributes this audience over-indexes on (split by tag type: genre, ambience, customer identity, dishes), nearby places with `feature.explainability`, cross-domain brands, podcasts, artists and shows, and age/gender skew.
 
 **2. Pick a cultural anchor.** The owner types an artist, film, show, brand or podcast their guests love. Qloo `/search` resolves it, and `/v2/insights` with `signal.interests.entities` returns the city's restaurants whose audience overlaps that anchor's fans, with explainability, plus the fans' demographics. That turns "people who like X" into a concrete, local audience hook.
 

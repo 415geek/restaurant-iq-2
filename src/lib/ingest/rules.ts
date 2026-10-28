@@ -102,3 +102,15 @@ export function mappingGaps(m: ColumnMapping[]): string[] {
   if (!["gross_sales", "net_sales", "payout"].some((t) => has(t as Target))) gaps.push("no_amount");
   return gaps;
 }
+
+/**
+ * Redact before anything leaves the server: whole columns the rules flagged as personal data, plus any cell that looks like
+ * an email, phone number or card number. Used for the samples sent to the AI mapper.
+ */
+const EMAIL = /[^\s@]+@[^\s@]+\.[a-z]{2,}/i;
+const PHONE = /(\+?\d[\d\s().-]{7,}\d)/;
+const CARD = /\b(?:\d[ -]?){13,19}\b/;
+export function redactSample(headers: string[], rows: string[][], mapping: ColumnMapping[]): string[][] {
+  const pii = new Set(mapping.filter((m) => m.target === "pii").map((m) => m.column));
+  return rows.map((r) => r.map((v, i) => (pii.has(headers[i]) ? "[redacted]" : EMAIL.test(v) || CARD.test(v) || (PHONE.test(v) && !/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/.test(v) && !/^\$?[\d,]+(\.\d+)?$/.test(v.trim())) ? "[redacted]" : v)));
+}

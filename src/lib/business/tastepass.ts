@@ -4,6 +4,8 @@
  * contribution per redemption = offer price × (1 − fee %) − variable cost
  * break-even redemptions      = ceil(fixed spend / contribution), only when contribution > 0
  * NO-GO                       = contribution ≤ 0 (more redemptions only lose more money)
+ * worst-case loss             = max(fixed spend [nobody redeems], fixed spend − contribution × cap [everyone redeems])
+ * Not modeled: guests who would have paid full price anyway (cannibalization), staff time not entered as fixed spend.
  */
 export interface PassInputs {
   regularPrice: number;
@@ -19,7 +21,7 @@ export interface PassEconomics {
   contributionPerRedemption: number;
   discountPerRedemption: number;
   breakEvenRedemptions: number | null;
-  maxExposure: number; // worst case if every pass redeems: fixed spend minus total contribution (positive = loss)
+  maxExposure: number; // worst-case loss in this model: the worse of zero redemptions (fixed spend lost) and all redemptions (fixed spend − total contribution)
   bestCaseContribution: number; // contribution if all max redemptions happen, after fixed spend
   decision: "go" | "no_go";
   reasons: Array<"negative_contribution" | "break_even_above_cap" | "discount_over_half">;
@@ -44,7 +46,8 @@ export function computePassEconomics(i: PassInputs): PassEconomics {
     contributionPerRedemption: contribution,
     discountPerRedemption: discount,
     breakEvenRedemptions: breakEven,
-    maxExposure: r2(Math.max(0, -best)),
+    // Profit is linear in redemptions, so the worst case is at an end point: 0 redemptions or the cap.
+    maxExposure: r2(Math.max(0, i.fixedSpend, -best)),
     bestCaseContribution: best,
     decision: contribution > 0 ? "go" : "no_go",
     reasons,

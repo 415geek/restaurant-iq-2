@@ -25,7 +25,7 @@ const mappingOut = z.object({
   columns: z.array(z.object({ column: z.string(), target: z.enum(TARGETS), confidence: z.number(), reason: z.string() })),
 });
 
-/** Ask Claude to map columns. Only header names and up to 5 sample rows (cells truncated) are sent. */
+/** Ask Claude to map columns. Only header names and up to 5 redacted sample rows (cells truncated) are sent; the caller redacts. */
 export async function aiMapColumns(input: { fileName: string; headers: string[]; sample: string[][]; rules: ColumnMapping[] }): Promise<{ platform: Platform; mapping: ColumnMapping[] }> {
   const c = client();
   const table = [input.headers, ...input.sample.slice(0, 5)].map((r) => r.map((v) => v.slice(0, 60)).join(" | ")).join("\n");

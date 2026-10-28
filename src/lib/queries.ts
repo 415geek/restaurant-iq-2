@@ -31,7 +31,9 @@ export interface RunView { id: string; traceId: string; status: string; mode: Pr
 
 export async function getLatestRun(restaurantId: string): Promise<RunView | null> {
   const supabase = await getSsrClient();
-  const { data: run } = await supabase.from("analysis_runs").select("*").eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  // Prefer the latest run that completed (passed the evaluator); a newer failed or running attempt must not hide usable results.
+  const { data: ok } = await supabase.from("analysis_runs").select("*").eq("restaurant_id", restaurantId).eq("status", "completed").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const run = ok ?? (await supabase.from("analysis_runs").select("*").eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(1).maybeSingle()).data;
   if (!run) return null;
   const { data: steps } = await supabase.from("agent_steps").select("agent,seq,status,started_at,finished_at,tool_calls,output_summary").eq("run_id", run.id).order("seq");
   return {

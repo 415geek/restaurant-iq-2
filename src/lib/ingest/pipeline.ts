@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { recall } from "@/lib/brain";
 import { aiConfigured, aiMapColumns, AiUnavailable } from "./ai";
 import { applyMapping } from "./transform";
-import { detectPlatform, headerFingerprint, mappingGaps, ruleMapping } from "./rules";
+import { detectPlatform, headerFingerprint, mappingGaps, redactSample, ruleMapping } from "./rules";
 import type { Table } from "./parse";
 import type { ColumnMapping, Platform } from "./schema";
 
@@ -31,7 +31,7 @@ export async function propose(db: SupabaseClient, restaurantId: string, fileName
       if (!aiConfigured() || !allowAi) ai = "unavailable";
       else {
         try {
-          const r = await aiMapColumns({ fileName, headers: t.headers, sample: t.rows.slice(0, 5), rules: mapping });
+          const r = await aiMapColumns({ fileName, headers: t.headers, sample: redactSample(t.headers, t.rows.slice(0, 5), mapping), rules: mapping }); // personal data redacted before sending
           // Personal data stays dropped if either the rules or Claude flagged it.
           mapping = r.mapping.map((m) => (mapping.find((x) => x.column === m.column)?.target === "pii" ? { ...m, target: "pii" as const } : m));
           if (platform === "other") platform = r.platform; method = "ai"; ai = "used";
@@ -51,7 +51,7 @@ import { brainEvent, remember } from "@/lib/brain";
 export async function loadSales(db: SupabaseClient, restaurantId: string): Promise<SalesRow[]> {
   const out: SalesRow[] = [];
   for (let from = 0; from < 100_000; from += 1000) {
-    const { data } = await db.from("sales_records").select("platform, channel, order_id, ordered_at, item_name, quantity, gross_sales, net_sales, platform_fees, payout, discounts, status").eq("restaurant_id", restaurantId).order("id").range(from, from + 999);
+    const { data } = await db.from("sales_records").select("platform, channel, order_id, ordered_at, item_name, quantity, gross_sales, net_sales, platform_fees, payout, discounts, status, grain, has_time").eq("restaurant_id", restaurantId).order("id").range(from, from + 999);
     const rows = (data ?? []).map((r) => ({ ...r, quantity: r.quantity === null ? null : Number(r.quantity), gross_sales: r.gross_sales === null ? null : Number(r.gross_sales), net_sales: r.net_sales === null ? null : Number(r.net_sales), platform_fees: r.platform_fees === null ? null : Number(r.platform_fees), payout: r.payout === null ? null : Number(r.payout), discounts: r.discounts === null ? null : Number(r.discounts) })) as SalesRow[];
     out.push(...rows);
     if (rows.length < 1000) break;

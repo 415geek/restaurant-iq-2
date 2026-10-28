@@ -7,8 +7,7 @@ import { brainEvent } from "@/lib/brain";
 import { MAX_FILE_BYTES, parseFile } from "@/lib/ingest/parse";
 import { propose, RESTAURANT_TZ } from "@/lib/ingest/pipeline";
 import { aiConfigured, aiExtractDocument, AiUnavailable } from "@/lib/ingest/ai";
-import { toUtcIso } from "@/lib/ingest/transform";
-import { normalizeChannel } from "@/lib/ingest/transform";
+import { normalizeChannel, toUtcIso, withDedupeKeys } from "@/lib/ingest/transform";
 import type { NormalizedRecord } from "@/lib/ingest/schema";
 
 export const maxDuration = 60;
@@ -43,11 +42,13 @@ export async function POST(req: Request) {
     if (!aiRl.ok) return NextResponse.json({ fileName: name, sha256, kind: "document", ai: "rate_limited" });
     try {
       const out = await aiExtractDocument({ fileName: name, mediaType: parsed.mediaType, data: buf });
-      const records: NormalizedRecord[] = out.rows.flatMap((r, i) => {
+      const grain: NormalizedRecord["grain"] = out.kind === "daily_summary" ? "day" : out.rows.some((r) => r.item_name) ? "line" : "order";
+      const unkeyed = out.rows.flatMap((r, i) => {
         const at = toUtcIso(r.date, r.time ?? undefined, RESTAURANT_TZ); if (!at) return [];
         const net = r.net_sales ?? (r.gross_sales !== null ? Math.round((r.gross_sales - Math.abs(r.discounts ?? 0)) * 100) / 100 : null);
-        return [{ platform: out.platform, channel: normalizeChannel(r.channel ?? undefined, out.platform), order_id: r.order_id, ordered_at: at, item_name: r.item_name, quantity: r.quantity, gross_sales: r.gross_sales, discounts: r.discounts === null ? null : Math.abs(r.discounts), net_sales: net, tax: r.tax, tip: r.tip, platform_fees: r.platform_fees === null ? null : Math.abs(r.platform_fees), payout: r.payout, refunds: r.refunds, status: /refund/i.test(r.status ?? "") ? "refunded" as const : /cancel|void/i.test(r.status ?? "") ? "cancelled" as const : "completed" as const, row_ref: i + 1 }];
+        return [{ platform: out.platform, channel: normalizeChannel(r.channel ?? undefined, out.platform), order_id: r.order_id, ordered_at: at, item_name: r.item_name, quantity: r.quantity, gross_sales: r.gross_sales, discounts: r.discounts === null ? null : Math.abs(r.discounts), net_sales: net, tax: r.tax, tip: r.tip, platform_fees: r.platform_fees === null ? null : Math.abs(r.platform_fees), payout: r.payout, refunds: r.refunds, status: /refund/i.test(r.status ?? "") ? "refunded" as const : /cancel|void/i.test(r.status ?? "") ? "cancelled" as const : "completed" as const, row_ref: i + 1, grain, has_time: !!r.time }];
       });
+      const records: NormalizedRecord[] = withDedupeKeys(unkeyed, RESTAURANT_TZ);
       const { data: up } = await db.from("data_uploads").insert({ restaurant_id: restaurantId, file_name: name, file_type: parsed.mediaType, size_bytes: file.size, sha256, platform: out.platform, status: "staged", row_count: out.rows.length, mapping: [], mapping_method: "ai_document", staged_rows: records, created_by: actor }).select("id").single();
       await brainEvent(db, { restaurantId, kind: "data_analyzed", subjectId: up?.id, actor, summary: `Read document ${name} with AI: ${records.length} rows staged for review`, lt: { key: "data.evDocRead", params: { name, n: records.length } }, payload: { method: "ai_document", kind: out.kind } });
       return NextResponse.json({ fileName: name, sha256, kind: "document", ai: "used", docKind: out.kind, uploadId: up?.id, platform: out.platform, preview: records.slice(0, 5), stats: { rows: out.rows.length, sampleImported: records.length, sampleRejected: out.rows.length - records.length }, duplicate: !!dup });

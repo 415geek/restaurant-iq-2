@@ -1,5 +1,6 @@
 import "server-only";
 import type { MomentInput } from "@/lib/validation/schemas";
+import type { DecisionBasis } from "@/lib/pass-evidence";
 import { getSsrClient } from "@/lib/db/ssr";
 import { getServiceClient } from "@/lib/db/server";
 import type { PassEconomics } from "@/lib/business/tastepass";
@@ -11,6 +12,7 @@ export interface CampaignView {
   startsAt: string; endsAt: string; terms: string; why: string; evidence: SignalCitation[]; economics: PassEconomics;
   decision: "go" | "no_go"; status: "draft" | "active" | "ended"; mode: "sandbox" | "live"; approvedAt: string | null; createdAt: string;
   moment: MomentInput | null;
+  decisionBasis: DecisionBasis | null;
 }
 export interface CampaignStats { views: number; claims: number; redeemed: number; expired: number; verifiedSales: number; conversion: number | null; lastRedeemedAt: string | null; recent: Array<{ tokenHint: string; status: string; at: string }> }
 
@@ -24,6 +26,7 @@ function toView(c: Record<string, unknown>): CampaignView {
     evidence: (c.evidence as SignalCitation[]) ?? [], economics: c.economics as PassEconomics, decision: c.decision as "go" | "no_go",
     status: c.status as CampaignView["status"], mode: c.mode as CampaignView["mode"], approvedAt: (c.approved_at as string) ?? null, createdAt: c.created_at as string,
     moment: (c.moment as MomentInput) ?? null,
+    decisionBasis: (c.decision_basis as DecisionBasis) ?? null,
   };
 }
 

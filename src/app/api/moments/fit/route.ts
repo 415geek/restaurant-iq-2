@@ -3,9 +3,9 @@ import { z } from "zod";
 import { authorizeRestaurant, actorLabel } from "@/lib/auth/authorize";
 import { checkDemoRateLimit, clientIp } from "@/lib/demo/rate-limit";
 import { getServiceClient } from "@/lib/db/server";
-import { createQlooProvider, QlooError } from "@/lib/providers/qloo";
-import { SupabaseAnalysisStore } from "@/lib/agents/store";
-import { THEMES, THEME_KEYS, crowdFit, type ThemeKey } from "@/lib/business/moments";
+import { QlooError } from "@/lib/providers/qloo";
+import { THEMES, THEME_KEYS, type ThemeKey } from "@/lib/business/moments";
+import { providerFor, themeFit } from "@/lib/pass-evidence";
 
 const bodySchema = z.object({
   restaurantId: z.string().uuid(),
@@ -31,20 +31,15 @@ export async function POST(req: Request) {
   const db = getServiceClient();
   const { data: r } = await db.from("restaurants").select("cuisine, neighborhood, city").eq("id", b.restaurantId).maybeSingle();
   if (!r) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const provider = createQlooProvider(process.env, { store: new SupabaseAnalysisStore(db), traceId: `moment-${Date.now()}` });
+  const provider = providerFor(db, "moment");
   const themeTag = THEMES[b.theme].tagId;
   try {
-    const cuisineTags = await provider.resolveCuisineTags(r.cuisine);
-    const genre = cuisineTags.data.filter((t) => t.tagId.startsWith("urn:tag:genre:place:restaurant:")).slice(0, 2).map((t) => t.tagId);
-    const yoursIds = genre.length ? genre : cuisineTags.data.slice(0, 1).map((t) => t.tagId);
     const locality = [r.neighborhood, r.city].filter(Boolean).join(", ");
-    const [crowd, yours, places] = await Promise.all([
-      provider.getDemographics({ tagIds: [themeTag] }),
-      yoursIds.length ? provider.getDemographics({ tagIds: yoursIds }) : Promise.resolve(null),
+    const [f, places] = await Promise.all([
+      themeFit(provider, r.cuisine, b.theme),
       THEMES[b.theme].placeSignal ? provider.getLocalPlaceAffinities({ tagIds: [themeTag], geo: { localityQuery: locality }, take: 5, placeTags: "urn:tag:genre:place:restaurant" }) : Promise.resolve(null),
     ]);
-    const c = crowd.data[0] ?? null, y = yours?.data[0] ?? null;
-    const fit = c && y ? crowdFit(c, y) : null;
+    const c = f.crowd, y = f.yours, fit = f.fit, yoursIds = f.cuisineTags; const crowd = { provenance: f.provenance };
     await db.from("decision_events").insert({
       restaurant_id: b.restaurantId, kind: "moment_explored", subject_id: null,
       summary: `Checked who "${b.moment}" draws (theme ${b.theme}): fit ${fit ? fit.score : "unknown"}`,

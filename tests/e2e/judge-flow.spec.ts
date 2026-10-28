@@ -35,7 +35,7 @@ test("taste signals show provenance and with/without Qloo toggle", async ({ page
   await withoutBtn.scrollIntoViewIfNeeded();
   await withoutBtn.click({ timeout: 15000 });
   await expect(withoutBtn).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("Generic baseline", { exact: false })).toBeVisible();
+  await expect(page.getByText("only the Qloo inputs are removed", { exact: false })).toBeVisible();
   await withBtn.click();
   await expect(page.getByText(/Changed by:/).first()).toBeVisible();
 });

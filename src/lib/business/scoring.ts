@@ -9,7 +9,13 @@ import type { LParam } from "@/i18n/locales";
 import type { TagSignal } from "@/lib/providers/qloo/types";
 
 export const WEIGHTS = { tasteFit: 0.3, operationalFit: 0.25, feasibility: 0.15, economics: 0.2, evidenceQuality: 0.1 } as const;
-export const BASELINE_WEIGHTS = { tasteFit: 0, operationalFit: 0.4, feasibility: 0.2, economics: 0.4, evidenceQuality: 0 } as const;
+/**
+ * Controlled "without Qloo" counterfactual: same candidates, same constraints, same weights, same non-Qloo scores.
+ * Only the two Qloo-derived inputs are replaced by an uninformed prior (taste fit neutral, evidence at the no-data level),
+ * so any rank difference is attributable to Qloo evidence alone. A different rank is not proof of a better outcome.
+ */
+export const NO_QLOO_PRIOR = { tasteFit: 0.5, evidenceQuality: 0.4 } as const;
+export const BASELINE_WEIGHTS = WEIGHTS;
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -141,8 +147,8 @@ export function scoreHypotheses(profile: RestaurantProfile, menu: MenuItemLite[]
     const scenario = defaultScenario(t, profile, menu); const eco = economicsScore(scenario);
     const dims = { tasteFit: taste.fit, operationalFit: op.fit, feasibility: feas.f, economics: eco.e, evidenceQuality: ev.mode === "live" ? Math.min(1, evidenceQuality + taste.citations.length * 0.03) : evidenceQuality };
     const composite = Object.entries(WEIGHTS).reduce((a, [k, w]) => a + w * dims[k as keyof typeof dims], 0);
-    const baseDims = { ...dims, tasteFit: 0, evidenceQuality: 0 };
-    const baselineComposite = Object.entries(BASELINE_WEIGHTS).reduce((a, [k, w]) => a + w * baseDims[k as keyof typeof baseDims], 0) * (0.6 + 0.4 * t.genericPriority);
+    const baseDims = { ...dims, ...NO_QLOO_PRIOR };
+    const baselineComposite = Object.entries(WEIGHTS).reduce((a, [k, w]) => a + w * baseDims[k as keyof typeof baseDims], 0);
     return {
       template: t,
       score: { ...dims, composite: r3(composite), weights: { ...WEIGHTS }, notes: [...op.notes, ...taste.notes, ...eco.notes] },
@@ -151,8 +157,13 @@ export function scoreHypotheses(profile: RestaurantProfile, menu: MenuItemLite[]
     };
   });
 
-  const baselineOrder = [...scored].sort((a, b) => b.baseline.composite - a.baseline.composite);
-  const withQloo = [...scored].sort((a, b) => { const ad = a.disqualifiers.length > 0 ? 1 : 0; const bd = b.disqualifiers.length > 0 ? 1 : 0; return ad !== bd ? ad - bd : b.score.composite - a.score.composite; });
+  // Both orders apply the same constraint rule (disqualified last) and the same deterministic tie-break (catalog order).
+  const order = (key: "score" | "baseline") => [...scored].map((s, i) => ({ s, i })).sort((a, b) => {
+    const ad = a.s.disqualifiers.length > 0 ? 1 : 0; const bd = b.s.disqualifiers.length > 0 ? 1 : 0;
+    return ad !== bd ? ad - bd : b.s[key].composite - a.s[key].composite || a.i - b.i;
+  }).map((x) => x.s);
+  const baselineOrder = order("baseline");
+  const withQloo = order("score");
 
   const hypotheses: Hypothesis[] = withQloo.map((s, i) => {
     const baselineRank = baselineOrder.indexOf(s) + 1;

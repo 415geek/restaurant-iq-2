@@ -3,10 +3,10 @@
 Updated: 2026-10-28 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
 
 ## Phase
-G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migrations 0006–0007; holidays + Nager.Date + SF/NYC/Chicago open data + SerpApi web events, daily rolling snapshot via cron; Qloo crowd fit → timed pass)** · **Sales data + Business Brain ✅ (migration 0008; multi-file upload, rules/memory/AI mapping, PII drop, deterministic analysis → actions)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
+G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migrations 0006–0007; holidays + Nager.Date + SF/NYC/Chicago open data + SerpApi web events, daily rolling snapshot via cron; Qloo crowd fit → timed pass)** · **Sales data + Business Brain ✅ (migration 0008; multi-file upload, rules/memory/AI mapping, PII drop, deterministic analysis → actions)** · **Review fixes ✅ (migration 0009: worst-case loss, controlled With/Without Qloo, campaign decision basis + transactional idempotent create, sales grain/dedupe/atomic import, AI redaction, evaluator gate, first-screen experiment card)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
 
 ## Passing checks (run 2026-10-28)
-lint ✅ · typecheck ✅ · unit + integration 99 ✅ · build ✅ · E2E 42 (36 pass, 6 desktop-only skips on phone projects) ✅
+lint ✅ · typecheck ✅ · unit + integration 112 ✅ · build ✅ · E2E 45 (37 pass, 8 desktop-only skips on phone projects) ✅
 
 ## Blockers (owner)
 1. Public GitHub repo: `gh auth login`, then `gh repo create restaurant-iq-2 --public --source . --push`.

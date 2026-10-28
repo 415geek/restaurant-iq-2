@@ -11,6 +11,7 @@ import { getCampaign, getCampaignStats } from "@/lib/campaigns";
 import { getRestaurantOverview } from "@/lib/queries";
 import { requestOrigin, qrSvg } from "@/lib/origin";
 import { getT, formatLText } from "@/i18n";
+import { DecisionBasisView } from "@/components/campaign/DecisionBasisView";
 
 export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes/[cid]">) {
   const { id, cid } = await params; const base = `/r/${id}`;
@@ -73,7 +74,7 @@ export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes
         </Card>
         <Card>
           <H2 hint={t("pass.whyHint")}>{t("pass.whyT")}</H2>
-          <ul className="grid gap-2">{c.evidence.map((x) => <li key={x.id + x.kind} className="flex items-center justify-between gap-2 text-[13px]"><div className="min-w-0"><div className="truncate font-semibold">{x.name}</div><div className="text-[11.5px] text-ink-2">{lt(x.note)}</div></div>{x.affinity !== undefined ? <Chip tone="coral">{x.affinity.toFixed(2)}</Chip> : null}</li>)}</ul>
+          <DecisionBasisView basis={c.decisionBasis} citations={c.evidence} t={t} lt={lt} locale={locale} />
           {c.hypothesisId ? <Link href={`${base}/opportunities/${c.hypothesisId}`} className="mt-3 inline-flex items-center gap-1 text-[13px] text-pos">{t("pass.fromIdea")} <Icon.arrowRight width={14} height={14} /></Link> : null}
         </Card>
         <Card>

@@ -4,7 +4,7 @@ import { Button, Card, Chip, H2, LABEL_TONE, cx, fmtUsd } from "@/components/ui"
 import { Icon, HYP_ICON } from "@/components/ui/Icon";
 import { StepBar } from "@/components/shell/StepBar";
 import { RunAnalysisButton } from "@/components/demo/RunAnalysisButton";
-import { Donut, KpiTile, MiniBars, Sparkline, StackedBar } from "@/components/charts";
+import { KpiTile, MiniBars, Sparkline, StackedBar } from "@/components/charts";
 import { computeScenario } from "@/lib/business/margin";
 import { getActions, getHypotheses, getLatestEvidence, getLatestRun, getRestaurantOverview } from "@/lib/queries";
 import { getT, formatLText } from "@/i18n";
@@ -27,6 +27,10 @@ export default async function SnapshotPage({ params }: PageProps<"/r/[id]">) {
   const next = [...open.filter((a) => a.status === "needs_approval").slice(0, 1), ...open.filter((a) => a.status !== "needs_approval")].filter((a, i, arr) => arr.findIndex((x) => x.hypothesisSlug === a.hypothesisSlug) === i || i === 0).slice(0, 3);
   const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
+  // First screen answers: what to try this week, why (Qloo), what not to do and why, and one button.
+  const rec = viable[0];
+  const alt = hs.find((h) => h.evidenceLabel === "not_recommended" && (h.disqualifiers.length || h.reasonsToAvoid.length)) ?? viable[1];
+  const altReason = alt ? (alt.disqualifiers[0] ?? alt.reasonsToAvoid[0]) : undefined;
   const scenarioPts = best ? best.h.playbook.offering.scenarios.map((s) => computeScenario(s.assumptions).adjustedIncrementalProfit) : [];
 
   return (
@@ -36,10 +40,25 @@ export default async function SnapshotPage({ params }: PageProps<"/r/[id]">) {
         <Card className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-[18px] font-bold">{t("snapshot.noRunT")}</div><p className="text-[13.5px] text-ink-2">{t("snapshot.noIdeasYet")}</p></div><RunAnalysisButton restaurantId={id} hasRun={!!run} /></Card>
       ) : (
         <>
+          {rec ? (
+            <section className="card border-2 border-coral p-5" data-testid="recommended-experiment">
+              <div className="text-[12px] font-bold uppercase tracking-wide text-coral-ink">{t("snapshot.recT")}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="text-[22px] font-extrabold tracking-[-0.02em]">{t(`hyp.${rec.slug}.title`)}</h2><Chip tone={LABEL_TONE[rec.evidenceLabel]}>{t(`opps.labels.${rec.evidenceLabel}`)}</Chip></div>
+              <div className="mt-3 grid gap-2 text-[13.5px] sm:grid-cols-2">
+                <div className="rounded-xl bg-coral-soft p-3"><div className="text-[11.5px] font-bold uppercase tracking-wide text-coral-ink">{t("snapshot.recWhy")}</div><div className="mt-0.5">{rec.citations[0] ? <><span className="font-semibold">{rec.citations[0].name}</span>{rec.citations[0].affinity !== undefined ? ` (${rec.citations[0].affinity.toFixed(2)})` : ""} · {lt(rec.citations[0].note)}</> : t("opps.noSignal")}</div></div>
+                {alt ? <div className="rounded-xl bg-surface-2 p-3"><div className="text-[11.5px] font-bold uppercase tracking-wide text-muted">{t("snapshot.recNot")}</div><div className="mt-0.5"><span className="font-semibold">{t(`hyp.${alt.slug}.title`)}</span>{altReason ? ` · ${lt(altReason)}` : ""}</div></div> : null}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Button variant="coral" size="lg" href={`${base}/passes/new?h=${rec.id}`}><Icon.ticket width={18} height={18} />{t("snapshot.recCta")}</Button>
+                <Link href={`${base}/opportunities/${rec.id}`} className="px-2 text-[13.5px] font-semibold text-pos">{t("snapshot.recSee")}</Link>
+                <span className="text-[12px] text-muted">{t("snapshot.recNote")}</span>
+              </div>
+            </section>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiTile label={t("snapshot.kpiIdeas")} value={viable.length} sub={t("snapshot.ofScreened", { t: hs.length })} visual={<MiniBars height={64} data={hs.slice(0, 6).map((h) => ({ label: `#${h.rank}`, value: Math.round(h.score.composite * 100) }))} labelFormatter={(v) => `${v}`} />} />
             <KpiTile label={t("snapshot.kpiBest")} value={best ? fmtUsd(best.r.adjustedIncrementalProfit) : "—"} sub={best ? t(`hyp.${best.h.slug}.title`) : undefined} visual={scenarioPts.length ? <div><Sparkline points={scenarioPts} height={48} /><div className="mt-1 text-[11px] text-muted">{t("snapshot.scenarios")}</div></div> : null} />
-            <KpiTile label={t("snapshot.kpiTaste")} value={topTaste ? topTaste.affinity!.toFixed(2) : "—"} sub={topTaste?.name} accent="coral" visual={topTaste ? <div className="flex items-center gap-3"><Donut value={topTaste.affinity!} size={64} stroke={8} color="#fff" label={<span className="text-white text-[13px]">{Math.round(topTaste.affinity! * 100)}%</span>} /><span className="text-[12px] text-white/80">{t("taste.attributesH")}</span></div> : null} />
+            <KpiTile label={t("snapshot.kpiTaste")} value={topTaste ? topTaste.affinity!.toFixed(2) : "—"} sub={topTaste?.name} accent="coral" visual={topTaste ? <span className="block text-[12px] leading-4 text-white/80">{t("taste.attributesH")}</span> : null} />
             <KpiTile label={t("snapshot.kpiData")} value={t("snapshot.stepsDone", { d: stepsOk, n: steps.length })} sub={evidence?.mode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")} accent="navy" visual={<div className="flex gap-1">{steps.map((s) => <span key={s.seq} className={cx("h-2 flex-1 rounded-full", s.status === "succeeded" ? "bg-good" : s.status === "failed" ? "bg-coral" : "bg-white/30")} title={t(`snapshot.agents.${s.agent}`)} />)}</div>} />
           </div>
 
