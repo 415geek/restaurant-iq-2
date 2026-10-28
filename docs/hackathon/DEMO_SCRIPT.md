@@ -1,13 +1,15 @@
-# Demo walkthrough script (2–3 min)
+# Demo script (2–3 min)
 
-**0–20s** "Your POS tells you what sold. Restaurant IQ tells you what to do next." Landing → Try the live demo.
+**0–15s** "AI can invent a thousand marketing ideas. A restaurant owner needs one that reaches a real person, fits the kitchen, and can be measured." Landing → Try the live demo.
 
-**20–55s** Snapshot of a synthetic Inner Sunset noodle house: formats, hours, constraints ("no liquor license", "2 cooks"). Point at the Trust panel: five Qloo sources with timestamps and mode; POS: planned, not connected.
+**15–50s** Signals. Type an anchor (Mitski). "Qloo resolves the artist, then tells me which San Francisco restaurants her fans also love, why, and who they are." Point at the explainability badges and the honesty line: overlap in taste, not foot traffic.
 
-**55–100s** Taste signals. "People who love Taiwanese noodles here over-index for vegetarian-friendly and late-night places, the 25–29 bucket skews strongly positive, and the same taste graph links them to an indie food podcast and a trail-running apparel brand." Flip Without/With Qloo: the co-marketing hypothesis only exists with Qloo; late-night moved down because of the staffing constraint despite high affinity.
+**50–85s** Decide. Open an idea: the cited Qloo signals, the score, the deterministic Decision Lab. With/Without Qloo shows what Qloo changed.
 
-**100–145s** Open "Plant-forward line extension". Show citations and score bars. Decision Lab: drop units to 30, raise price 10%, set cannibalization 40%: contribution turns thin/negative, break-even moves. Save the scenario.
+**85–120s** Activate. Drop the pass price to $1 → NO-GO, Approve disabled. Restore → Approve. "Nothing goes live without me, and a money-losing offer cannot."
 
-**145–180s** Pursue it. Action board: capacity tasks ready; launch post waits for approval; approve with a note. Business memory shows the chain. "All of this survives a POS switch."
+**120–165s** Prove. Phone scans the QR, claims a code. Laptop counter jumps 0 → 1 live. Redeem the code; redeem it again: refused. "Real claims, verified redemptions, and right next to them, what this does not prove."
 
-Capture: 1440×900 desktop, then 390×844 mobile for the Decision Lab.
+**165–180s** Memory: the full chain from Qloo signal to redemption. "Restaurant IQ stays independent of the POS."
+
+Capture: 1440×900 desktop plus a real phone for the claim.

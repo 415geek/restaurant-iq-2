@@ -1,22 +1,25 @@
 # BUILD_PROGRESS (durable handoff)
 
-Updated: 2026-10-24 (PT) · Deadline: 2026-10-30 23:45 ET
+Updated: 2026-10-27 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
 
 ## Phase
-G0 ✅ · G1 ✅ (new-session recall check pending owner) · G2 ✅ (migrations 0001–0004) · G3 ✅ sample mode / ⏸ live (no key) · G4 ✅ · G5 ✅ **redesigned 2026-10-24 to brand-guide card system + EN/中文/ES** · G6 ✅ (unit 44, integration 3, E2E 27) · **G7 ⏸ blocked on owner (GitHub repo + Vercel)** · G8 docs written
+G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
 
-## Passing checks (run 2026-10-24)
-lint ✅ · typecheck ✅ · unit 44 ✅ · integration (live Supabase RLS) 3 ✅ · build ✅ · E2E 27 ✅ (desktop/375/390, 3 locales) · demo analysis regenerated with keyed templates ✅
+## Passing checks (run 2026-10-27)
+lint ✅ · typecheck ✅ · unit 52 ✅ · integration (live Supabase: RLS 3 + TastePass 5) ✅ · build ✅ · E2E 30 (28 pass, 2 desktop-only skips on phone projects) ✅
 
 ## Blockers (owner)
-1. `QLOO_API_KEY` — request via the hackathon form; then set in `.env.local` + Vercel, run `/api/qloo/verify`, re-run demo analysis.
-2. Public GitHub repo: `gh auth login`, then `gh repo create restaurant-iq-2 --public --source . --push`.
-3. Vercel: MCP project creation returned 403; use dashboard import or `vercel login` + `vercel --prod`.
+1. Public GitHub repo: `gh auth login`, then `gh repo create restaurant-iq-2 --public --source . --push`.
+2. Vercel: `bunx vercel login`, then `vercel --prod` with env vars (Supabase URL/anon/service role, `QLOO_API_KEY`, `QLOO_BASE_URL`).
+3. Supabase Auth: add the production URL to redirect URLs.
+
+## Product pivot (2026-10-27)
+Positioning moved from "decision report" to **TastePass: Qloo affinity → owner-approved offer → real redemption signal**. Reason: comparable entries (TasteTest, Carte Locale, Overlap, Encore) stop at recommendations; none closes the loop to a measured outcome. Plan: `~/.claude/plans/swirling-dancing-acorn.md`.
 
 ## Evidence
 `docs/tests/TEST_REPORT.md`, `docs/evidence/screenshots/*.png`, `docs/security/REVIEW.md`, `docs/dev-memory/SETUP.md`
 
 ## Next three actions
-1. Deploy (git-connected) and record the URL in `docs/hackathon/SUBMISSION.md`; run Playwright against prod.
-2. Live Qloo verification once the key arrives; confirm per-entity `query.affinity` shape; adjust normalizer if needed.
-3. P1: outcome-logging UI + printable decision brief.
+1. Deploy (git-connected Vercel) and record the URL in `docs/hackathon/SUBMISSION.md`; run Playwright against prod with `E2E_BASE_URL`.
+2. Seed one approved sandbox pass for cold-start judges; clean test campaigns from the demo tenant.
+3. Regenerate screenshots (`scripts/screenshots.ts`) incl. TastePass pages; README hero image.

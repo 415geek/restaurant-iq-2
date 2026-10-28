@@ -1,14 +1,16 @@
 # Judge guide (3 minutes, no account)
 
-1. Open the live URL (see SUBMISSION.md) → **Try the live demo**. You land in the workspace of a **synthetic** restaurant (Golden Gate Noodle House, Inner Sunset, San Francisco). The yellow banner states whether Qloo is **live** or **sample**.
-2. **Snapshot:** restaurant 360°, the six-agent run with per-step status and tool-call counts, and the Trust & data panel (sources, freshness, provider state, assumptions, unknowns).
-3. **Taste signals:** four Qloo-derived views, each with the exact request parameters and docs link under the card. Flip **Without Qloo / With Qloo** at the bottom: ranks change and each row says which returned signal moved it.
-4. **Opportunities:** three viable hypotheses, each with cited Qloo signals, default weekly economics and missing evidence. Expand "Screened out" to see **not recommended** ideas with reasons (e.g. "no liquor license").
-5. **Open a workspace:** "How Qloo changed the recommendation", score breakdown, then the **Decision Lab**: change at least three inputs and watch contribution, break-even and sensitivity recompute. Save a scenario. Click **Pursue** or **Reject**.
-6. **Action board:** move a capacity task to Ready; try to move the "Publish launch post" task: it needs an approval (recorded with your note).
-7. **Business memory:** every step above is now an immutable event with payload.
-8. **Re-run analysis** (rate-limited for anonymous visitors: 5 runs / 10 minutes per IP).
+You need a laptop and a phone. Everything runs against **live Qloo data** (green "Live Qloo" pill; `/api/health` returns `"qloo":"live"`). The restaurant, menu and costs are **synthetic** and labeled; passes from it are sandbox and not redeemable for real food.
 
-Live vs sample: `/api/health` reports `"qloo": "live" | "sample"`. In live mode the source lines show real `/v2/insights` parameters and timestamps; in sample mode every card is labeled as an illustrative fixture.
+1. **Open the live URL** (see `SUBMISSION.md`) → **Try the live demo**. You land on Golden Gate Noodle House (sample), Inner Sunset, San Francisco.
+2. **Signals.** Click a preset under **Pick a cultural anchor** (e.g. *Mitski*) or type any artist, film, brand or podcast. Qloo resolves it and shows where its fans eat in San Francisco, with an explainability badge, and how they skew by age and gender. Below: the four Qloo views for the cuisine, each with its request parameters, and the **With / Without Qloo** ranking.
+3. **Choose → Decide.** Open an idea. "Why this one" lists the Qloo signals that moved it; the score breakdown and Decision Lab are deterministic arithmetic. Click **Turn into a TastePass** (or **Make a pass for … fans** from the anchor card).
+4. **Activate.** Change the pass price to $1: the verdict turns **NO-GO** and Approve is disabled. Restore it and click **Approve TastePass**.
+5. **Prove.** On the campaign page, scan the QR code with your phone (or click *Open guest view*). On the phone: tick the box, **Claim my pass**, read the 8-character code. Watch the laptop: **Claimed** goes from 0 to 1 without a reload.
+6. **Redeem.** Type the code into **Redeem at the counter**: **Redeemed** goes to 1. Redeem the same code again: refused, not counted. Try `ZZZZ2222`: not found.
+7. **Memory.** Every step above is an immutable event: anchor lookup, approval, claim, redemption.
 
-Private workspaces: sign in with an email one-time link, add your own restaurant (a few menu lines are enough), run an analysis. Row-level security isolates organizations; cross-tenant reads/writes are covered by an integration test.
+Notes
+- Redemption by anyone is allowed only for the synthetic demo tenant ("demo merchant mode"); private restaurants require a signed-in member.
+- Anonymous actions are rate-limited per IP (claims, redemptions, anchors, mutations).
+- Private workspaces: sign in with an email one-time link, add a restaurant, run an analysis. RLS isolates organizations (integration-tested).

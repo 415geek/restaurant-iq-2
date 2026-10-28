@@ -1,24 +1,30 @@
-# Devpost submission — Restaurant IQ 2.0: Taste-to-Profit Agent
+# Devpost submission — TastePass by Restaurant IQ
 
 **Live demo URL:** PENDING (recorded here the moment the Vercel deployment is verified)
 **Public repository:** PENDING (GitHub, MIT license visible in About)
 **Deadline:** Oct 30, 2026, 11:45 pm EDT
 
-## Project description (paste into Devpost)
+## Project des## Project description (paste into Devpost)
 
-**Restaurant IQ is the independent commercial decision brain for restaurants.** POS systems tell you what sold. Restaurant IQ tells you what to try next, for whom, at what margin, and keeps the decision history no matter which POS you run.
+**TastePass — from a Qloo cultural affinity to a real restaurant redemption.**
 
-It is an agentic tool built on the Qloo Insights API. A bounded six-agent workflow (Intake → Evidence → Opportunity → Finance → Execution → Evaluator) takes a restaurant profile and asks Qloo what the people who love this cuisine, in this neighborhood, also love: which place attributes (vegetarian-friendly, late-night, bubble tea…), which demographic buckets over-index, and which non-food brands, podcasts, artists and shows share the same taste graph. Those signals re-rank a cuisine-agnostic catalog of opportunity hypotheses, change the target segment, and name concrete partners and channels.
+AI can invent a thousand marketing ideas. An independent restaurant owner, with no growth manager and a slow Tuesday afternoon, needs one idea that reaches a real person, fits the kitchen, and can be measured. TastePass by Restaurant IQ does that loop end to end.
 
-Every hypothesis is scored on labeled dimensions (taste fit, operational fit, feasibility, deterministic unit economics, evidence quality), carries citations to the exact Qloo response that moved it, and can be rejected: constraints like "no liquor license" or "two cooks on weekdays" disqualify ideas with a reason. A "With Qloo / Without Qloo" toggle shows the generic baseline ranking next to the Qloo-informed one, so judges can see precisely what cultural intelligence added.
+**1. Read the taste.** A bounded six-agent workflow (Intake → Evidence → Opportunity → Finance → Execution → Evaluator) calls the Qloo API server-side. `/v2/tags` resolves "Taiwanese / Chinese noodles" to restaurant genre tags. `/v2/insights` returns the place attributes this audience over-indexes on (split by tag type: genre, ambience, customer identity, dishes), nearby places with `feature.explainability`, cross-domain brands, podcasts, artists and shows, and age/gender skew.
 
-The Decision Lab recomputes contribution margin, break-even and cannibalization as the owner drags price, units, food cost, fees and marketing. The Action board drafts capacity checks, channel-verification tasks and an approval-gated launch post. Business memory records every decision, assumption, approval and scenario immutably.
+**2. Pick a cultural anchor.** The owner types an artist, film, show, brand or podcast their guests love. Qloo `/search` resolves it, and `/v2/insights` with `signal.interests.entities` returns the city's restaurants whose audience overlaps that anchor's fans, with explainability, plus the fans' demographics. That turns "people who like X" into a concrete, local audience hook.
 
-**What is Qloo-powered:** cuisine → tag resolution (`/v2/tags`), place-attribute taste analysis (`filter.type=urn:tag`), cross-domain affinities (`urn:entity:brand|podcast|artist|tv_show` with `signal.interests.tags` and `signal.location.query`), demographic deltas (`urn:demographics`), and nearby-place affinities with `feature.explainability`. Without Qloo the engine only has operational and economic screens, and the product would be generic consulting.
+**3. Pick one idea, costed.** A deterministic scorer ranks a cuisine-agnostic catalog on taste fit, operational fit, feasibility, unit economics and evidence quality. Constraints ("no liquor license", "2 cooks on weekdays") reject ideas with reasons. A With/Without Qloo toggle ranks the same ideas twice and names the exact Qloo signal that moved each one.
 
-**Honesty by design:** affinity is shown as a 0–1 relation, never as demand or revenue. Sample mode is synthetic, labeled on every card, and caps labels at "requires validation". Live failures fail loud instead of swapping in fixtures. Economics are arithmetic; no LLM computes totals.
+**4. Activate a TastePass.** The owner edits offer, price, food cost, fees, fixed spend, cap and dates. Profit per redemption and break-even recompute as arithmetic. A NO-GO (zero or negative contribution) cannot be approved. Approval creates a public pass page and QR code, an approval record, a launch task and a memory event.
 
-## Built during the submission period
+**5. Prove it.** A guest opens the pass on a phone, no account and no personal data, and claims a one-time code. The merchant redeems it at the counter; a Postgres function makes redemption atomic and idempotent, so a code counts once. The proof dashboard updates live: views, claims, redemptions, conversion and optional verified sales, next to what this does not prove.
+
+**What is Qloo-powered:** tag resolution, typed tag affinities, local place affinities with explainability, cross-domain affinities, demographics, entity search for anchors, and anchor-to-place insights. Remove Qloo and the product has no audience, no anchor and no reason for the offer.
+
+**Honesty by design:** affinity is a relation, never demand. A redemption is a visit, not proof of extra sales. Live failures fail loud; nothing is substituted. Economics are arithmetic; no LLM computes totals. The demo restaurant is synthetic and its passes are sandbox.
+
+g the submission period
 
 Greenfield repository created 2026-10-23 (first commit `4c1a179`). All Qloo integration, agent logic, UI and tests were written between 2026-10-23 and submission. No prior code reused.
 

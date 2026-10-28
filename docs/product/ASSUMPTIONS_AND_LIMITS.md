@@ -1,9 +1,15 @@
 # Assumptions and limits
 
 - Qloo affinity (0–1) is a taste relation, not demand; demographic values are signed deviations from average; popularity is a percentile.
-- Per-entity `query.affinity` for place results is optional in the normalizer because the public docs do not show it in samples; live verification will confirm.
+- Live verification (2026-10-27): place, tag and cross-domain results carry `query.affinity`; explainability arrives as a list of `{entity_id, score}` and is reduced to the strongest score.
+- On the hackathon tier, an untyped `filter.type=urn:tag` call returns only dish tags, and several place tag types (offerings, amenity, dining options) return nothing; we query genre, ambience, customer identity and dishes separately.
 - Default scenario assumptions (units/week, marketing, setup) are editable placeholders, labeled as such.
 - Sample mode fixtures are synthetic and cap every label at "requires validation".
 - Channel eligibility and fees are never assumed; they are tasks with status `not_verified`.
 - No POS data: baselines must be measured by the owner (2-week pre-launch count).
 - Rate limits are per IP; shared networks share a bucket.
+- **TastePass:** a claim is an intent, a redemption is a visit. Neither proves incremental sales. Guests may have come anyway; compare with a week without the pass or a second pass. Sample sizes in a pilot are small.
+- Claimed codes expire after 3 days or at the campaign end. One network can claim at most 5 passes per campaign.
+- Demo merchant mode lets anyone redeem passes of the synthetic tenant. Real tenants require a signed-in member.
+- Cultural anchors show taste overlap in a city, not foot traffic, audience size or purchase intent.
+- Out of scope: POS write-back, payments, CRM/loyalty, ad buying, multi-merchant marketplace.

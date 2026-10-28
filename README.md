@@ -1,22 +1,21 @@
-# Restaurant IQ 2.0 — Taste-to-Profit Agent
+# TastePass by Restaurant IQ
 
-> Your POS runs your restaurant. Restaurant IQ grows your business.
+> Turn culture into customers. Prove what works.
 
-An independent commercial decision brain for independent restaurants, built for the **Qloo Agentic Hackathon 2026**. It turns cross-domain taste intelligence from the Qloo Insights API into ranked, costed, testable opportunity hypotheses, with execution playbooks, approval-gated tasks and a lasting business-decision memory. It is not a POS and never promises profitability.
+A Qloo-powered agent for independent restaurants, built for the **Qloo Agentic Hackathon 2026**. It reads Qloo taste data for a restaurant's neighborhood, ranks costed ideas, turns one into an **owner-approved TastePass** (public link + QR code), and counts **real claims and merchant-verified redemptions**. It never claims that taste affinity predicts purchases, and it is not a POS.
 
 - **Live demo:** see `docs/hackathon/SUBMISSION.md` (URL recorded there once deployed)
-- **Judge guide:** `docs/hackathon/JUDGE_GUIDE.md`
+- **Judge guide (3 minutes, no account):** `docs/hackathon/JUDGE_GUIDE.md`
 - **License:** MIT
 
 ## What it does
 
-1. **Intake** a restaurant (cuisine, neighborhood, formats, hours, menu costs, objective, constraints). No POS required.
-2. **Evidence (Qloo):** server-side calls to `/v2/tags`, `/v2/insights` (place attributes, cross-domain brands/podcasts/artists/shows, demographics, nearby places with `feature.explainability`). Every result is stored with provenance (endpoint, redacted params, timestamp, TTL, live/sample mode).
-3. **Opportunity engine:** a deterministic scorer over a cuisine-agnostic hypothesis catalog. Dimensions: taste fit, operational fit, feasibility, economics, evidence quality. Produces up to three viable hypotheses, marks the rest **not recommended** with reasons, and can return **no viable opportunity**.
-4. **With Qloo vs without Qloo:** the same catalog ranked twice. The UI names the exact returned signal that moved each recommendation.
-5. **Decision Lab:** deterministic unit economics (contribution margin, break-even, cannibalization, sensitivity). LLMs never compute totals.
-6. **Action board:** draft → needs approval → ready → in progress → completed. Anything external waits for a human approval row.
-7. **Business memory:** immutable decision events with evidence snapshots and assumptions.
+1. **Read the taste (Qloo, live):** `/v2/tags` resolves the cuisine to restaurant genre tags; `/v2/insights` returns place-attribute tags by type (genre, ambience, customer identity, dishes), nearby places with `feature.explainability`, cross-domain brands, podcasts, artists and shows, and age/gender skew. Every result is stored with provenance (endpoint, params, timestamp, cache hit, mode).
+2. **Cultural anchor:** the owner types an artist, film, show, brand or podcast. Qloo `/search` resolves it; `/v2/insights` with `signal.interests.entities` returns the city's restaurants whose audience overlaps that anchor's fans, with explainability, plus the fans' demographics.
+3. **Pick one idea, costed:** a bounded six-agent workflow (Intake → Evidence → Opportunity → Finance → Execution → Evaluator) scores a cuisine-agnostic catalog on taste fit, operational fit, feasibility, deterministic economics and evidence quality. Constraints such as "no liquor license" reject ideas with reasons. A With/Without Qloo toggle shows exactly which returned signal moved each idea.
+4. **Activate a TastePass:** the owner edits offer, price, food cost, fees, fixed test spend, cap and dates. Profit per redemption and break-even recompute deterministically; a **NO-GO** (zero or negative contribution) cannot be approved. Approval records an approval row, a launch task and a memory event.
+5. **Prove it:** a public, mobile-first pass page (`/p/[slug]`, no account, no PII) issues a one-time 8-character code. The merchant redeems it at the counter; a Postgres function makes redemption atomic and idempotent. The proof dashboard updates every 3 seconds: views, claims, redemptions, conversion, optional verified sale amount, next to **what this does not prove**.
+6. **Business memory:** every analysis, anchor lookup, approval, claim and redemption is an immutable event.
 
 ## Languages & design
 
