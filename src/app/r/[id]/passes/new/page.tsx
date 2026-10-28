@@ -13,10 +13,11 @@ const half = (n: number) => Math.round(n * 2) / 2;
 export default async function NewPassPage({ params, searchParams }: PageProps<"/r/[id]/passes/new">) {
   const { id } = await params; const sp = await searchParams; const base = `/r/${id}`;
   const hid = typeof sp.h === "string" ? sp.h : undefined;
+  const anchorName = typeof sp.anchor === "string" ? sp.anchor.trim().slice(0, 60) : "";
   if (!hid) redirect(`${base}/opportunities`);
   const [data, overview, existing, { t }] = await Promise.all([getHypothesis(hid), getRestaurantOverview(id), getActiveCampaignForHypothesis(hid), getT()]);
   if (!data || data.restaurantId !== id || !overview) notFound();
-  if (existing && existing.status === "active") redirect(`${base}/passes/${existing.id}`);
+  if (!anchorName && existing && existing.status === "active") redirect(`${base}/passes/${existing.id}`);
   const h = data.hypothesis; const s = h.defaultScenario;
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
   const dep = h.playbook?.offering?.menuDependencies?.[0];
@@ -25,7 +26,7 @@ export default async function NewPassPage({ params, searchParams }: PageProps<"/
   const regular = Number(mi?.price ?? s.salePrice ?? 15);
   const variable = Number(mi?.foodCost ?? s.foodCostPerUnit ?? 0) + Number(s.packagingPerUnit ?? 0) + Number(s.otherVariableCostPerUnit ?? 0);
   const defaults: ActivateDefaults = {
-    offerName: t(`hyp.${h.slug}.title`).slice(0, 80), menuItem: menuItem.slice(0, 80), regularPrice: regular,
+    offerName: (anchorName ? t("anchor.offerName", { name: anchorName }) : t(`hyp.${h.slug}.title`)).slice(0, 80), menuItem: menuItem.slice(0, 80), regularPrice: regular,
     offerPrice: half(regular * 0.85), variableCost: Math.round(variable * 100) / 100, feePct: Math.round(Number(s.cardFeePct ?? 0.029) * 1000) / 10,
     fixedSpend: 40, maxRedemptions: 50, days: 14, terms: t("pass.termsDefault"),
   };

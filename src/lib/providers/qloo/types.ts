@@ -66,6 +66,7 @@ export interface EntityReference {
   name: string;
   subtype?: string; // urn:entity:place etc.
   popularity?: number; // 0..1 percentile, per Qloo docs
+  disambiguation?: string;
 }
 
 export interface TagRef {

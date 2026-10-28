@@ -82,6 +82,9 @@ export const TASTE_TAG_TYPES = [
   "urn:tag:specialty_dish:place",
 ];
 
+/** Entity types an owner can pick as a cultural anchor. */
+export const ANCHOR_TYPES = ["urn:entity:artist", "urn:entity:movie", "urn:entity:tv_show", "urn:entity:brand", "urn:entity:podcast"];
+
 export class QlooProvider {
   readonly mode: ProviderMode;
   private readonly client?: QlooClient;
@@ -286,6 +289,36 @@ export class QlooProvider {
     return this.live("/v2/insights", params, async (c) => {
       const { data, meta } = await c.insights(params);
       return { data: normalizeDemographics(data), latencyMs: meta.latencyMs };
+    });
+  }
+
+  /**
+   * Cultural anchor: resolve a name the owner types (artist, film, show, brand, podcast) to one Qloo entity.
+   * Places are excluded: the anchor is a taste, not a competitor.
+   */
+  async resolveAnchor(query: string): Promise<ProviderResult<EntityReference[]>> {
+    const params = { query, types: ANCHOR_TYPES.join(","), take: 5 };
+    if (this.mode === "sample") return this.sample("/search", params, sampleCrossDomainSignals.slice(0, 3).map((p) => ({ entityId: p.entityId, name: p.name, subtype: p.subtype, popularity: p.popularity })));
+    return this.live("/search", params, async (c) => {
+      const { data, meta } = await c.search(params as { query: string });
+      return { data: normalizeSearchEntities(data).filter((e) => e.subtype !== "urn:entity:place"), latencyMs: meta.latencyMs };
+    });
+  }
+
+  /** Restaurants in the locality whose audience overlaps the anchor's fans, with Qloo explainability. */
+  async getAnchorPlaces(input: { entityId: string; localityQuery: string; take?: number }): Promise<ProviderResult<CulturalSignal[]>> {
+    const params: InsightsParams = {
+      "filter.type": "urn:entity:place",
+      "filter.location.query": input.localityQuery,
+      "filter.tags": "urn:tag:genre:place:restaurant",
+      "signal.interests.entities": input.entityId,
+      "feature.explainability": true,
+      take: input.take ?? 8,
+    };
+    if (this.mode === "sample") return this.sample("/v2/insights", params, samplePlaceSignals);
+    return this.live("/v2/insights", params, async (c) => {
+      const { data, meta } = await c.insights(params);
+      return { data: normalizeInsightEntities(data), latencyMs: meta.latencyMs };
     });
   }
 

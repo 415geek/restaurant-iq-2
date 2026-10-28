@@ -21,6 +21,11 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v.leng
 const strArr = (v: unknown): string[] | undefined =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : undefined;
 
+const firstType = (e: RawEntity): string | undefined => {
+  const ts = (e as { types?: unknown }).types;
+  return Array.isArray(ts) && typeof ts[0] === "string" ? ts[0] : undefined;
+};
+
 export function domainFromSubtype(subtype?: string): CulturalSignal["domain"] {
   if (!subtype) return "unknown";
   const m = subtype.match(/^urn:entity:([a-z_]+)/);
@@ -42,7 +47,9 @@ export function normalizeEntity(e: RawEntity): CulturalSignal | undefined {
   const explainability: Record<string, number> | undefined = explain
     ? Object.fromEntries(
         Object.entries(explain)
-          .map(([k, v]) => [k, num(v)] as const)
+          // live payloads give either a number or a list of { entity_id, score }: keep the strongest score
+          .map(([k, v]) => [k, num(v) ?? (Array.isArray(v) ? Math.max(...v.map((x) => num((x as Record<string, unknown>)?.score) ?? Number.NEGATIVE_INFINITY)) : undefined)] as const)
+          .map(([k, v]) => [k, v !== undefined && Number.isFinite(v) ? v : undefined] as const)
           .filter((kv): kv is readonly [string, number] => kv[1] !== undefined),
       )
     : undefined;
@@ -50,8 +57,8 @@ export function normalizeEntity(e: RawEntity): CulturalSignal | undefined {
   return {
     entityId: e.entity_id,
     name: e.name,
-    subtype: e.subtype ?? e.type,
-    domain: domainFromSubtype(e.subtype),
+    subtype: e.subtype ?? firstType(e) ?? e.type,
+    domain: domainFromSubtype(e.subtype ?? firstType(e)),
     popularity: num(e.popularity),
     affinity: num(query.affinity),
     affinityRank: num(query.affinity_rank),
@@ -83,7 +90,7 @@ export function normalizeSearchEntities(env: RawSearchEnvelope): EntityReference
   const out: EntityReference[] = [];
   for (const e of env.results ?? []) {
     if (e.entity_id && e.name) {
-      out.push({ entityId: e.entity_id, name: e.name, subtype: e.subtype ?? e.type, popularity: num(e.popularity) });
+      out.push({ entityId: e.entity_id, name: e.name, subtype: e.subtype ?? firstType(e) ?? e.type, popularity: num(e.popularity), disambiguation: str(e.disambiguation) });
     }
   }
   return out;

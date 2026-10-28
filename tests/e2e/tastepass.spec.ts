@@ -79,3 +79,17 @@ test("approve → claim on phone → redeem once → counters update live", asyn
   expect(errors).toEqual([]);
   void browserName;
 });
+
+test("cultural anchor resolves through Qloo and offers a fan pass", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "one live Qloo lookup per run is enough");
+  test.setTimeout(90_000);
+  await page.goto(`${DEMO}/taste`);
+  await page.getByRole("button", { name: "Mitski" }).click();
+  const result = page.getByTestId("anchor-result");
+  await expect(result).toBeVisible({ timeout: 45_000 });
+  await expect(result.getByText(/Where .* fans eat in/)).toBeVisible();
+  await expect(result.getByText("Overlap in taste, not foot traffic", { exact: false })).toBeVisible();
+  await result.getByRole("link", { name: /Make a pass for/ }).click();
+  await expect(page.getByRole("heading", { name: "Activate a TastePass" })).toBeVisible();
+  await expect(page.locator("input").first()).toHaveValue(/fans/);
+});
