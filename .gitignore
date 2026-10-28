@@ -14,3 +14,6 @@ playwright-report
 .vercel
 .turbo
 .gstack/
+
+# local browser-tool snapshots (may contain live provider data)
+.playwright-cli/
