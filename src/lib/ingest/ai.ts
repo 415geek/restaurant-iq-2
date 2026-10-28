@@ -9,7 +9,7 @@ import { PLATFORMS, TARGETS, type ColumnMapping, type Platform } from "./schema"
  * File contents are untrusted data: they go in the user turn as data, never in the system prompt, and the model is told to
  * ignore instructions inside them. Claude never computes totals; all arithmetic happens in transform.ts / analyze.ts.
  */
-const MODEL = "claude-opus-5-5";
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
 export class AiUnavailable extends Error { constructor(public reason: "no_key" | "refused" | "failed") { super(reason); } }
 export const aiConfigured = () => !!process.env.ANTHROPIC_API_KEY;
 function client() { if (!aiConfigured()) throw new AiUnavailable("no_key"); return new Anthropic(); }
