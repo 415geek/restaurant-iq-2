@@ -16,7 +16,7 @@ export default async function Home() {
         <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-12 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:items-center">
           <div>
             <Chip tone="coral">{t("landing.kicker")}</Chip>
-            <h1 className="mt-4 text-[38px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{t("landing.h1a")}<br /><span className="text-coral">{t("landing.h1b")}</span></h1>
+            <h1 className="mt-4 text-[36px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[50px]">{t("landing.h1a")}<br /><span className="text-coral">{t("landing.h1b")}</span></h1>
             <p className="mt-5 max-w-xl text-[17px] text-ink-2">{t("landing.lead")}</p>
             <div className="mt-7 flex flex-wrap gap-3"><Button href="/demo" variant="coral" size="lg">{t("landing.ctaDemo")}<Icon.arrowRight /></Button><Button href="/login" variant="secondary" size="lg">{t("landing.ctaOwn")}</Button></div>
             <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>

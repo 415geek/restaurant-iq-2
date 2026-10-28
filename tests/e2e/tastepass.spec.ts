@@ -1,4 +1,11 @@
-import { test, expect, devices } from "@playwright/test";
+import { test, expect, devices, type Page } from "@playwright/test";
+
+/** Execute is press-and-hold: a quick click does nothing, holding ~1s confirms. */
+async function holdToConfirm(page: Page, name: string, ms = 1400) {
+  const b = page.getByRole("button", { name }); await b.scrollIntoViewIfNeeded();
+  const box = (await b.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.waitForTimeout(ms); await page.mouse.up();
+}
 
 const DEMO = "/r/00000000-0000-4000-8000-000000000101";
 
@@ -19,7 +26,7 @@ test("approve → claim on phone → redeem once → counters update live", asyn
   // a previous run may have left a live pass for this idea: end it so we exercise the form
   await page.goto(`${DEMO}/passes/new?h=${hid}`);
   if (/\/passes\/[0-9a-f-]{36}$/.test(page.url())) {
-    await page.getByRole("button", { name: "End TastePass" }).click();
+    await page.getByRole("button", { name: "Stop TastePass" }).click();
     await expect(page.getByText("Ended", { exact: true }).first()).toBeVisible();
     await page.goto(`${DEMO}/passes/new?h=${hid}`);
   }
@@ -33,7 +40,11 @@ test("approve → claim on phone → redeem once → counters update live", asyn
   await expect(page.getByRole("button", { name: "Approve TastePass" })).toBeDisabled();
   await price.fill(original);
   await expect(page.getByText(/^GO/).first()).toBeVisible();
+  // a quick click must not approve anything
   await page.getByRole("button", { name: "Approve TastePass" }).click();
+  await page.waitForTimeout(600);
+  await expect(page).toHaveURL(/\/passes\/new/);
+  await holdToConfirm(page, "Approve TastePass");
   await expect(page).toHaveURL(/\/passes\/[0-9a-f-]{36}$/, { timeout: 20_000 });
   await expect(page.getByTestId("stat-claims")).toHaveText("0");
   const publicUrl = await page.getByTestId("public-link").textContent();

@@ -17,7 +17,7 @@ export default async function HypothesisPage({ params }: PageProps<"/r/[id]/oppo
   if (!data || data.restaurantId !== id) notFound();
   const { hypothesis: h, scenarios } = data; const base = `/r/${id}`;
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   return (
     <div className="grid gap-5">
       <StepBar current="decide" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` }} />

@@ -11,7 +11,7 @@ export default async function OpportunitiesPage({ params }: PageProps<"/r/[id]/o
   const [overview, run, { t }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
   if (!overview) notFound();
   const base = `/r/${id}`;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   if (!run || run.status !== "completed") return <div className="grid gap-5"><StepBar current="choose" labels={labels} hrefs={{ snapshot: base }} /><Empty title={t("taste.emptyT")} body={t("taste.emptyB")} action={<RunAnalysisButton restaurantId={id} hasRun={!!run} />} /></div>;
   const hs = await getHypotheses(id, run.id);
   const viable = hs.filter((h) => h.evidenceLabel !== "not_recommended").slice(0, 3);

@@ -25,7 +25,7 @@ export default async function SnapshotPage({ params }: PageProps<"/r/[id]">) {
   const steps = run?.steps ?? []; const stepsOk = steps.filter((s) => s.status === "succeeded").length;
   const open = actions.filter((a) => a.status !== "completed" && a.status !== "canceled");
   const next = [...open.filter((a) => a.status === "needs_approval").slice(0, 1), ...open.filter((a) => a.status !== "needs_approval")].filter((a, i, arr) => arr.findIndex((x) => x.hypothesisSlug === a.hypothesisSlug) === i || i === 0).slice(0, 3);
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
   // First screen answers: what to try this week, why (Qloo), what not to do and why, and one button.
   const rec = viable[0];

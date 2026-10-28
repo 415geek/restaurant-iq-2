@@ -6,5 +6,5 @@ import { useI18n } from "@/i18n/client";
 
 export function EndButton({ campaignId }: { campaignId: string }) {
   const { t } = useI18n(); const router = useRouter(); const [busy, setBusy] = useState(false);
-  return <Button size="sm" variant="ghost" disabled={busy} onClick={async () => { setBusy(true); await fetch(`/api/campaigns/${campaignId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "end" }) }); setBusy(false); router.refresh(); }}>{t("pass.end")}</Button>;
+  return <Button size="sm" variant="secondary" title={t("pass.endHint")} disabled={busy} onClick={async () => { setBusy(true); await fetch(`/api/campaigns/${campaignId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "end" }) }); setBusy(false); router.refresh(); }}>{t("pass.end")}</Button>;
 }

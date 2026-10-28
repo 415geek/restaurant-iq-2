@@ -12,17 +12,22 @@ import { getRestaurantOverview } from "@/lib/queries";
 import { requestOrigin, qrSvg } from "@/lib/origin";
 import { getT, formatLText } from "@/i18n";
 import { DecisionBasisView } from "@/components/campaign/DecisionBasisView";
+import { ExperimentReviewCard } from "@/components/campaign/ExperimentReviewCard";
+import { reviewExperiment } from "@/lib/business/experiment";
+import { loadSales, RESTAURANT_TZ } from "@/lib/ingest/pipeline";
+import { getSsrClient } from "@/lib/db/ssr";
 
 export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes/[cid]">) {
   const { id, cid } = await params; const base = `/r/${id}`;
   const [c, overview, { t, locale }] = await Promise.all([getCampaign(cid), getRestaurantOverview(id), getT()]);
   if (!c || c.restaurantId !== id || !overview) notFound();
-  const [stats, origin] = await Promise.all([getCampaignStats(c.id), requestOrigin()]);
+  const [stats, origin, sales] = await Promise.all([getCampaignStats(c.id), requestOrigin(), getSsrClient().then((db) => loadSales(db, id))]);
+  const review = reviewExperiment({ rows: sales, startsAt: c.startsAt, endsAt: c.endsAt, menuItem: c.menuItem, redeemed: stats.redeemed, tz: RESTAURANT_TZ });
   const url = `${origin}/p/${c.slug}`;
   const svg = c.status === "draft" ? "" : await qrSvg(url);
   const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
   const e = c.economics;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   return (
     <div className="grid gap-5">
       <StepBar current="prove" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities`, ...(c.hypothesisId ? { decide: `${base}/opportunities/${c.hypothesisId}` } : {}), act: `${base}/passes` }} />
@@ -32,13 +37,15 @@ export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes
           <div className="mt-2 flex flex-wrap items-center gap-2"><h2 className="text-[26px] font-extrabold tracking-[-0.02em]">{c.offerName}</h2><Chip tone={c.status === "active" ? "good" : c.status === "draft" ? "warn" : "neutral"}>{t(`pass.status.${c.status}`)}</Chip><Chip tone="warn">{t(`pass.mode.${c.mode}`)}</Chip>{overview.isDemo ? <Chip tone="warn">{t("pass.mode.fictional")}</Chip> : null}{c.moment ? <Chip tone="coral">{t("moments.forMoment", { name: c.moment.name, date: new Date(`${c.moment.date}T12:00:00Z`).toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" }) })}</Chip> : null}</div>
           <p className="mt-1 text-[14px] text-ink-2">{c.menuItem} · {fmtUsd(c.offerPrice, 2)} <span className="text-muted line-through">{fmtUsd(c.regularPrice, 2)}</span> · {fmtDate(c.startsAt, locale)} – {fmtDate(c.endsAt, locale)}</p>
         </div>
-        {c.status === "active" ? <EndButton campaignId={c.id} /> : null}
+        {c.status === "active" ? <div className="grid justify-items-end gap-1"><EndButton campaignId={c.id} /><span className="max-w-64 text-right text-[11.5px] text-muted">{t("pass.endHint")}</span></div> : null}
       </div>
 
       <section aria-label={t("pass.proveT")}>
         <H2 hint={t("pass.proveHint")}>{t("pass.proveT")}</H2>
         <ProofDashboard campaignId={c.id} initial={stats} maxRedemptions={c.maxRedemptions} />
       </section>
+
+      <ExperimentReviewCard r={review} t={t} locale={locale} dataHref={`${base}/data`} synthetic={overview.isDemo} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <Card>

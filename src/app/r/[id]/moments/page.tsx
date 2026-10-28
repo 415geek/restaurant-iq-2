@@ -48,7 +48,7 @@ export default async function MomentsPage({ params }: PageProps<"/r/[id]/moments
       miles: center && e.lat !== undefined && e.lng !== undefined ? milesBetween(center, [e.lat, e.lng]) : undefined, source: SOURCE_LABEL[e.source],
     })),
   ];
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   const stamp = (iso?: string) => (iso ? new Date(iso).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—");
   const dot = (s: SourceStatus) => (s.source === "web_google_events" ? "bg-ink-2" : s.source === "sf_our415" ? "bg-good" : "bg-navy");
   const line = (s: SourceStatus) => {

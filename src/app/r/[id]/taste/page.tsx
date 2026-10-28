@@ -12,7 +12,7 @@ export default async function TastePage({ params }: PageProps<"/r/[id]/taste">) 
   const [overview, run, { t }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
   if (!overview) notFound();
   const base = `/r/${id}`;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   if (!run || run.status !== "completed") return <div className="grid gap-5"><StepBar current="signals" labels={labels} hrefs={{ snapshot: base }} /><Empty title={t("taste.emptyT")} body={t("taste.emptyB")} action={<RunAnalysisButton restaurantId={id} hasRun={!!run} />} /></div>;
   const [evidence, hypotheses] = await Promise.all([getLatestEvidence(id, run.startedAt), getHypotheses(id, run.id)]);
   const src = (type: string) => evidence.sources.find((s) => (s.requestParams["filter.type"] ?? "").includes(type));

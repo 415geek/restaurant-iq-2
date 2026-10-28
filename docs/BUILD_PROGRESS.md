@@ -3,7 +3,7 @@
 Updated: 2026-10-28 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
 
 ## Phase
-G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migrations 0006–0007; holidays + Nager.Date + SF/NYC/Chicago open data + SerpApi web events, daily rolling snapshot via cron; Qloo crowd fit → timed pass)** · **Sales data + Business Brain ✅ (migration 0008; multi-file upload, rules/memory/AI mapping, PII drop, deterministic analysis → actions)** · **Review fixes ✅ (migration 0009: worst-case loss, controlled With/Without Qloo, campaign decision basis + transactional idempotent create, sales grain/dedupe/atomic import, AI redaction, evaluator gate, first-screen experiment card)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
+G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migrations 0006–0007; holidays + Nager.Date + SF/NYC/Chicago open data + SerpApi web events, daily rolling snapshot via cron; Qloo crowd fit → timed pass)** · **Sales data + Business Brain ✅ (migration 0008; multi-file upload, rules/memory/AI mapping, PII drop, deterministic analysis → actions)** · **Review fixes ✅ (migration 0009: worst-case loss, controlled With/Without Qloo, campaign decision basis + transactional idempotent create, sales grain/dedupe/atomic import, AI redaction, evaluator gate, first-screen experiment card)** · **Execution positioning + experiment review ✅ (2026-10-28 PM: 4-stage bar Signals → Recommend → Execute → Prove, press-and-hold approve, Stop TastePass, landing copy; POS experiment review per pass vs 4 prior same-hour weeks)** · G7 ✅ deployed
 
 ## Passing checks (run 2026-10-28)
 lint ✅ · typecheck ✅ · unit + integration 112 ✅ · build ✅ · E2E 45 (37 pass, 8 desktop-only skips on phone projects) ✅
@@ -18,10 +18,17 @@ lint ✅ · typecheck ✅ · unit + integration 112 ✅ · build ✅ · E2E 45 (
 ## Product pivot (2026-10-27)
 Positioning moved from "decision report" to **TastePass: Qloo affinity → owner-approved offer → real redemption signal**. Reason: comparable entries (TasteTest, Carte Locale, Overlap, Encore) stop at recommendations; none closes the loop to a measured outcome. Plan: `~/.claude/plans/swirling-dancing-acorn.md`.
 
+## Execution positioning + experiment review (2026-10-28 PM)
+Owner chose B (per-pass POS experiment review) and the execution theme (AWS article: "AI that actually executes, with confirm and rollback") before Ring.
+- `src/lib/business/experiment.ts`: pass window vs the same local weekdays/hours 1–4 weeks earlier (DST-safe shift), clipped to the last sales row; needs ≥2 prior weeks; statuses not_started / awaiting_sales / short_history / ready; verdict above / within / below the prior range. Unit tests `tests/unit/experiment.test.ts`.
+- `ExperimentReviewCard` on `/r/[id]/passes/[cid]`. Demo worked example: `scripts/seed-demo-review.ts` seeds one ended pass (Oct 19–25, inside the synthetic sales) tagged `created_by = seed:demo-review`; `clean-demo-passes.ts` keeps it. Result on synthetic data: below all 4 prior weeks (orders −8%), shown as such.
+- `HoldButton` (pointer + keyboard) for Approve; E2E checks a quick click does nothing.
+- Ring (owner has a developer account; camera at the restaurant entrance): credentials in `.env.local` only (`RING_CLIENT_ID`, `RING_CLIENT_SECRET`, `RING_HMAC_KEY`). Planned minimal slice after this: Ring-initiated account linking (Token Exchange `/api/ring/token`, Account Link `/ring/link`, homepage `/ring`, webhook `/api/ring/webhook`), `motion_detected` human events only, timestamps and type only, no images. Owner must not click "link" in the Ring app until those routes are deployed.
+
 ## Evidence
 `docs/tests/TEST_REPORT.md`, `docs/evidence/screenshots/*.png`, `docs/security/REVIEW.md`, `docs/dev-memory/SETUP.md`
 
 ## Next three actions
-1. Deploy (git-connected Vercel) and record the URL in `docs/hackathon/SUBMISSION.md`; run Playwright against prod with `E2E_BASE_URL`.
-2. Seed one approved sandbox pass for cold-start judges; clean test campaigns from the demo tenant.
-3. Regenerate screenshots (`scripts/screenshots.ts`) incl. TastePass pages; README hero image.
+1. Ring minimal slice (see above), behind a feature flag; HMAC-verified webhook; event-only signal in the Prove view.
+2. Regenerate screenshots (`scripts/screenshots.ts`) incl. experiment review; README hero image.
+3. Final clean-browser judge walk in en/zh/es; submit by 17:00 PT Oct 30.

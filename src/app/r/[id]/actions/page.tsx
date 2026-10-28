@@ -12,7 +12,7 @@ export default async function ActionsPage({ params }: PageProps<"/r/[id]/actions
   const actions = await getActions(id, run?.id ?? null);
   if (!overview) notFound();
   const base = `/r/${id}`;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   return (
     <div className="grid gap-5">
       <StepBar current="act" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities` }} />

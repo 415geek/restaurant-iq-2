@@ -48,7 +48,7 @@ export default async function NewPassPage({ params, searchParams }: PageProps<"/
   const anchor = anchorId && anchorName ? { entityId: anchorId, name: anchorName } : undefined;
   if (anchor) defaults.anchor = anchor;
   const preview = hrow ? await buildDecisionBasis(sdb, { restaurant: { id, city: rrow?.city ?? null, cuisine: rrow?.cuisine ?? "" }, hypothesis: hrow, anchor, moment }) : null;
-  const labels = { snapshot: t("steps.snapshot"), signals: t("steps.signals"), choose: t("steps.choose"), decide: t("steps.decide"), act: t("steps.act"), prove: t("steps.prove") };
+  const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   return (
     <div className="grid gap-5">
       <StepBar current="act" labels={labels} hrefs={{ snapshot: base, signals: `${base}/taste`, choose: `${base}/opportunities`, decide: `${base}/opportunities/${h.id}` }} />

@@ -1,12 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Chip, cx, fmtUsd } from "@/components/ui";
+import { Chip, cx, fmtUsd } from "@/components/ui";
 import { KpiTile } from "@/components/charts";
 import { computePassEconomics } from "@/lib/business/tastepass";
 import { useI18n } from "@/i18n/client";
 import type { MomentInput } from "@/lib/validation/schemas";
 import { Icon } from "@/components/ui/Icon";
+import { HoldButton } from "@/components/ui/HoldButton";
 
 export interface ActivateDefaults { offerName: string; menuItem: string; regularPrice: number; offerPrice: number; variableCost: number; feePct: number; fixedSpend: number; maxRedemptions: number; days: number; terms: string; moment?: MomentInput; anchor?: { entityId: string; name: string } }
 
@@ -63,7 +64,7 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
           <div className="mt-3 text-[12px] font-bold uppercase tracking-wide text-muted">{t("pass.unknownsT")}</div>
           <ul className="mt-1 list-disc pl-4 text-[13px] text-ink-2">{e.unknowns.map((u) => <li key={u}>{t(`pass.unknowns.${u}`)}</li>)}</ul>
         </div>
-        <Button variant="coral" size="lg" onClick={approve} disabled={busy || noGo || v.offerName.trim().length < 2 || !v.menuItem.trim()} title={noGo ? t("pass.reasons.negative_contribution") : undefined}>{busy ? t("pass.approving") : t("pass.approve")}</Button>
+        <HoldButton label={t("pass.approve")} busyLabel={t("pass.approving")} hint={t("pass.holdHint")} onConfirm={approve} busy={busy} disabled={noGo || v.offerName.trim().length < 2 || !v.menuItem.trim()} title={noGo ? t("pass.reasons.negative_contribution") : undefined} />
         <p className="text-[12px] text-muted">{t("pass.approveNote")}</p>
         {err ? <p role="alert" className="text-[13px] text-bad">{err}</p> : null}
       </div>
