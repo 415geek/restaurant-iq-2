@@ -13,3 +13,4 @@ playwright-report
 *.log
 .vercel
 .turbo
+.gstack/

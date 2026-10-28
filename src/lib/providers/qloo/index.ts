@@ -74,6 +74,14 @@ function locationParams(geo?: GeographyContext): Partial<InsightsParams> {
   return {};
 }
 
+/** Place tag types that carry usable taste structure on the hackathon tier (verified 2026-10-27). */
+export const TASTE_TAG_TYPES = [
+  "urn:tag:genre:place",
+  "urn:tag:ambience:qloo",
+  "urn:tag:customer_identity:qloo",
+  "urn:tag:specialty_dish:place",
+];
+
 export class QlooProvider {
   readonly mode: ProviderMode;
   private readonly client?: QlooClient;
@@ -133,14 +141,30 @@ export class QlooProvider {
     return { data, provenance: this.provenance(endpoint, q, cacheHit, latencyMs), state: { mode: "live", status: "ok" } };
   }
 
-  /** Resolve a cuisine string to Qloo place tags via /v2/tags. */
+  /**
+   * Resolve a cuisine string ("Taiwanese / Chinese noodles") to Qloo place tags via /v2/tags.
+   * Each term is looked up separately; restaurant genre tags (urn:tag:genre:place:restaurant:*) are ranked first
+   * because they are the strongest taste signal for insights. Dish tags follow.
+   */
   async resolveCuisineTags(cuisine: string): Promise<ProviderResult<TagSignal[]>> {
     const params = { "filter.query": cuisine, "filter.parents.types": "urn:entity:place", take: 10 };
     if (this.mode === "sample") return this.sample("/v2/tags", params, sampleCuisineTags);
-    return this.live("/v2/tags", params, async (c) => {
-      const { data, meta } = await c.tags(params);
-      return { data: normalizeTags(data), latencyMs: meta.latencyMs };
-    });
+    const terms = Array.from(new Set(cuisine.split(/[\/,&+]| and /i).map((t) => t.trim()).filter((t) => t.length > 1))).slice(0, 3);
+    if (!terms.length) terms.push(cuisine);
+    const merged = new Map<string, TagSignal>();
+    let first: ProviderResult<TagSignal[]> | undefined;
+    for (const term of terms) {
+      const p = { "filter.query": term, "filter.parents.types": "urn:entity:place", take: 10 };
+      const r = await this.live("/v2/tags", p, async (c) => {
+        const { data, meta } = await c.tags(p);
+        return { data: normalizeTags(data), latencyMs: meta.latencyMs };
+      });
+      first ??= r;
+      for (const t of r.data) if (!merged.has(t.tagId)) merged.set(t.tagId, t);
+    }
+    const isGenre = (t: TagSignal) => t.tagId.startsWith("urn:tag:genre:place:restaurant:");
+    const data = [...merged.values()].sort((a, b) => Number(isGenre(b)) - Number(isGenre(a)));
+    return { data, provenance: { ...first!.provenance, requestParams: toQuery({ ...params, "filter.query": terms.join(" | ") }) }, state: first!.state };
   }
 
   /** Entity lookup by name near a location via /search. */
@@ -199,7 +223,7 @@ export class QlooProvider {
         results.push(...r.data);
         lastProv = r.provenance;
       } catch (err) {
-        if (err instanceof QlooError && (err.errorClass === "forbidden" || err.errorClass === "not_found")) {
+        if (err instanceof QlooError && (err.errorClass === "forbidden" || err.errorClass === "not_found" || err.errorClass === "timeout")) {
           failed.push(d);
           continue;
         }
@@ -217,20 +241,40 @@ export class QlooProvider {
     };
   }
 
-  /** Tag taste analysis: which place attributes people with this taste associate with, near a locality. */
-  async getTagAffinities(input: { tagIds: string[]; geo?: GeographyContext; take?: number }): Promise<ProviderResult<TagSignal[]>> {
-    const params: InsightsParams = {
-      "filter.type": "urn:tag",
+  /**
+   * Tag taste analysis: which place attributes people with this taste associate with, near a locality.
+   * Live: one call per tag type, because an untyped call returns only dish tags. Types that return nothing are skipped.
+   */
+  async getTagAffinities(input: { tagIds: string[]; geo?: GeographyContext; take?: number; tagTypes?: string[] }): Promise<ProviderResult<TagSignal[]>> {
+    const base = {
+      "filter.type": "urn:tag" as const,
       "filter.parents.types": "urn:entity:place",
       "signal.interests.tags": input.tagIds.join(","),
-      take: input.take ?? 25,
       ...(input.geo?.localityQuery ? { "signal.location.query": input.geo.localityQuery } : {}),
     };
-    if (this.mode === "sample") return this.sample("/v2/insights", params, sampleTagSignals);
-    return this.live("/v2/insights", params, async (c) => {
-      const { data, meta } = await c.insights(params);
-      return { data: normalizeTags(data), latencyMs: meta.latencyMs };
-    });
+    const types = input.tagTypes ?? TASTE_TAG_TYPES;
+    if (this.mode === "sample") return this.sample("/v2/insights", { ...base, "filter.tag.types": types.join(","), take: input.take ?? 8 }, sampleTagSignals);
+    const out: TagSignal[] = [];
+    let lastProv: SourceProvenance | undefined;
+    for (const tt of types) {
+      const params: InsightsParams = { ...base, "filter.tag.types": tt, take: input.take ?? 8 };
+      try {
+        const r = await this.live("/v2/insights", params, async (c) => {
+          const { data, meta } = await c.insights(params);
+          return { data: normalizeTags(data), latencyMs: meta.latencyMs };
+        });
+        out.push(...r.data.filter((t) => !input.tagIds.includes(t.tagId)));
+        lastProv = r.provenance;
+      } catch (err) {
+        if (err instanceof QlooError && (err.errorClass === "timeout" || err.errorClass === "bad_request" || err.errorClass === "not_found")) continue;
+        throw err;
+      }
+    }
+    return {
+      data: out,
+      provenance: { ...(lastProv ?? this.provenance("/v2/insights", toQuery(base), false)), requestParams: toQuery({ ...base, "filter.tag.types": types.join(",") }) },
+      state: { mode: "live", status: "ok" },
+    };
   }
 
   /** Demographic affinity deltas (age/gender) for the cuisine tags. */

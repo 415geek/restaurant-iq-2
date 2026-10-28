@@ -179,7 +179,8 @@ export async function collectEvidence(provider: QlooProvider, store: AnalysisSto
   budget.use();
   const cuisine = await provider.resolveCuisineTags(profile.cuisine);
   const cuisineSrc = await persist("tags", "cuisine_tags", cuisine, { key: "gen.evCuisine", params: { cuisine: profile.cuisine, n: cuisine.data.length } });
-  const tagIds = cuisine.data.slice(0, 3).map((t) => t.tagId);
+  const genre = cuisine.data.filter((t) => t.tagId.startsWith("urn:tag:genre:place:restaurant:"));
+  const tagIds = (genre.length ? genre.slice(0, 2) : cuisine.data.slice(0, 3)).map((t) => t.tagId);
   if (!tagIds.length) {
     failures.push({ step: "resolveCuisineTags", errorClass: "not_found", message: "No Qloo tag matched the cuisine" });
   }

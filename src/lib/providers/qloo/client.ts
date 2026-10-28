@@ -61,7 +61,7 @@ export class QlooClient {
     this.apiKey = opts.apiKey;
     this.baseUrl = (opts.baseUrl ?? QLOO_DEFAULT_BASE_URL).replace(/\/$/, "");
     this.fetchImpl = opts.fetchImpl ?? fetch;
-    this.timeoutMs = opts.timeoutMs ?? 8000;
+    this.timeoutMs = opts.timeoutMs ?? 15000;
     this.maxRetries = opts.maxRetries ?? 2;
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }

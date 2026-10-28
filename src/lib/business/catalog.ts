@@ -44,7 +44,7 @@ export const HYPOTHESIS_CATALOG: HypothesisTemplate[] = [
   {
     slug: "weekday-lunch-set", title: "Weekday lunch set", segment: "Workers and students, 25–34, within walking distance",
     summary: "A fixed-price set from a signature dish plus a small plate, for the weekday daytime crowd that over-indexes for this cuisine.",
-    triggerTags: ["lunch_special", "lunch"], triggerAgeBuckets: ["25_to_29", "30_to_34"],
+    triggerTags: ["lunch_special", "lunch", "young professionals", "midday", "quick visit"], triggerAgeBuckets: ["25_to_29", "30_to_34"],
     requirements: { anyServiceFormat: ["dine_in", "takeout"], extraLaborHoursPerWeek: 0 }, operationalComplexity: 1, genericPriority: 0.8,
     channelKeys: ["gbp", "signage", "office"], riskKeys: ["lunchCannib"],
     offeringTemplate: (menu) => { const s = signature(menu); const side = pick(menu, ["small", "salad", "pancake"])[0];
@@ -53,7 +53,7 @@ export const HYPOTHESIS_CATALOG: HypothesisTemplate[] = [
   {
     slug: "vegetarian-line", title: "Plant-forward mini-menu", segment: "Vegetarian-leaning fans of your cuisine",
     summary: "Label and extend the vegetarian dishes you already have; the taste graph links your audience to vegetarian-friendly places nearby.",
-    triggerTags: ["vegetarian", "vegan", "plant"], requirements: { menuKeywords: ["vegetarian", "tofu", "vegetable", "cucumber", "vegan"] }, operationalComplexity: 1, genericPriority: 0.45,
+    triggerTags: ["vegetarian", "vegan", "plant", "healthy"], requirements: { menuKeywords: ["vegetarian", "tofu", "vegetable", "cucumber", "vegan"] }, operationalComplexity: 1, genericPriority: 0.45,
     channelKeys: ["menuRelabel", "instagram", "vegGroups"], riskKeys: ["vegLabel"],
     offeringTemplate: (menu) => { const v = pick(menu, ["vegetarian", "tofu", "vegetable", "cucumber", "vegan"]); const main = v.find((m) => m.category !== "small_plates") ?? v[0];
       return { description: { key: "gen.offVeg", params: { items: v.length ? v.map((m) => m.name).join(", ") : { key: "gen.vegDishes" } } }, deps: v.map((m) => m.name), salePrice: price(main), foodCost: cost(main), heroDish: nm(main, "vegDishes") }; },
@@ -61,7 +61,7 @@ export const HYPOTHESIS_CATALOG: HypothesisTemplate[] = [
   {
     slug: "boba-study-pairing", title: "Boba + snack, 2–5 pm", segment: "Under-25 study crowd",
     summary: "Pair the drink program with a small plate in the afternoon lull; the youngest bucket over-indexes for this cuisine.",
-    triggerTags: ["bubble_tea", "boba", "study"], triggerAgeBuckets: ["24_and_younger"], requirements: { menuKeywords: ["boba", "milk tea", "tea"], anyServiceFormat: ["dine_in", "takeout"] }, operationalComplexity: 1, genericPriority: 0.3,
+    triggerTags: ["bubble_tea", "bubble tea", "boba", "study", "students", "young adults", "dessert"], triggerAgeBuckets: ["24_and_younger"], requirements: { menuKeywords: ["boba", "milk tea", "tea"], anyServiceFormat: ["dine_in", "takeout"] }, operationalComplexity: 1, genericPriority: 0.3,
     channelKeys: ["campus", "story", "afternoonSignage"], riskKeys: ["lowTicket"],
     offeringTemplate: (menu) => { const d = pick(menu, ["boba", "milk tea", "tea"])[0]; const s = pick(menu, ["pancake", "small", "salad"])[0];
       return { description: { key: "gen.offBoba", params: { drink: nm(d, "drink"), snack: nm(s, "snack") } }, deps: [d?.name, s?.name].filter((x): x is string => !!x), salePrice: r2((price(d) + price(s)) * 0.9), foodCost: r2(cost(d) + cost(s)), heroDish: nm(d, "drink") }; },
@@ -69,14 +69,14 @@ export const HYPOTHESIS_CATALOG: HypothesisTemplate[] = [
   {
     slug: "late-night-window", title: "Late-night takeout window", segment: "Late-night diners who favor this cuisine",
     summary: "Fri/Sat late hours with a short menu through a takeout window; late-night places score high for this audience nearby.",
-    triggerTags: ["late_night", "late"], requirements: { anyServiceFormat: ["takeout"], needsExtendedHours: true, extraLaborHoursPerWeek: 12, constraintBlockers: ["no extra staff", "without adding staff", "2 cooks"] }, operationalComplexity: 3, genericPriority: 0.35,
+    triggerTags: ["late_night", "late night"], requirements: { anyServiceFormat: ["takeout"], needsExtendedHours: true, extraLaborHoursPerWeek: 12, constraintBlockers: ["no extra staff", "without adding staff", "2 cooks"] }, operationalComplexity: 3, genericPriority: 0.35,
     channelKeys: ["hoursUpdate", "lateListing", "bar"], riskKeys: ["lateLabor"],
     offeringTemplate: (menu) => { const s = signature(menu); return { description: { key: "gen.offLate", params: { dish: nm(s, "signature") } }, deps: [s?.name ?? ""].filter(Boolean), salePrice: price(s), foodCost: cost(s), heroDish: nm(s, "signature") }; },
   },
   {
     slug: "group-bundle", title: "Sharing bundle for 4", segment: "Groups and families",
     summary: "A sharing bundle that mirrors the group-friendly places this audience also likes.",
-    triggerTags: ["groups", "family", "sharing"], requirements: { anyServiceFormat: ["dine_in", "takeout"] }, operationalComplexity: 2, genericPriority: 0.5,
+    triggerTags: ["groups", "family", "sharing", "children"], requirements: { anyServiceFormat: ["dine_in", "takeout"] }, operationalComplexity: 2, genericPriority: 0.5,
     channelKeys: ["catering", "gbp", "community"], riskKeys: ["groupCapacity"],
     offeringTemplate: (menu) => { const mains = menu.filter((m) => m.category !== "drinks" && m.category !== "small_plates").slice(0, 3); const total = mains.reduce((a, m) => a + price(m), 0);
       return { description: { key: "gen.offGroup", params: { items: mains.length ? mains.map((m) => m.name).join(" + ") : { key: "gen.signature" } } }, deps: mains.map((m) => m.name), salePrice: r2(total * 0.9), foodCost: r2(mains.reduce((a, m) => a + cost(m), 0)), heroDish: nm(mains[0], "signature") }; },
@@ -84,14 +84,14 @@ export const HYPOTHESIS_CATALOG: HypothesisTemplate[] = [
   {
     slug: "weekend-brunch", title: "Weekend brunch", segment: "Weekend brunch seekers",
     summary: "A brunch window; only worth it if the taste graph shows brunch affinity for this audience.",
-    triggerTags: ["brunch"], requirements: { anyServiceFormat: ["dine_in"], needsExtendedHours: true, extraLaborHoursPerWeek: 10 }, operationalComplexity: 3, genericPriority: 0.4,
+    triggerTags: ["brunch", "breakfast"], requirements: { anyServiceFormat: ["dine_in"], needsExtendedHours: true, extraLaborHoursPerWeek: 10 }, operationalComplexity: 3, genericPriority: 0.4,
     channelKeys: ["reservation", "instagram"], riskKeys: ["brunchUnproven"],
     offeringTemplate: (menu) => { const s = signature(menu); return { description: { key: "gen.offBrunch", params: { dish: nm(s, "signature") } }, deps: [s?.name ?? ""].filter(Boolean), salePrice: price(s) + 4, foodCost: cost(s) + 1.5, heroDish: nm(s, "signature") }; },
   },
   {
     slug: "bar-program", title: "Bar program", segment: "Evening drinkers",
     summary: "Alcohol to lift ticket size; blocked without a liquor license.",
-    triggerTags: ["full_bar", "cocktail", "bar"], requirements: { needsAlcohol: true, constraintBlockers: ["no liquor license", "no alcohol"] }, operationalComplexity: 3, genericPriority: 0.6,
+    triggerTags: ["full_bar", "full bar", "cocktail"], requirements: { needsAlcohol: true, constraintBlockers: ["no liquor license", "no alcohol"] }, operationalComplexity: 3, genericPriority: 0.6,
     channelKeys: ["happyHour"], riskKeys: ["licensing"],
     offeringTemplate: () => ({ description: { key: "gen.offBar" }, deps: [], salePrice: 12, foodCost: 3.5, heroDish: { key: "gen.drink" } }),
   },
