@@ -33,6 +33,7 @@ export default async function PublicPassPage({ params }: PageProps<"/p/[slug]">)
       <article className="card overflow-hidden">
         <div className="bg-navy px-5 pb-5 pt-5 text-white">
           <div className="text-[13px] text-white/75">{c.restaurantName}{c.neighborhood ? ` · ${c.neighborhood}` : ""}</div>
+          {c.moment ? <div data-testid="pub-moment" className="mt-2 inline-flex items-center rounded-full bg-coral px-2.5 py-0.5 text-[12px] font-bold text-white">{t("moments.forMoment", { name: c.moment.name, date: new Date(`${c.moment.date}T12:00:00Z`).toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }) })}</div> : null}
           <h1 className="mt-1 text-[28px] font-extrabold leading-tight tracking-[-0.02em]">{c.offerName}</h1>
           <div className="mt-3 flex items-baseline gap-2"><span className="tabular text-[40px] font-extrabold leading-none text-coral">{fmtUsd(c.offerPrice, 2)}</span><span className="text-[14px] text-white/70 line-through">{t("pass.pub.regular", { p: fmtUsd(c.regularPrice, 2) })}</span></div>
           <div className="mt-1 text-[14px] text-white/90">{c.menuItem}</div>

@@ -13,3 +13,9 @@
 - Demo merchant mode lets anyone redeem passes of the synthetic tenant. Real tenants require a signed-in member.
 - Cultural anchors show taste overlap in a city, not foot traffic, audience size or purchase intent.
 - Out of scope: POS write-back, payments, CRM/loyalty, ad buying, multi-merchant marketplace.
+
+## Moments
+- City permit data shows that an event is scheduled, not how many people will come. We show no attendance numbers.
+- Qloo describes people who like a *kind* of event (a theme tag), not the people at this specific event.
+- The theme classifier is keyword-based; the owner can change the theme on any row.
+- Live event feeds cover San Francisco only. Neighborhood distance uses approximate neighborhood centers.

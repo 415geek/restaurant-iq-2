@@ -187,9 +187,10 @@ export class QlooProvider {
   }
 
   /** Places near the restaurant that people with the cuisine taste also have affinity for. */
-  async getLocalPlaceAffinities(input: { tagIds: string[]; geo?: GeographyContext; take?: number }): Promise<ProviderResult<CulturalSignal[]>> {
+  async getLocalPlaceAffinities(input: { tagIds: string[]; geo?: GeographyContext; take?: number; placeTags?: string }): Promise<ProviderResult<CulturalSignal[]>> {
     const params: InsightsParams = {
       "filter.type": "urn:entity:place",
+      ...(input.placeTags ? { "filter.tags": input.placeTags } : {}),
       "signal.interests.tags": input.tagIds.join(","),
       "feature.explainability": true,
       take: input.take ?? 20,

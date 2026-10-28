@@ -76,6 +76,14 @@ export function canTransition(from: ActionStatus, to: ActionStatus, opts: { requ
 }
 
 // ---- TastePass ----
+export const momentSchema = z.object({
+  kind: z.enum(["holiday", "street", "community", "manual"]),
+  name: z.string().trim().min(2).max(90),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  theme: z.enum(["kids", "halloween", "family", "farmers_market", "night_market", "street_food", "running", "festival"]).optional(),
+  source: z.string().trim().max(80).optional(),
+});
+export type MomentInput = z.infer<typeof momentSchema>;
 export const campaignCreateSchema = z.object({
   hypothesisId: z.string().uuid(),
   offerName: z.string().trim().min(2).max(80),
@@ -86,9 +94,10 @@ export const campaignCreateSchema = z.object({
   feePct: z.coerce.number().min(0).max(0.5),
   fixedSpend: z.coerce.number().min(0).max(100000),
   maxRedemptions: z.coerce.number().int().min(1).max(10000),
-  days: z.coerce.number().int().min(1).max(60),
+  days: z.coerce.number().int().min(1).max(120),
   terms: z.string().trim().max(400).default(""),
   approve: z.boolean().default(true),
+  moment: momentSchema.optional(),
 });
 export type CampaignCreate = z.infer<typeof campaignCreateSchema>;
 export const campaignPatchSchema = z.object({ action: z.enum(["end"]) });

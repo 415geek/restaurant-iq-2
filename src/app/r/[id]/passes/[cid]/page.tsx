@@ -28,7 +28,7 @@ export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <Link href={`${base}/passes`} className="inline-flex items-center gap-1 text-[13px] text-pos"><Icon.arrowLeft width={16} height={16} />{t("pass.title")}</Link>
-          <div className="mt-2 flex flex-wrap items-center gap-2"><h2 className="text-[26px] font-extrabold tracking-[-0.02em]">{c.offerName}</h2><Chip tone={c.status === "active" ? "good" : c.status === "draft" ? "warn" : "neutral"}>{t(`pass.status.${c.status}`)}</Chip><Chip tone="warn">{t(`pass.mode.${c.mode}`)}</Chip>{overview.isDemo ? <Chip tone="warn">{t("pass.mode.fictional")}</Chip> : null}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-2"><h2 className="text-[26px] font-extrabold tracking-[-0.02em]">{c.offerName}</h2><Chip tone={c.status === "active" ? "good" : c.status === "draft" ? "warn" : "neutral"}>{t(`pass.status.${c.status}`)}</Chip><Chip tone="warn">{t(`pass.mode.${c.mode}`)}</Chip>{overview.isDemo ? <Chip tone="warn">{t("pass.mode.fictional")}</Chip> : null}{c.moment ? <Chip tone="coral">{t("moments.forMoment", { name: c.moment.name, date: new Date(`${c.moment.date}T12:00:00Z`).toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" }) })}</Chip> : null}</div>
           <p className="mt-1 text-[14px] text-ink-2">{c.menuItem} · {fmtUsd(c.offerPrice, 2)} <span className="text-muted line-through">{fmtUsd(c.regularPrice, 2)}</span> · {fmtDate(c.startsAt, locale)} – {fmtDate(c.endsAt, locale)}</p>
         </div>
         {c.status === "active" ? <EndButton campaignId={c.id} /> : null}

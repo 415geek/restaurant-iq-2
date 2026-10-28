@@ -10,6 +10,7 @@ export const Icon = {
   snapshot: P("M4 5h16v4H4zM4 11h16v8H4zM8 15h4"),
   signals: P("M3 20h18M6 16l4-5 4 3 4-7"),
   ideas: P("M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3z"),
+  calendar: P("M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"),
   ticket: P("M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4zM14 6v2M14 11v2M14 16v2"),
   board: P("M4 4h5v16H4zM10 4h5v10h-5zM16 4h4v7h-4z"),
   memory: P("M12 8v4l3 2M21 12a9 9 0 1 1-9-9M21 3v6h-6"),

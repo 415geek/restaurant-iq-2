@@ -6,6 +6,7 @@ import { getServiceClient } from "@/lib/db/server";
 import { generateToken } from "@/lib/business/tastepass";
 
 const TTL_MINUTES = 60 * 24 * 3; // a claimed pass is valid for 3 days or until the campaign ends
+const MOMENT_TTL_MINUTES = 60 * 24 * 120; // passes timed to a moment stay valid until the campaign ends (the SQL clamps to ends_at)
 
 /** Public claim. No account and no personal data: only a truncated hash of IP + campaign for abuse limits. */
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string }> }) {
@@ -17,11 +18,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const rl = await checkDemoRateLimit({ ip, bucket: "claims", limit: 15 });
   if (!rl.ok) return NextResponse.json({ ok: false, reason: "rate_limited" }, { status: 429 });
   const db = getServiceClient();
-  const { data: c } = await db.from("campaigns").select("id, restaurant_id, offer_name").eq("slug", slug).maybeSingle();
+  const { data: c } = await db.from("campaigns").select("id, restaurant_id, offer_name, moment").eq("slug", slug).maybeSingle();
   if (!c) return NextResponse.json({ ok: false, reason: "not_found" }, { status: 404 });
   const ipHash = createHash("sha256").update(`${c.id}:${ip}`).digest("hex").slice(0, 24);
   for (let i = 0; i < 3; i++) {
-    const { data, error } = await db.rpc("claim_pass", { p_campaign: c.id, p_token: generateToken(), p_ttl_minutes: TTL_MINUTES, p_ip_hash: ipHash });
+    const { data, error } = await db.rpc("claim_pass", { p_campaign: c.id, p_token: generateToken(), p_ttl_minutes: c.moment ? MOMENT_TTL_MINUTES : TTL_MINUTES, p_ip_hash: ipHash });
     if (error) return NextResponse.json({ ok: false, reason: "error" }, { status: 500 });
     const r = data as { ok: boolean; reason?: string; token?: string; expires_at?: string };
     if (!r.ok && r.reason === "collision") continue;

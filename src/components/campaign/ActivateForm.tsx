@@ -5,8 +5,10 @@ import { Button, Chip, cx, fmtUsd } from "@/components/ui";
 import { KpiTile } from "@/components/charts";
 import { computePassEconomics } from "@/lib/business/tastepass";
 import { useI18n } from "@/i18n/client";
+import type { MomentInput } from "@/lib/validation/schemas";
+import { Icon } from "@/components/ui/Icon";
 
-export interface ActivateDefaults { offerName: string; menuItem: string; regularPrice: number; offerPrice: number; variableCost: number; feePct: number; fixedSpend: number; maxRedemptions: number; days: number; terms: string }
+export interface ActivateDefaults { offerName: string; menuItem: string; regularPrice: number; offerPrice: number; variableCost: number; feePct: number; fixedSpend: number; maxRedemptions: number; days: number; terms: string; moment?: MomentInput }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return <label className="grid gap-1"><span className="text-[12.5px] font-semibold text-ink-2">{label}</span>{children}{hint ? <span className="text-[11.5px] text-muted">{hint}</span> : null}</label>;
@@ -15,7 +17,7 @@ const inputCls = "h-11 w-full rounded-[var(--radius-ctl)] border border-border b
 
 /** Merchant activation: numbers recompute on every keystroke with the same pure function the server uses. */
 export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaurantId: string; hypothesisId: string; defaults: ActivateDefaults }) {
-  const { t } = useI18n(); const router = useRouter();
+  const { t, locale } = useI18n(); const router = useRouter();
   const [v, setV] = useState(defaults);
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
   const num = (k: keyof ActivateDefaults) => (e: React.ChangeEvent<HTMLInputElement>) => setV((s) => ({ ...s, [k]: e.target.value === "" ? 0 : Number(e.target.value) }));
@@ -33,7 +35,8 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-      <div className="grid gap-3">
+      <div className="grid content-start gap-3">
+        {v.moment ? <div data-testid="pass-moment" className="flex flex-wrap items-center gap-2 rounded-xl bg-coral-soft px-3 py-2 text-[13px] text-coral-ink"><Icon.calendar width={16} height={16} /><span className="font-semibold">{t("moments.timedTo")}</span><span>{v.moment.name} · {new Date(`${v.moment.date}T12:00:00Z`).toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}</span><span className="text-[12px] opacity-80">{t("moments.claimsUntilEnd")}</span></div> : null}
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t("pass.offerName")}><input className={inputCls} value={v.offerName} maxLength={80} onChange={str("offerName")} /></Field>
           <Field label={t("pass.menuItem")}><input className={inputCls} value={v.menuItem} maxLength={80} onChange={str("menuItem")} /></Field>
@@ -43,7 +46,7 @@ export function ActivateForm({ restaurantId, hypothesisId, defaults }: { restaur
           <Field label={t("pass.feePct")}><input className={inputCls} type="number" step="0.1" min="0" max="50" inputMode="decimal" value={v.feePct} onChange={num("feePct")} /></Field>
           <Field label={t("pass.fixedSpend")} hint={t("pass.fixedSpendHint")}><input className={inputCls} type="number" step="5" min="0" inputMode="decimal" value={v.fixedSpend} onChange={num("fixedSpend")} /></Field>
           <Field label={t("pass.maxRedemptions")}><input className={inputCls} type="number" step="5" min="1" max="10000" inputMode="numeric" value={v.maxRedemptions} onChange={num("maxRedemptions")} /></Field>
-          <Field label={t("pass.days")}><input className={inputCls} type="number" min="1" max="60" inputMode="numeric" value={v.days} onChange={num("days")} /></Field>
+          <Field label={t("pass.days")}><input className={inputCls} type="number" min="1" max="120" inputMode="numeric" value={v.days} onChange={num("days")} /></Field>
         </div>
         <Field label={t("pass.terms")}><textarea className={cx(inputCls, "h-20 py-2 text-[14px]")} maxLength={400} value={v.terms} onChange={str("terms")} /></Field>
       </div>

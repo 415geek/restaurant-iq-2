@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     restaurant_id: h.restaurant_id, hypothesis_id: h.id, action_item_id: actionId, slug,
     offer_name: p.offerName, menu_item: p.menuItem, regular_price: p.regularPrice, offer_price: p.offerPrice, variable_cost: p.variableCost,
     fee_pct: p.feePct, fixed_spend: p.fixedSpend, max_redemptions: p.maxRedemptions, starts_at: now.toISOString(),
-    ends_at: new Date(now.getTime() + p.days * 86400_000).toISOString(), terms: p.terms, why: h.slug, evidence: citations, economics,
+    ends_at: new Date(now.getTime() + p.days * 86400_000).toISOString(), terms: p.terms, moment: p.moment ?? null, why: h.slug, evidence: citations, economics,
     decision: economics.decision, status: goLive ? "active" : "draft", mode: isDemo ? "sandbox" : "live", created_by: actor, approved_at: goLive ? now.toISOString() : null,
   }).select("id, slug, status").single();
   if (error || !c) return NextResponse.json({ error: "Could not create campaign" }, { status: 500 });

@@ -1,12 +1,12 @@
 # BUILD_PROGRESS (durable handoff)
 
-Updated: 2026-10-27 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
+Updated: 2026-10-28 (PT) · Deadline: 2026-10-30 23:45 ET (20:45 PT)
 
 ## Phase
-G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
+G0–G6 ✅ · **G3 live ✅ (Qloo key received 2026-10-27; demo analysis regenerated live)** · **TastePass ✅ (migration 0005, activate → claim → redeem → live proof)** · **Cultural anchor ✅** · **Moments ✅ (migration 0006; holidays + DataSF street/community events + Qloo crowd fit → timed pass)** · G7 ⏸ blocked on owner (GitHub repo + Vercel login)
 
-## Passing checks (run 2026-10-27)
-lint ✅ · typecheck ✅ · unit 52 ✅ · integration (live Supabase: RLS 3 + TastePass 5) ✅ · build ✅ · E2E 30 (28 pass, 2 desktop-only skips on phone projects) ✅
+## Passing checks (run 2026-10-28)
+lint ✅ · typecheck ✅ · unit + integration 79 ✅ · build ✅ · E2E 36 (32 pass, 4 desktop-only skips on phone projects) ✅
 
 ## Blockers (owner)
 1. Public GitHub repo: `gh auth login`, then `gh repo create restaurant-iq-2 --public --source . --push`.
