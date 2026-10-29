@@ -16,12 +16,14 @@ import { ExperimentReviewCard } from "@/components/campaign/ExperimentReviewCard
 import { reviewExperiment } from "@/lib/business/experiment";
 import { loadSales, RESTAURANT_TZ } from "@/lib/ingest/pipeline";
 import { getSsrClient } from "@/lib/db/ssr";
+import { RingEvidenceCard } from "@/components/campaign/RingEvidenceCard";
+import { loadRingEvidence } from "@/lib/ring/evidence";
 
 export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes/[cid]">) {
   const { id, cid } = await params; const base = `/r/${id}`;
   const [c, overview, { t, locale }] = await Promise.all([getCampaign(cid), getRestaurantOverview(id), getT()]);
   if (!c || c.restaurantId !== id || !overview) notFound();
-  const [stats, origin, sales] = await Promise.all([getCampaignStats(c.id), requestOrigin(), getSsrClient().then((db) => loadSales(db, id))]);
+  const [stats, origin, sales, ring] = await Promise.all([getCampaignStats(c.id), requestOrigin(), getSsrClient().then((db) => loadSales(db, id)), loadRingEvidence(id, c.startsAt, c.endsAt, RESTAURANT_TZ).catch(() => null)]);
   const review = reviewExperiment({ rows: sales, startsAt: c.startsAt, endsAt: c.endsAt, menuItem: c.menuItem, redeemed: stats.redeemed, tz: RESTAURANT_TZ });
   const url = `${origin}/p/${c.slug}`;
   const svg = c.status === "draft" ? "" : await qrSvg(url);
@@ -46,6 +48,8 @@ export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes
       </section>
 
       <ExperimentReviewCard r={review} t={t} locale={locale} dataHref={`${base}/data`} synthetic={overview.isDemo} />
+
+      {ring ? <RingEvidenceCard r={ring} t={t} locale={locale} demo={overview.isDemo} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <Card>

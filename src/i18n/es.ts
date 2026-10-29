@@ -114,7 +114,7 @@ const es: Dictionary = {
     title: "Memoria", hint: "Cada entrada, evidencia, decisión, supuesto y aprobación. Solo se agrega. Sobrevive a un cambio de POS.",
     emptyT: "Aún no hay registros", emptyB: "Decisiones, escenarios y aprobaciones aparecen aquí.",
     whyT: "Por qué existe", whyB: "Un POS recuerda qué se vendió. No recuerda por qué cambiaste el menú, qué evidencia usaste ni qué decidiste no hacer.",
-    kinds: { restaurant_created: "Espacio", analysis_completed: "Análisis", hypothesis_pursued: "Decisión", hypothesis_rejected: "Decisión", scenario_saved: "Escenario", action_approved: "Aprobación", action_status_changed: "Tarea", outcome_recorded: "Resultado", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Reclamo", pass_redeemed: "Canje", data_analyzed: "Carga", data_imported: "Importación", data_deleted: "Eliminación", brain_learned: "Cerebro", insight_generated: "Hallazgo", analysis_blocked: "Bloqueado", moment_explored: "Momento", anchor_explored: "Ancla" },
+    kinds: { restaurant_created: "Espacio", analysis_completed: "Análisis", hypothesis_pursued: "Decisión", hypothesis_rejected: "Decisión", scenario_saved: "Escenario", action_approved: "Aprobación", action_status_changed: "Tarea", outcome_recorded: "Resultado", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Reclamo", pass_redeemed: "Canje", data_analyzed: "Carga", data_imported: "Importación", data_deleted: "Eliminación", brain_learned: "Cerebro", insight_generated: "Hallazgo", analysis_blocked: "Bloqueado", moment_explored: "Momento", anchor_explored: "Ancla", ring_linked: "Ring" },
     top: "Mejores", mode: "modo", snapshot: "precio {p}, unidades {u}, costo {f}",
   },
   anchor: {
@@ -437,6 +437,21 @@ const es: Dictionary = {
     "evRelearned": "El Cerebro actualizó el formato de {platform} con tus cambios",
     "evInsights": "Recalculó hallazgos: {n} pedidos, {k} acciones sugeridas",
     "evDeleted": "Quitó {name} ({n} filas)"
+  },
+  ring: {
+    "title": "Actividad en la entrada · Ring",
+    "hint": "Eventos de movimiento de personas de la cámara Ring en la entrada. Una segunda señal junto a canjes y ventas.",
+    "source": "Cámara Ring en vivo",
+    "noVideo": "Solo horas, sin video",
+    "demoNote": "Una cámara Ring real en la entrada de un restaurante real, conectada a esta tienda demo para ver llegar eventos en vivo.",
+    "duringPass": "Eventos de personas durante este pase",
+    "prior": "Mismas horas una semana antes: {n}",
+    "noPrior": "Aún sin comparación: la cámara se conectó después de esas horas la semana pasada.",
+    "notStarted": "El pase aún no ha comenzado.",
+    "last7": "Eventos de personas, últimos 7 días",
+    "linkedSince": "Conectada desde {date}.",
+    "caveat": "Un evento de movimiento de persona no es un conteo de clientes. Un cliente puede generar varios, y el personal y los transeúntes también. Léalo como tendencia junto a canjes y ventas, no como afluencia.",
+    "evLinked": "Cámara Ring de la entrada conectada (solo eventos de movimiento de personas, sin video)"
   },
   review: {
     "title": "Revisión del experimento",

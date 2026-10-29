@@ -210,7 +210,7 @@ const en = {
     hint: "Every input, evidence snapshot, decision, assumption and approval. Append-only. Survives a POS switch.",
     emptyT: "Nothing recorded yet", emptyB: "Decisions, scenarios and approvals appear here.",
     whyT: "Why this exists", whyB: "A POS remembers what sold. It does not remember why you changed the menu, what evidence you used, or what you decided not to do.",
-    kinds: { restaurant_created: "Workspace", analysis_completed: "Analysis", hypothesis_pursued: "Decision", hypothesis_rejected: "Decision", scenario_saved: "Scenario", action_approved: "Approval", action_status_changed: "Task", outcome_recorded: "Outcome", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Claim", pass_redeemed: "Redemption", data_analyzed: "Upload", data_imported: "Import", data_deleted: "Removal", brain_learned: "Brain", insight_generated: "Insight", analysis_blocked: "Blocked", moment_explored: "Moment", anchor_explored: "Anchor" },
+    kinds: { restaurant_created: "Workspace", analysis_completed: "Analysis", hypothesis_pursued: "Decision", hypothesis_rejected: "Decision", scenario_saved: "Scenario", action_approved: "Approval", action_status_changed: "Task", outcome_recorded: "Outcome", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "Claim", pass_redeemed: "Redemption", data_analyzed: "Upload", data_imported: "Import", data_deleted: "Removal", brain_learned: "Brain", insight_generated: "Insight", analysis_blocked: "Blocked", moment_explored: "Moment", anchor_explored: "Anchor", ring_linked: "Ring" },
     top: "Top", mode: "mode", snapshot: "price {p}, units {u}, food cost {f}",
   },
   anchor: {
@@ -533,6 +533,21 @@ const en = {
     "evRelearned": "Brain updated the {platform} column layout from your edits",
     "evInsights": "Recomputed insights: {n} orders, {k} suggested actions",
     "evDeleted": "Removed {name} ({n} rows)"
+  },
+  ring: {
+    "title": "Entrance activity · Ring",
+    "hint": "Person-motion events from the Ring camera at the entrance. A second signal next to redemptions and sales.",
+    "source": "Live Ring camera",
+    "noVideo": "Times only, no video",
+    "demoNote": "A real Ring camera at a real restaurant entrance, attached to this demo store so you can see live events arrive.",
+    "duringPass": "Person events during this pass",
+    "prior": "Same hours one week earlier: {n}",
+    "noPrior": "No comparison yet: the camera was connected after the same hours last week.",
+    "notStarted": "The pass has not started yet.",
+    "last7": "Person events, last 7 days",
+    "linkedSince": "Connected since {date}.",
+    "caveat": "A person-motion event is not a guest count. One guest can trigger several, and staff and passers-by trigger them too. Read it as a trend next to redemptions and sales, not as foot traffic.",
+    "evLinked": "Ring entrance camera connected (person-motion events only, no video)"
   },
   review: {
     "title": "Experiment review",

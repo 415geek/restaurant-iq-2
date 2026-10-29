@@ -114,7 +114,7 @@ const zh: Dictionary = {
     title: "记忆", hint: "每一次输入、证据快照、决策、假设和审批。只增不改。换 POS 也不丢。",
     emptyT: "还没有记录", emptyB: "决策、情景和审批会出现在这里。",
     whyT: "为什么需要它", whyB: "POS 记得卖了什么，但不记得你为什么改菜单、用了什么证据、又决定不做什么。",
-    kinds: { restaurant_created: "工作区", analysis_completed: "分析", hypothesis_pursued: "决策", hypothesis_rejected: "决策", scenario_saved: "情景", action_approved: "审批", action_status_changed: "任务", outcome_recorded: "结果", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "领取", pass_redeemed: "核销", data_analyzed: "上传", data_imported: "导入", data_deleted: "删除", brain_learned: "大脑", insight_generated: "洞察", analysis_blocked: "已阻止", moment_explored: "时机", anchor_explored: "锚点" },
+    kinds: { restaurant_created: "工作区", analysis_completed: "分析", hypothesis_pursued: "决策", hypothesis_rejected: "决策", scenario_saved: "情景", action_approved: "审批", action_status_changed: "任务", outcome_recorded: "结果", campaign_approved: "TastePass", campaign_drafted: "TastePass", campaign_ended: "TastePass", pass_claimed: "领取", pass_redeemed: "核销", data_analyzed: "上传", data_imported: "导入", data_deleted: "删除", brain_learned: "大脑", insight_generated: "洞察", analysis_blocked: "已阻止", moment_explored: "时机", anchor_explored: "锚点", ring_linked: "Ring" },
     top: "前列", mode: "模式", snapshot: "售价 {p}，份数 {u}，食材成本 {f}",
   },
   anchor: {
@@ -437,6 +437,21 @@ const zh: Dictionary = {
     "evRelearned": "大脑根据你的修改更新了 {platform} 字段结构",
     "evInsights": "重新计算了洞察：{n} 单，{k} 条建议",
     "evDeleted": "删除了 {name}（{n} 行）"
+  },
+  ring: {
+    "title": "门口动静 · Ring",
+    "hint": "门口 Ring 摄像头的人形移动事件。作为核销和销售之外的第二个信号。",
+    "source": "Ring 实时摄像头",
+    "noVideo": "只记时间，不存画面",
+    "demoNote": "这是一台装在真实餐厅门口的 Ring 摄像头，接在这个演示门店上，方便你看到实时事件进来。",
+    "duringPass": "本次活动期间的人形事件",
+    "prior": "前一周同一时段：{n}",
+    "noPrior": "暂无对比：上周同一时段摄像头还没接入。",
+    "notStarted": "活动还没开始。",
+    "last7": "最近 7 天人形事件",
+    "linkedSince": "{date} 起已接入。",
+    "caveat": "人形移动事件不等于客人数。一位客人可能触发多次，员工和路人也会触发。把它当作和核销、销售并排看的趋势，而不是客流量。",
+    "evLinked": "已接入门口 Ring 摄像头（只收人形移动事件，不存画面）"
   },
   review: {
     "title": "活动复盘",

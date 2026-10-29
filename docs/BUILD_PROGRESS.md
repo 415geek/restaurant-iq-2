@@ -32,3 +32,10 @@ Owner chose B (per-pass POS experiment review) and the execution theme (AWS arti
 1. Ring minimal slice (see above), behind a feature flag; HMAC-verified webhook; event-only signal in the Prove view.
 2. Regenerate screenshots (`scripts/screenshots.ts`) incl. experiment review; README hero image.
 3. Final clean-browser judge walk in en/zh/es; submit by 17:00 PT Oct 30.
+
+## 2026-10-28 (night) — Ring entrance camera, events only (behind `RING_ENABLED`)
+- Migration 0010: `ring_connections` (service role only, tokens AES-GCM encrypted) and `ring_events` (time + hashed device ref; RLS read like other restaurant data).
+- Routes: `/api/ring/token` (Token Exchange URL), `/ring/link` + `/api/ring/link` (Account Link URL; owner passcode + nonce match, then app-integrations POST/PATCH), `/api/ring/webhook` (X-Signature HMAC over raw body; keeps only `motion_detected` with `sub_type=human`; idempotent on `meta.request_id`; `app_integration_removed` revokes and drops tokens), `/ring` (App Homepage URL).
+- Pass page shows an "Entrance activity · Ring" card only when a camera is linked or has sent events: person events during the pass, same hours a week earlier (only if the camera was linked by then), last 7 days. Labeled "not a guest count".
+- Checks: 11 unit tests (`tests/unit/ring.test.ts`), `scripts/ring-selftest.ts` (8 end-to-end checks against a running server, cleans up).
+- Production needs Vercel env: RING_CLIENT_ID, RING_CLIENT_SECRET, RING_HMAC_KEY, RING_ENABLED=1, RING_LINK_PASSCODE.
