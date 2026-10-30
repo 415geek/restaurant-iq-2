@@ -66,3 +66,6 @@ Owner brief: owners only see the inside of the restaurant; the product must watc
 - Pass page: `SocialPostCard` under the QR/redeem row (non-draft only). Onboarding: three steps; `POST /api/restaurants/menu-from-url` (signed-in, rate-limited, SSRF-guarded via `front/menu/fetch.ts`) fills the menu textarea from a public menu page.
 - Landing copy repositioned (Radar first); e2e judge-flow expectations updated. README / JUDGE_GUIDE / SUBMISSION lead with Radar; TasteFront sections kept.
 - Not done: POS OAuth (interface only), photo menu import in onboarding (needs `ANTHROPIC_API_KEY`), LLM rephrasing of social copy (deterministic templates only).
+
+## 2026-10-30 (16:30 PT) — phone simplification
+Four-tab bottom bar (Radar · Moments · Ideas · Pass) + "More" sheet (signals, sales, action board, memory, sign-in, language). Radar on phones: one 3-column summary strip, two outside causes then "more", two plays then "more", agents collapsed to "6/6 steps done", signals + profile behind one disclosure, full-width Launch button. Step bar hidden on phones for the home. Production Playwright mobile-375/390: 34 passed, 8 skipped.
