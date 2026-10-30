@@ -14,7 +14,7 @@ const zh: Dictionary = {
     sampleBadge: "示例数据", sampleTitle: "示例数据集：仅作示意，不是 Qloo 实时数据", liveBadge: "Qloo 实时", syntheticDemo: "合成演示", syntheticBody: "不是真实店铺，为评审而生成。",
     notConnected: "未接入 Qloo 实时数据。以下信号为示意样例，每张卡片都有标注。",
   },
-  nav: { short: { snapshot: "雷达", taste: "信号", moments: "时机", data: "数据", opportunities: "机会", passes: "Pass", memory: "记忆" }, snapshot: "雷达", taste: "口味信号", opportunities: "机会", actions: "行动板", memory: "记忆", passes: "TastePass", data: "销售数据", moments: "时机" },
+  nav: { short: { snapshot: "雷达", taste: "信号", moments: "时机", data: "数据", opportunities: "机会", passes: "券", memory: "记忆" }, snapshot: "雷达", taste: "口味信号", opportunities: "机会", actions: "行动板", memory: "记忆", passes: "TastePass", data: "销售数据", moments: "时机", more: "更多" },
   steps: { snapshot: "雷达", signals: "信号", choose: "选择", decide: "决策", act: "启用", prove: "验证", recommend: "推荐", execute: "执行" },
   landing: {
     replayT: "选一家餐厅，看 TasteFront 按街区重写它的门面。",
@@ -663,6 +663,7 @@ const zh: Dictionary = {
     evCuisine: "菜系“{cuisine}”匹配到 {n} 个 Qloo 场所标签。", evTags: "{where} 附近按口味亲和度排序的 {n} 个场所属性。", evPlaces: "{n} 个与此口味画像有亲和度的附近场所。", evCross: "{n} 个与该菜系粉丝关联的非餐饮实体。", evDemo: "菜系标签的年龄/性别亲和度偏差。",
   },
   radar: {
+    moreCauses: "还有 {n} 条", morePlays: "还有 {n} 个方案", moreT: "口味信号与门店信息", stepsDone: "{d}/{n} 步完成",
     title: "雷达", hint: "未来 {days} 天，{place} 周边会发生什么，以及该怎么做。",
     around: "{place} 周边", nextDays: "未来 {days} 天",
     momentsT: "附近的时机", momentsN: "{n} 个时机", momentsNone: "附近日历上暂时没有安排", seeMoments: "全部时机",

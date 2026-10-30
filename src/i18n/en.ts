@@ -44,7 +44,7 @@ const en = {
     syntheticBody: "Not a real business. Seeded for judging.",
     notConnected: "Live Qloo not connected. Signals are an illustrative fixture, labeled on every card.",
   },
-  nav: { short: { snapshot: "Radar", taste: "Signals", moments: "Moments", data: "Sales", opportunities: "Ideas", passes: "Pass", memory: "Memory" }, snapshot: "Radar", taste: "Taste signals", opportunities: "Opportunities", actions: "Action board", memory: "Memory", passes: "TastePass", data: "Sales data", moments: "Moments" },
+  nav: { short: { snapshot: "Radar", taste: "Signals", moments: "Moments", data: "Sales", opportunities: "Ideas", passes: "Pass", memory: "Memory" }, snapshot: "Radar", taste: "Taste signals", opportunities: "Opportunities", actions: "Action board", memory: "Memory", passes: "TastePass", data: "Sales data", moments: "Moments", more: "More" },
   steps: { snapshot: "Radar", signals: "Signals", choose: "Choose", decide: "Decide", act: "Activate", prove: "Prove", recommend: "Recommend", execute: "Execute" },
   landing: {
     replayT: "Pick a restaurant. Watch TasteFront rewrite its storefront for the neighborhood.",
@@ -825,6 +825,7 @@ const en = {
   },
   /* TasteFront: public menu (/m), owner card (/front), HQ fleet (/front/fleet). Affinity/lift = "this crowd leans toward"; dollars only from the settlement. */
   radar: {
+    moreCauses: "{n} more", morePlays: "{n} more plays", moreT: "Signals and profile", stepsDone: "{d}/{n} steps done",
     title: "Radar", hint: "What is happening around {place} in the next {days} days, and what to do about it.",
     around: "Around {place}", nextDays: "next {days} days",
     momentsT: "Moments nearby", momentsN: "{n} moments", momentsNone: "Nothing on the calendar nearby", seeMoments: "All moments",

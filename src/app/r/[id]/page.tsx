@@ -92,16 +92,29 @@ export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
   const steps = run?.steps ?? [];
   const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
   const dirCls = { up: "bg-good-soft text-good-ink", down: "bg-bad-soft text-bad", mixed: "bg-warn-soft text-warn-ink" } as const;
+  const causeRow = (c: (typeof causes)[number]) => <li key={c.key} className={cx("flex items-start gap-2 rounded-xl px-3 py-2 text-[13.5px]", dirCls[c.direction])}><span className="font-extrabold">{c.direction === "up" ? "↑" : c.direction === "down" ? "↓" : "↕"}</span><span>{t(`radar.cause.${c.key}`, { detail: c.key.startsWith("school") ? t(`radar.breaks.${c.detail}`) : c.detail, date: c.date ? date(c.date) : "", n: c.n ?? 0 })}</span></li>;
+  const okSteps = steps.filter((x) => x.status === "succeeded").length;
+  const agentPills = (<>
+          {AGENTS.map((a, i) => { const s = steps.find((x) => x.agent === a); const st = s?.status === "succeeded" ? "ok" : s?.status === "failed" ? "bad" : "todo"; return (
+            <span key={a} className={cx("inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-semibold", st === "ok" ? "border-border bg-surface text-good-ink" : st === "bad" ? "border-bad/40 bg-bad-soft text-bad" : "border-border bg-surface text-muted")} title={s ? `${s.status}` : ""}>
+              <span className={cx("grid h-4 w-4 place-items-center rounded-full text-[10px]", st === "ok" ? "bg-good-soft" : st === "bad" ? "bg-white/60" : "bg-surface-2")}>{st === "ok" ? <Icon.check width={10} height={10} /> : i + 1}</span>{t(`radar.agent.${a}`)}
+            </span>); })}
+  </>);
 
   return (
     <div className="grid gap-5">
-      <StepBar current="snapshot" labels={labels} hrefs={done ? { signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` } : {}} />
+      <div className="hidden sm:block"><StepBar current="snapshot" labels={labels} hrefs={done ? { signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` } : {}} /></div>
       <div>
-        <h2 className="flex items-center gap-2 text-[24px] font-extrabold tracking-[-0.02em]"><Icon.signals width={24} height={24} className="text-coral" />{t("radar.around", { place })}</h2>
-        <p className="mt-1 max-w-3xl text-[14px] text-ink-2">{t("radar.hint", { place, days: DAYS })}</p>
+        <h2 className="flex items-center gap-2 text-[21px] font-extrabold tracking-[-0.02em] sm:text-[24px]"><Icon.signals width={24} height={24} className="text-coral" />{t("radar.around", { place })}</h2>
+        <p className="mt-1 hidden max-w-3xl text-[14px] text-ink-2 sm:block">{t("radar.hint", { place, days: DAYS })}</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3" data-testid="radar-tiles">
+      <Card className="grid grid-cols-3 divide-x divide-border !p-0 sm:hidden" data-testid="radar-strip">
+        <Link href={`${base}/moments`} className="grid gap-0.5 px-3 py-3 text-center"><span className="tabular text-[24px] font-extrabold leading-none">{soon.length}</span><span className="text-[11px] font-semibold text-muted">{t("radar.momentsT")}</span></Link>
+        <Link href={`${base}/data`} className="grid gap-0.5 px-3 py-3 text-center"><span className={cx("tabular text-[24px] font-extrabold leading-none", pulse.verdict === "down" ? "text-bad" : pulse.verdict === "up" ? "text-good-ink" : "text-ink")}>{pulse.status === "ready" && pulse.pct !== null ? pct(pulse.pct) : "—"}</span><span className="text-[11px] font-semibold text-muted">{t("radar.pulseT")}</span></Link>
+        <div className="grid gap-0.5 px-3 py-3 text-center"><span className="text-[15px] font-extrabold leading-tight">{brk ? t(`radar.breaks.${brk.brk.kind}`) : t("radar.schoolNone")}</span><span className="text-[11px] font-semibold text-muted">{t("radar.schoolT")}</span></div>
+      </Card>
+      <div className="hidden gap-3 sm:grid sm:grid-cols-3" data-testid="radar-tiles">
         <Card className="grid content-start gap-1.5">
           <div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("radar.momentsT")} · {t("radar.nextDays", { days: CAUSE_DAYS })}</div>
           <div className="tabular text-[28px] font-extrabold leading-none">{soon.length}</div>
@@ -127,10 +140,11 @@ export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
       </div>
 
       <Card data-testid="radar-causes">
-        <H2 hint={t("radar.causeNote")}>{t("radar.causesT")}</H2>
+        <H2 hint={<span className="hidden sm:inline">{t("radar.causeNote")}</span>}>{t("radar.causesT")}</H2>
         {causes.length ? (
           <ul className="grid gap-2">
-            {causes.map((c) => <li key={c.key} className={cx("flex items-start gap-2 rounded-xl px-3 py-2 text-[13.5px]", dirCls[c.direction])}><span className="font-extrabold">{c.direction === "up" ? "↑" : c.direction === "down" ? "↓" : "↕"}</span><span>{t(`radar.cause.${c.key}`, { detail: c.key.startsWith("school") ? t(`radar.breaks.${c.detail}`) : c.detail, date: c.date ? date(c.date) : "", n: c.n ?? 0 })}</span></li>)}
+            {causes.slice(0, 2).map(causeRow)}
+            {causes.length > 2 ? <li><details className="group"><summary className="cursor-pointer list-none text-[13px] font-semibold text-pos group-open:hidden">{t("radar.moreCauses", { n: causes.length - 2 })}</summary><ul className="grid gap-2">{causes.slice(2).map(causeRow)}</ul></details></li> : null}
           </ul>
         ) : <p className="text-[13.5px] text-ink-2">{t("radar.causesNone")}</p>}
       </Card>
@@ -143,12 +157,10 @@ export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
       )}
 
       <Card>
-        <H2 hint={t("radar.agentsHint")} right={<span className="text-[12.5px] text-muted">{run?.startedAt ? t("radar.lastRun", { at: stamp(run.startedAt) }) : t("radar.neverRun")}</span>}>{t("radar.agentsT")}</H2>
-        <div className="flex flex-wrap items-center gap-2">
-          {AGENTS.map((a, i) => { const s = steps.find((x) => x.agent === a); const st = s?.status === "succeeded" ? "ok" : s?.status === "failed" ? "bad" : "todo"; return (
-            <span key={a} className={cx("inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-semibold", st === "ok" ? "border-border bg-surface text-good-ink" : st === "bad" ? "border-bad/40 bg-bad-soft text-bad" : "border-border bg-surface text-muted")} title={s ? `${s.status}` : ""}>
-              <span className={cx("grid h-4 w-4 place-items-center rounded-full text-[10px]", st === "ok" ? "bg-good-soft" : st === "bad" ? "bg-white/60" : "bg-surface-2")}>{st === "ok" ? <Icon.check width={10} height={10} /> : i + 1}</span>{t(`radar.agent.${a}`)}
-            </span>); })}
+        <H2 hint={<span className="hidden sm:inline">{t("radar.agentsHint")}</span>} right={<span className="hidden text-[12.5px] text-muted sm:inline">{run?.startedAt ? t("radar.lastRun", { at: stamp(run.startedAt) }) : t("radar.neverRun")}</span>}>{t("radar.agentsT")}</H2>
+        <details className="group sm:hidden"><summary className="flex cursor-pointer list-none items-center justify-between text-[13.5px]"><span className="font-semibold">{t("radar.stepsDone", { d: okSteps, n: AGENTS.length })}</span><span className="text-[12px] text-muted">{run?.startedAt ? stamp(run.startedAt) : t("radar.neverRun")}</span></summary><div className="mt-3 flex flex-wrap items-center gap-2">{agentPills}{done ? <RunAnalysisButton restaurantId={id} hasRun={!!run} variant="secondary" /> : null}</div></details>
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">
+          {agentPills}
           {done ? <RunAnalysisButton restaurantId={id} hasRun={!!run} variant="secondary" /> : null}
         </div>
       </Card>
@@ -161,7 +173,7 @@ export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
           ) : <p className="text-[13.5px] text-ink-2">{t("radar.learnNone")}</p>}
           <div className="mt-3 flex items-center gap-3 text-[13px]"><span className="text-muted">{t("radar.memories", { n: memories.length })}</span><Link href={`${base}/memory`} className="font-semibold text-pos">{t("radar.seeMemory")} →</Link></div>
         </Card>
-        <Card>
+        <details className="group sm:hidden lg:col-span-2"><summary className="cursor-pointer list-none rounded-2xl border border-border bg-surface px-4 py-3 text-center text-[14px] font-semibold text-pos group-open:hidden">{t("radar.moreT")}</summary><div className="grid gap-4">        <Card>
           <H2 right={<Link href={`${base}/taste`} className="text-[13px] font-semibold text-pos">{t("radar.seeTaste")} →</Link>}>{t("radar.tasteT")}</H2>
           {tags.length ? <div className="flex flex-wrap gap-1.5">{tags.map((x) => <Chip key={x.name} tone="coral" ring={x.affinity}>{x.name} · {(x.affinity ?? 0).toFixed(2)}</Chip>)}</div> : <p className="text-[13px] text-muted">{done ? t("taste.noneReturned") : t("snapshot.noIdeasYet")}</p>}
           {evidence ? <div className="mt-3 text-[12px] text-muted">{evidence.mode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")}</div> : null}
@@ -177,6 +189,24 @@ export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
           <p className="mt-2 text-[12px] text-muted">{t("radar.posHint")}</p>
           <div className="mt-3"><Button href={`${base}/opportunities`} variant="secondary" size="sm">{t("snapshot.viewOpps")}</Button></div>
         </Card>
+</div></details>
+        <div className="hidden gap-4 sm:contents">        <Card>
+          <H2 right={<Link href={`${base}/taste`} className="text-[13px] font-semibold text-pos">{t("radar.seeTaste")} →</Link>}>{t("radar.tasteT")}</H2>
+          {tags.length ? <div className="flex flex-wrap gap-1.5">{tags.map((x) => <Chip key={x.name} tone="coral" ring={x.affinity}>{x.name} · {(x.affinity ?? 0).toFixed(2)}</Chip>)}</div> : <p className="text-[13px] text-muted">{done ? t("taste.noneReturned") : t("snapshot.noIdeasYet")}</p>}
+          {evidence ? <div className="mt-3 text-[12px] text-muted">{evidence.mode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")}</div> : null}
+        </Card>
+        <Card>
+          <H2>{t("snapshot.profile")}</H2>
+          <dl className="grid grid-cols-[6.5rem_1fr] gap-y-1.5 text-[13.5px]">
+            <dt className="text-muted">{t("snapshot.formats")}</dt><dd className="flex flex-wrap gap-1">{p.serviceFormats.map((f) => <Chip key={f}>{t(`onboarding.formatLabel.${f}`)}</Chip>)}</dd>
+            <dt className="text-muted">{t("snapshot.menu")}</dt><dd>{t("snapshot.items", { n: overview.menu.length })}</dd>
+            <dt className="text-muted">{t("snapshot.hours")}</dt><dd>{p.hoursSummary ?? t("common.unknown")}</dd>
+            <dt className="text-muted">{t("radar.posT")}</dt><dd>{p.posPreference && p.posPreference !== "none" ? t("snapshot.posPlanned", { pos: p.posPreference }) : t("snapshot.posNone")}</dd>
+          </dl>
+          <p className="mt-2 text-[12px] text-muted">{t("radar.posHint")}</p>
+          <div className="mt-3"><Button href={`${base}/opportunities`} variant="secondary" size="sm">{t("snapshot.viewOpps")}</Button></div>
+        </Card>
+</div>
       </div>
     </div>
   );

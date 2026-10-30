@@ -14,7 +14,7 @@ const es: Dictionary = {
     sampleBadge: "Datos de muestra", sampleTitle: "Conjunto de muestra: ilustrativo, no son datos reales de Qloo", liveBadge: "Qloo en vivo", syntheticDemo: "Demo sintética", syntheticBody: "No es un negocio real. Creado para evaluación.",
     notConnected: "Qloo en vivo no conectado. Las señales son una muestra ilustrativa, marcada en cada tarjeta.",
   },
-  nav: { short: { snapshot: "Radar", taste: "Señales", moments: "Momentos", data: "Ventas", opportunities: "Ideas", passes: "Pase", memory: "Memoria" }, snapshot: "Radar", taste: "Señales de gusto", opportunities: "Oportunidades", actions: "Tablero", memory: "Memoria", passes: "TastePass", data: "Datos", moments: "Momentos" },
+  nav: { short: { snapshot: "Radar", taste: "Señales", moments: "Momentos", data: "Ventas", opportunities: "Ideas", passes: "Pase", memory: "Memoria" }, snapshot: "Radar", taste: "Señales de gusto", opportunities: "Oportunidades", actions: "Tablero", memory: "Memoria", passes: "TastePass", data: "Datos", moments: "Momentos", more: "Más" },
   steps: { snapshot: "Radar", signals: "Señales", choose: "Elegir", decide: "Decidir", act: "Activar", prove: "Probar", recommend: "Recomendar", execute: "Ejecutar" },
   landing: {
     replayT: "Elija un restaurante y vea cómo TasteFront reescribe su local para el barrio.",
@@ -663,6 +663,7 @@ const es: Dictionary = {
     evCuisine: "Cocina “{cuisine}” resuelta a {n} etiqueta(s) de lugar de Qloo.", evTags: "{n} atributos de lugar ordenados por afinidad cerca de {where}.", evPlaces: "{n} lugares cercanos con afinidad por este perfil.", evCross: "{n} entidades no gastronómicas vinculadas a los fans de esta cocina.", evDemo: "Deltas de afinidad por edad/género para las etiquetas de cocina.",
   },
   radar: {
+    moreCauses: "{n} más", morePlays: "{n} jugadas más", moreT: "Señales y perfil", stepsDone: "{d}/{n} pasos listos",
     title: "Radar", hint: "Qué pasa alrededor de {place} en los próximos {days} días, y qué hacer al respecto.",
     around: "Alrededor de {place}", nextDays: "próximos {days} días",
     momentsT: "Momentos cerca", momentsN: "{n} momentos", momentsNone: "Nada en el calendario cercano", seeMoments: "Todos los momentos",
