@@ -66,7 +66,7 @@ export async function getRuns(db: SupabaseClient, storeId: string, limit = 10): 
 }
 export async function getMovesForVersion(db: SupabaseClient, versionId: string): Promise<Move[]> {
   const { data } = await db.from("front_moves").select("*").eq("version_id", versionId).order("created_at");
-  return (data ?? []).map((r) => ({ id: s(r.id), kind: s(r.kind) as Move["kind"], itemId: s(r.item_id), risk: s(r.risk, "low") as Move["risk"], before: (r.before_json as Move["before"]) ?? {}, after: (r.after_json as Move["after"]) ?? {}, evidence: (r.evidence_json as Move["evidence"]) ?? [], verified: Boolean(r.verified), rationale: s((r.after_json as Row | null)?.rationale ?? ""), guardrail: { ok: s(r.status) !== "rejected" } }));
+  return (data ?? []).map((r) => ({ id: s(r.id), kind: s(r.kind) as Move["kind"], itemId: s(r.item_id), risk: s(r.risk, "low") as Move["risk"], before: (r.before_json as Move["before"]) ?? {}, after: (r.after_json as Move["after"]) ?? {}, evidence: (r.evidence_json as Move["evidence"]) ?? [], verified: Boolean(r.verified), rationale: s((r.after_json as Row | null)?.rationale ?? ""), ...((r.after_json as Row | null)?.why ? { why: (r.after_json as Row).why as Move["why"] } : {}), guardrail: { ok: s(r.status) !== "rejected" } }));
 }
 export async function getHoldouts(db: SupabaseClient, where: { storeId?: string; brandId?: string }): Promise<Holdout[]> {
   let q = db.from("front_holdouts").select("*").order("created_at", { ascending: false });
@@ -97,7 +97,7 @@ export async function createVersion(input: { storeId: string; generatedBy: Store
   const { data, error } = await db.from("front_versions").insert({ store_id: input.storeId, version_no: versionNo, generated_by: input.generatedBy, run_id: input.runId, items_json: input.items, parent_version_id: input.parentVersionId, status: "draft" }).select("*").single();
   if (error) throw error;
   if (input.moves.length) {
-    const { error: e2 } = await db.from("front_moves").insert(input.moves.map((m) => ({ version_id: data.id, store_id: input.storeId, kind: m.kind, item_id: m.itemId, before_json: m.before, after_json: { ...m.after, rationale: m.rationale }, evidence_json: m.evidence, verified: m.verified, risk: m.risk, status: m.guardrail && !m.guardrail.ok ? "rejected" : "proposed" })));
+    const { error: e2 } = await db.from("front_moves").insert(input.moves.map((m) => ({ version_id: data.id, store_id: input.storeId, kind: m.kind, item_id: m.itemId, before_json: m.before, after_json: { ...m.after, rationale: m.rationale, ...(m.why ? { why: m.why } : {}) }, evidence_json: m.evidence, verified: m.verified, risk: m.risk, status: m.guardrail && !m.guardrail.ok ? "rejected" : "proposed" })));
     if (e2) throw e2;
   }
   return toVersion(data);
