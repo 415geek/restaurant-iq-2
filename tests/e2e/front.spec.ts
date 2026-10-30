@@ -52,3 +52,15 @@ test("fleet view renders the map, guardrails, queue and holdout summary", async 
   await expect(page.getByTestId("holdout-summary")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("home page replays three recorded runs and plays the agent log", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/");
+  await expect(page.getByTestId("front-replays")).toBeVisible();
+  await expect(page.getByTestId("replay-card")).toHaveCount(3);
+  await expect(page.getByTestId("replay-log").locator("li")).not.toHaveCount(0, { timeout: 10_000 });
+  await page.getByTestId("replay-card").nth(1).click();
+  await expect(page.getByTestId("replay-log")).toContainText(/Neighborhood profile|Crowd-vs-city lift/, { timeout: 20_000 });
+  expect(errors).toEqual([]);
+});
