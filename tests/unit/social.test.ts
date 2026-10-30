@@ -28,6 +28,8 @@ describe("social copy", () => {
     expect(p.shareHref).toContain("facebook.com/sharer");
   });
   it("builds hashtags without spaces or punctuation", () => {
+    expect(hashtagsFor({ ...input, restaurant: { name: "Golden Gate Noodle House (sample)", neighborhood: "Inner Sunset", city: "San Francisco", cuisine: "Taiwanese / Chinese noodles" } }, "en")).toContain("#TaiwaneseFood");
+    expect(hashtagsFor({ ...input, restaurant: { name: "Golden Gate Noodle House (sample)", neighborhood: null, city: "SF", cuisine: "Thai" } }, "en")).toContain("#GoldenGateNoodleHouse");
     expect(hashtagsFor(input, "en")).toEqual(["#SanBrunoEats", "#SanBrunoFood", "#SichuanFood", "#BayAreaEats", "#ChuanLane"]);
     for (const h of hashtagsFor(input, "zh")) expect(h).toMatch(/^#[^\s#]+$/u);
   });

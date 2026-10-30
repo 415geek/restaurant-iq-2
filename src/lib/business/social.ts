@@ -22,15 +22,15 @@ const fmtDate = (iso: string, lang: PostLang) => {
   const loc = lang === "zh" ? "zh-CN" : lang === "es" ? "es-US" : "en-US";
   return new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso).toLocaleDateString(loc, { month: "short", day: "numeric", timeZone: iso.length === 10 ? "UTC" : "America/Los_Angeles" });
 };
-const tag = (s: string) => s.replace(/[^\p{L}\p{N}]+/gu, "");
+const tag = (s: string) => s.replace(/\([^)]*\)/g, "").replace(/[^\p{L}\p{N}]+/gu, "");
 
 export function hashtagsFor(input: SocialInput, lang: PostLang): string[] {
-  const { restaurant: r } = input; const place = r.neighborhood || r.city || "";
+  const { restaurant: r } = input; const place = r.neighborhood || r.city || ""; const cuisine = r.cuisine.split(/[\/,·]/)[0].trim();
   const base = lang === "zh"
-    ? [place ? `${tag(place)}美食` : "", r.city ? `${tag(r.city)}美食` : "", "湾区美食", `${tag(r.cuisine)}`, tag(r.name)]
+    ? [place ? `${tag(place)}美食` : "", r.city ? `${tag(r.city)}美食` : "", "湾区美食", `${tag(cuisine)}`, tag(r.name)]
     : lang === "es"
-      ? [place ? `${tag(place)}Eats` : "", r.city ? `${tag(r.city)}Food` : "", `Comida${tag(r.cuisine)}`, "BayAreaEats", tag(r.name)]
-      : [place ? `${tag(place)}Eats` : "", r.city ? `${tag(r.city)}Food` : "", `${tag(r.cuisine)}Food`, "BayAreaEats", tag(r.name)];
+      ? [place ? `${tag(place)}Eats` : "", r.city ? `${tag(r.city)}Food` : "", `Comida${tag(cuisine)}`, "BayAreaEats", tag(r.name)]
+      : [place ? `${tag(place)}Eats` : "", r.city ? `${tag(r.city)}Food` : "", `${tag(cuisine)}Food`, "BayAreaEats", tag(r.name)];
   return Array.from(new Set(base.filter(Boolean))).slice(0, 5).map((x) => `#${x}`);
 }
 
