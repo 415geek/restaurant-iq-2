@@ -71,7 +71,7 @@ export class QlooUsageGuard {
   constructor(opts: GuardOptions) {
     this.store = opts.store;
     this.ttlMs = (opts.ttlSeconds ?? 86400) * 1000;
-    this.dailyCap = opts.dailyCap ?? 400;
+    this.dailyCap = opts.dailyCap ?? 1500; // TasteFront maps ~20 tags + ~8 insights per store; 400 was exhausted by one 46-store batch
     this.maxConcurrent = opts.maxConcurrent ?? 4;
     this.now = opts.now ?? (() => Date.now());
   }

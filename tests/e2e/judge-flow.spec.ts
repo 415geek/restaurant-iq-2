@@ -12,7 +12,7 @@ function trackErrors(page: Page) {
 test("landing → demo → snapshot shows data-mode pill and trust drawer", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("restaurant AI is execution");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("storefront tuned");
   await page.getByRole("link", { name: /Try the live demo/ }).click();
   await expect(page).toHaveURL(new RegExp(DEMO));
   await expect(page.getByText("Synthetic demo")).toBeVisible();

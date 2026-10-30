@@ -5,9 +5,13 @@ import { Button, Chip } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { getT } from "@/i18n";
 import { DEMO_RESTAURANT_ID } from "@/lib/queries";
+import { FrontReplays } from "@/components/landing/FrontReplays";
+import { loadReplays } from "@/lib/front/replays";
+import { getSsrClient } from "@/lib/db/ssr";
 
 export default async function Home() {
   const { t } = await getT();
+  const replays = await getSsrClient().then(loadReplays).catch(() => []);
   const steps = [["s1", "signals"], ["s2", "ideas"], ["s3", "ticket"], ["s4", "check"]] as const;
   return (
     <>
@@ -18,7 +22,7 @@ export default async function Home() {
             <Chip tone="coral">{t("landing.kicker")}</Chip>
             <h1 className="mt-4 text-[36px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[50px]">{t("landing.h1a")}<br /><span className="text-coral">{t("landing.h1b")}</span></h1>
             <p className="mt-5 max-w-xl text-[17px] text-ink-2">{t("landing.lead")}</p>
-            <div className="mt-7 flex flex-wrap gap-3"><Button href="/demo" variant="coral" size="lg">{t("landing.ctaDemo")}<Icon.arrowRight /></Button><Button href="/login" variant="secondary" size="lg">{t("landing.ctaOwn")}</Button></div>
+            <div className="mt-7 flex flex-wrap gap-3"><Button href="/front" variant="coral" size="lg">{t("landing.ctaFront")}<Icon.arrowRight /></Button><Button href="/m/chuan-lane-san-bruno" variant="secondary" size="lg">{t("landing.ctaMenu")}</Button><Button href="/demo" variant="ghost" size="lg">{t("landing.ctaDemo")}</Button></div>
             <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>
           </div>
           {/* product composition: the three acts, built from our own UI pieces (no stored Qloo data) */}
@@ -31,6 +35,13 @@ export default async function Home() {
             <div className="card absolute -left-3 -top-10 w-44 p-3 sm:-left-10"><div className="flex items-center gap-2 text-[12px] font-semibold"><i className="h-2 w-2 rounded-full bg-good" />{t("common.liveQloo")}</div><div className="text-[11px] text-muted">{t("landing.s1t")}</div></div>
           </div>
         </section>
+        {replays.length ? (
+          <section className="mx-auto max-w-6xl px-4 pb-6" id="replays">
+            <h2 className="text-[24px] font-extrabold tracking-[-0.02em]">{t("landing.replayT")}</h2>
+            <p className="mt-1 mb-4 max-w-3xl text-[14px] text-ink-2">{t("landing.replayD")}</p>
+            <FrontReplays replays={replays} />
+          </section>
+        ) : null}
         <section className="mx-auto max-w-6xl px-4 pb-16 pt-10">
           <h2 className="text-[24px] font-extrabold tracking-[-0.02em]">{t("landing.how")}</h2>
           <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

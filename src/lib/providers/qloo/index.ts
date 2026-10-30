@@ -337,6 +337,73 @@ export class QlooProvider {
     });
   }
 
+
+  /* ---------- TasteFront: location-signal queries (no restaurant entity needed; the store's lat/lng is the signal) ---------- */
+
+  /** Tags people around a point lean toward (signal.location = the store). One call per tag type, like getTagAffinities. */
+  async getNeighborhoodTags(input: { point: { lat: number; lon: number }; radiusMeters?: number; tagTypes?: string[]; take?: number }): Promise<ProviderResult<TagSignal[]>> {
+    const base = {
+      "filter.type": "urn:tag" as const,
+      "filter.parents.types": "urn:entity:place",
+      "signal.location": `POINT(${input.point.lon} ${input.point.lat})`,
+      "signal.location.radius": input.radiusMeters ?? 1500,
+      take: input.take ?? 10,
+    };
+    const types = input.tagTypes ?? TASTE_TAG_TYPES;
+    if (this.mode === "sample") return this.sample("/v2/insights", { ...base, "filter.tag.types": types.join(",") }, sampleTagSignals);
+    const merged = new Map<string, TagSignal>();
+    let last: ProviderResult<TagSignal[]> | undefined;
+    for (const tt of types) {
+      const params: InsightsParams = { ...base, "filter.tag.types": tt };
+      try {
+        const r = await this.live("/v2/insights", params, async (c) => { const { data, meta } = await c.insights(params); return { data: normalizeTags(data), latencyMs: meta.latencyMs }; });
+        for (const t of r.data) if (!merged.has(t.tagId)) merged.set(t.tagId, t);
+        last = r;
+      } catch (err) {
+        if (err instanceof QlooError && (err.errorClass === "not_found" || err.errorClass === "bad_request")) continue;
+        throw err;
+      }
+    }
+    const data = [...merged.values()].sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0));
+    return { data, provenance: { ...(last?.provenance ?? this.provenance("/v2/insights", toQuery(base), false)), requestParams: toQuery({ ...base, "filter.tag.types": types.join(",") }) }, state: last?.state ?? { mode: "live", status: "ok" } };
+  }
+
+  /**
+   * A set of restaurants in a city, optionally pulled toward a point (signal.location). Two calls with and without the
+   * signal give the crowd-vs-city contrast: what menus near this store carry more often than the city at large.
+   */
+  async getPlaceSet(input: { cityQuery: string; signalPoint?: { lat: number; lon: number }; signalRadiusMeters?: number; placeTags?: string; take?: number; page?: number }): Promise<ProviderResult<CulturalSignal[]>> {
+    const params: InsightsParams = {
+      "filter.type": "urn:entity:place",
+      "filter.location.query": input.cityQuery,
+      "filter.tags": input.placeTags ?? "urn:tag:genre:place:restaurant",
+      take: input.take ?? 50,
+      page: input.page ?? 1,
+      ...(input.signalPoint ? { "signal.location": `POINT(${input.signalPoint.lon} ${input.signalPoint.lat})`, "signal.location.radius": input.signalRadiusMeters ?? 1500 } : {}),
+    };
+    if (this.mode === "sample") return this.sample("/v2/insights", params, samplePlaceSignals);
+    return this.live("/v2/insights", params, async (c) => { const { data, meta } = await c.insights(params); return { data: normalizeInsightEntities(data), latencyMs: meta.latencyMs }; });
+  }
+
+  /** Heatmap for a set of tags over a region described by a point + radius (brand territory). */
+  async getHeatmapAt(input: { tagIds: string[]; center: { lat: number; lon: number }; radiusMeters: number }): Promise<ProviderResult<HeatmapCell[]>> {
+    const params: InsightsParams = {
+      "filter.type": "urn:heatmap",
+      "filter.location": `POINT(${input.center.lon} ${input.center.lat})`,
+      "filter.location.radius": input.radiusMeters,
+      "signal.interests.tags": input.tagIds.join(","),
+    };
+    if (this.mode === "sample") return this.sample("/v2/insights", params, sampleHeatmap);
+    return this.live("/v2/insights", params, async (c) => { const { data, meta } = await c.insights(params); return { data: normalizeHeatmap(data), latencyMs: meta.latencyMs }; });
+  }
+
+  /** Tag lookup for menu items via /v2/tags (place-scoped). Used by TasteFront's map_menu_tags. */
+  async findTags(query: string, take = 20): Promise<ProviderResult<TagSignal[]>> {
+    const params = { "filter.query": query, "filter.parents.types": "urn:entity:place", take };
+    if (this.mode === "sample") return this.sample("/v2/tags", params, sampleCuisineTags.filter((t) => t.name.toLowerCase().includes(query.toLowerCase().split(" ")[0] ?? "")));
+    return this.live("/v2/tags", params, async (c) => { const { data, meta } = await c.tags(params); return { data: normalizeTags(data), latencyMs: meta.latencyMs }; });
+  }
+
   /** Live verification: a known public landmark search and a one-result place insight. */
   async verifyLive(): Promise<{ ok: boolean; mode: ProviderMode; checks: Array<{ name: string; ok: boolean; detail: string }> }> {
     if (this.mode !== "live" || !this.client) {

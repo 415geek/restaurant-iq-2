@@ -6,7 +6,7 @@ import { getT } from "@/i18n";
 
 export default async function MemoryPage({ params }: PageProps<"/r/[id]/memory">) {
   const { id } = await params;
-  const [overview, events, { t }] = await Promise.all([getRestaurantOverview(id), getDecisionEvents(id), getT()]);
+  const [overview, events, { t }] = await Promise.all([getRestaurantOverview(id), getDecisionEvents(id, 300), getT()]);
   if (!overview) notFound();
   return (
     <div className="grid gap-5">

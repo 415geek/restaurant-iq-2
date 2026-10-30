@@ -39,7 +39,8 @@ export function shiftLocalDays(t: number, days: number, tz: string) {
   utc = wall - tzOffset(utc, tz);
   return utc;
 }
-function localDayStart(t: number, tz: string) {
+/** Start of the local calendar day containing instant `t` (UTC ms). */
+export function localDayStart(t: number, tz: string) {
   const wall = t + tzOffset(t, tz); const mid = wall - (((wall % 86400_000) + 86400_000) % 86400_000);
   let utc = mid - tzOffset(mid, tz); utc = mid - tzOffset(utc, tz); return utc;
 }
