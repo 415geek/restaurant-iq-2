@@ -17,6 +17,7 @@ import { reviewExperiment } from "@/lib/business/experiment";
 import { loadSales, RESTAURANT_TZ } from "@/lib/ingest/pipeline";
 import { getSsrClient } from "@/lib/db/ssr";
 import { RingEvidenceCard } from "@/components/campaign/RingEvidenceCard";
+import { SocialPostCard } from "@/components/campaign/SocialPostCard";
 import { loadRingEvidence } from "@/lib/ring/evidence";
 
 export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes/[cid]">) {
@@ -71,6 +72,8 @@ export default async function CampaignPage({ params }: PageProps<"/r/[id]/passes
           <RedeemConsole campaignId={c.id} disabled={c.status !== "active"} demo={overview.isDemo} />
         </Card>
       </div>
+
+      {c.status !== "draft" ? <SocialPostCard input={{ restaurant: { name: overview.profile.name, neighborhood: overview.profile.neighborhood, city: overview.profile.city, cuisine: overview.profile.cuisine }, offer: { name: c.offerName, menuItem: c.menuItem, offerPrice: c.offerPrice, regularPrice: c.regularPrice, endsAt: c.endsAt, maxRedemptions: c.maxRedemptions }, moment: c.moment ? { name: c.moment.name, date: c.moment.date } : null, url }} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>

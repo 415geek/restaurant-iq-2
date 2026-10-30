@@ -1,108 +1,182 @@
+import { after } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button, Card, Chip, H2, LABEL_TONE, cx, fmtUsd } from "@/components/ui";
-import { Icon, HYP_ICON } from "@/components/ui/Icon";
+import { Button, Card, Chip, H2, cx } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { StepBar } from "@/components/shell/StepBar";
 import { RunAnalysisButton } from "@/components/demo/RunAnalysisButton";
-import { KpiTile, MiniBars, Sparkline, StackedBar } from "@/components/charts";
+import { RadarPlays, type PlayCard } from "@/components/radar/RadarPlays";
 import { computeScenario } from "@/lib/business/margin";
-import { getActions, getHypotheses, getLatestEvidence, getLatestRun, getRestaurantOverview } from "@/lib/queries";
-import { getT, formatLText } from "@/i18n";
+import { getHypotheses, getLatestEvidence, getLatestRun, getRestaurantOverview } from "@/lib/queries";
+import { getCampaignsForRestaurant, getCampaignStats } from "@/lib/campaigns";
+import { listMemories } from "@/lib/brain";
+import { loadSales, RESTAURANT_TZ } from "@/lib/ingest/pipeline";
+import { getSsrClient } from "@/lib/db/ssr";
+import { getServiceClient } from "@/lib/db/server";
+import { reviewExperiment } from "@/lib/business/experiment";
+import { addDays, localToday, milesBetween, neighborhoodCenter, upcomingHolidays } from "@/lib/business/moments";
+import { areaStatus, isStale, readAreaEvents, refreshArea, SOURCE_LABEL, WINDOW_DAYS } from "@/lib/events-store";
+import { getPublicHolidays } from "@/lib/providers/events/nager";
+import { buildPlays, NEAR_MILES, outsideCauses, schoolBreakAhead, weeklyPulse, type HolidayScope, type RadarMoment } from "@/lib/business/radar";
+import { DISPLAY_TZ } from "@/lib/display-tz";
+import { getT } from "@/i18n";
 
-export default async function SnapshotPage({ params }: PageProps<"/r/[id]">) {
-  const { id } = await params;
-  const [overview, run, { t }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
+const DAYS = 21; const CAUSE_DAYS = 14;
+const KIND = { sf_street: "street", nyc_permits: "street", chicago_parks: "street", sf_our415: "community", web_google_events: "web" } as const;
+const AGENTS = ["IntakeAgent", "EvidenceAgent", "OpportunityAgent", "FinanceAgent", "ExecutionAgent", "Evaluator"] as const;
+
+/** Radar: the owner's home screen. What is happening around the store, why the week may be slow or busy, and the plays the agents costed for it. */
+export default async function RadarPage({ params }: PageProps<"/r/[id]">) {
+  const { id } = await params; const base = `/r/${id}`;
+  const [overview, run, { t, locale }] = await Promise.all([getRestaurantOverview(id), getLatestRun(id), getT()]);
   if (!overview) notFound();
-  const p = overview.profile; const base = `/r/${id}`;
-  const done = run?.status === "completed";
-  const [evidence, hs, actions] = done ? await Promise.all([getLatestEvidence(id, run!.startedAt), getHypotheses(id, run!.id), getActions(id, run!.id)]) : [null, [], []];
-  const viable = hs.filter((h) => h.evidenceLabel !== "not_recommended").slice(0, 3);
-  const econ = viable.map((h) => ({ h, r: computeScenario(h.defaultScenario) }));
-  const best = econ.reduce<typeof econ[number] | null>((a, b) => (!a || b.r.adjustedIncrementalProfit > a.r.adjustedIncrementalProfit ? b : a), null);
-  const topTaste = viable.flatMap((h) => h.citations).filter((c) => c.kind !== "demographic" && c.affinity !== undefined).sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0))[0];
-  const tags = (evidence?.tagAffinities ?? []).filter((x) => x.affinity !== undefined).sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0)).slice(0, 7);
-  const avg = tags.length ? tags.reduce((a, x) => a + (x.affinity ?? 0), 0) / tags.length : 0;
-  const steps = run?.steps ?? []; const stepsOk = steps.filter((s) => s.status === "succeeded").length;
-  const open = actions.filter((a) => a.status !== "completed" && a.status !== "canceled");
-  const next = [...open.filter((a) => a.status === "needs_approval").slice(0, 1), ...open.filter((a) => a.status !== "needs_approval")].filter((a, i, arr) => arr.findIndex((x) => x.hypothesisSlug === a.hypothesisSlug) === i || i === 0).slice(0, 3);
+  const p = overview.profile; const done = run?.status === "completed";
+  const today = localToday(); const place = p.neighborhood || p.city;
+  const sdb = getServiceClient();
+  const { data: rr } = await sdb.from("restaurants").select("region, country_code").eq("id", id).maybeSingle();
+
+  let status = await areaStatus(p.city);
+  const free = status.filter((s) => s.source !== "web_google_events");
+  if (free.length && free.every((s) => s.state === "never")) { await refreshArea({ city: p.city, neighborhood: p.neighborhood }, { web: false }); status = await areaStatus(p.city); }
+  else if (status.some(isStale)) after(() => refreshArea({ city: p.city, neighborhood: p.neighborhood }, { web: true }).then(() => undefined));
+
+  const ssr = await getSsrClient();
+  const [hyps, stored, nager, sales, campaigns, memories, evidence] = await Promise.all([
+    done ? getHypotheses(id, run!.id) : Promise.resolve([]),
+    readAreaEvents(p.city, today, addDays(today, WINDOW_DAYS)),
+    getPublicHolidays([Number(today.slice(0, 4)), Number(today.slice(0, 4)) + 1], (rr?.country_code as string) || "US", (rr?.region as string) || null),
+    loadSales(ssr, id).catch(() => []),
+    getCampaignsForRestaurant(id).catch(() => []),
+    listMemories(id, 50).catch(() => []),
+    done ? getLatestEvidence(id, run!.startedAt) : Promise.resolve(null),
+  ]);
+
+  const center = neighborhoodCenter(p.neighborhood);
+  const ours = upcomingHolidays(today, WINDOW_DAYS); const ourDates = new Set(ours.map((h) => h.date)); const hEnd = addDays(today, WINDOW_DAYS);
+  const moments: RadarMoment[] = [
+    ...ours.map((h) => ({ id: `h-${h.id}-${h.date}`, kind: "holiday" as const, name: t(`moments.h.${h.id}`), date: h.date, theme: h.theme, scope: h.scope, source: "calendar" })),
+    ...nager.holidays.filter((h) => h.date >= today && h.date <= hEnd && !ourDates.has(h.date)).map((h) => ({ id: `n-${h.date}`, kind: "holiday" as const, name: h.name, date: h.date, theme: null, scope: (h.regional ? "ca" : "us") as HolidayScope, source: "Nager.Date" })),
+    ...stored.map((e) => ({ id: e.id, kind: KIND[e.source], name: e.name, date: e.date, end: e.end, theme: e.theme, miles: center && e.lat !== undefined && e.lng !== undefined ? milesBetween(center, [e.lat, e.lng]) : undefined, source: SOURCE_LABEL[e.source], link: e.link })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+  const soon = moments.filter((m) => m.date <= addDays(today, CAUSE_DAYS) && (m.kind === "holiday" || m.miles === undefined || m.miles <= NEAR_MILES));
+  const brk = schoolBreakAhead(today, DAYS);
+  const causes = outsideCauses(moments, brk, today, CAUSE_DAYS);
+  const pulse = weeklyPulse(sales, today, RESTAURANT_TZ);
+
+  const date = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
+  const stamp = (iso: string) => new Date(iso).toLocaleString(locale, { timeZone: DISPLAY_TZ, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const pct = (x: number) => `${x >= 0 ? "+" : "−"}${Math.round(Math.abs(x) * 100)}%`;
+
+  const plays: PlayCard[] = buildPlays(moments, hyps.map((h) => ({ id: h.id, slug: h.slug, rank: h.rank, evidenceLabel: h.evidenceLabel, status: h.status })), today, DAYS, 4).map((pl) => {
+    const h = hyps.find((x) => x.id === pl.hypothesisId)!;
+    const cite = [...h.citations].filter((c) => c.kind !== "demographic").sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0))[0] ?? h.citations[0] ?? null;
+    const m = pl.moment;
+    const q = m ? `&mk=${m.kind}&mn=${encodeURIComponent(m.name.slice(0, 90))}&md=${m.date}${m.theme ? `&mt=${m.theme}` : ""}&ms=${encodeURIComponent(m.source.slice(0, 80))}` : "";
+    return {
+      id: pl.id, hypothesisId: h.id, slug: h.slug, title: t(`hyp.${h.slug}.title`), moment: m, outlook: pl.outlook, matched: pl.matched,
+      menuItem: h.playbook?.offering?.menuDependencies?.[0] ?? overview.menu.find((x) => x.isSignature)?.name ?? null,
+      contribution: h.defaultScenario ? computeScenario(h.defaultScenario).adjustedIncrementalProfit : null,
+      audience: cite ? { name: cite.name, affinity: cite.affinity } : null,
+      href: `${base}/passes/new?h=${h.id}${q}`, ideaHref: `${base}/opportunities/${h.id}`,
+    };
+  });
+
+  const ended = campaigns.filter((c) => c.status === "ended").slice(0, 3);
+  const learned = await Promise.all(ended.map(async (c) => {
+    const stats = await getCampaignStats(c.id).catch(() => null);
+    const r = reviewExperiment({ rows: sales, startsAt: c.startsAt, endsAt: c.endsAt, menuItem: c.menuItem, redeemed: stats?.redeemed ?? 0, tz: RESTAURANT_TZ });
+    const pos = r.status === "ready" ? r.metrics.find((m) => m.key === "netSales")?.position ?? null : null;
+    return { c, redeemed: stats?.redeemed ?? 0, verdict: pos ?? ("pending" as const) };
+  }));
+  const tags = (evidence?.tagAffinities ?? []).filter((x) => x.affinity !== undefined).sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0)).slice(0, 6);
+  const steps = run?.steps ?? [];
   const labels = { signals: t("steps.signals"), recommend: t("steps.recommend"), execute: t("steps.execute"), prove: t("steps.prove") };
-  const lt = (x: Parameters<typeof formatLText>[1]) => formatLText(t, x);
-  // First screen answers: what to try this week, why (Qloo), what not to do and why, and one button.
-  const rec = viable[0];
-  const alt = hs.find((h) => h.evidenceLabel === "not_recommended" && (h.disqualifiers.length || h.reasonsToAvoid.length)) ?? viable[1];
-  const altReason = alt ? (alt.disqualifiers[0] ?? alt.reasonsToAvoid[0]) : undefined;
-  const scenarioPts = best ? best.h.playbook.offering.scenarios.map((s) => computeScenario(s.assumptions).adjustedIncrementalProfit) : [];
+  const dirCls = { up: "bg-good-soft text-good-ink", down: "bg-bad-soft text-bad", mixed: "bg-warn-soft text-warn-ink" } as const;
 
   return (
     <div className="grid gap-5">
       <StepBar current="snapshot" labels={labels} hrefs={done ? { signals: `${base}/taste`, choose: `${base}/opportunities`, act: `${base}/passes` } : {}} />
-      {!done ? (
-        <Card className="flex flex-wrap items-center justify-between gap-4"><div><div className="text-[18px] font-bold">{t("snapshot.noRunT")}</div><p className="text-[13.5px] text-ink-2">{t("snapshot.noIdeasYet")}</p></div><RunAnalysisButton restaurantId={id} hasRun={!!run} /></Card>
-      ) : (
-        <>
-          {rec ? (
-            <section className="card border-2 border-coral p-5" data-testid="recommended-experiment">
-              <div className="text-[12px] font-bold uppercase tracking-wide text-coral-ink">{t("snapshot.recT")}</div>
-              <div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="text-[22px] font-extrabold tracking-[-0.02em]">{t(`hyp.${rec.slug}.title`)}</h2><Chip tone={LABEL_TONE[rec.evidenceLabel]}>{t(`opps.labels.${rec.evidenceLabel}`)}</Chip></div>
-              <div className="mt-3 grid gap-2 text-[13.5px] sm:grid-cols-2">
-                <div className="rounded-xl bg-coral-soft p-3"><div className="text-[11.5px] font-bold uppercase tracking-wide text-coral-ink">{t("snapshot.recWhy")}</div><div className="mt-0.5">{rec.citations[0] ? <><span className="font-semibold">{rec.citations[0].name}</span>{rec.citations[0].affinity !== undefined ? ` (${rec.citations[0].affinity.toFixed(2)})` : ""} · {lt(rec.citations[0].note)}</> : t("opps.noSignal")}</div></div>
-                {alt ? <div className="rounded-xl bg-surface-2 p-3"><div className="text-[11.5px] font-bold uppercase tracking-wide text-muted">{t("snapshot.recNot")}</div><div className="mt-0.5"><span className="font-semibold">{t(`hyp.${alt.slug}.title`)}</span>{altReason ? ` · ${lt(altReason)}` : ""}</div></div> : null}
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Button variant="coral" size="lg" href={`${base}/passes/new?h=${rec.id}`}><Icon.ticket width={18} height={18} />{t("snapshot.recCta")}</Button>
-                <Link href={`${base}/opportunities/${rec.id}`} className="px-2 text-[13.5px] font-semibold text-pos">{t("snapshot.recSee")}</Link>
-                <span className="text-[12px] text-muted">{t("snapshot.recNote")}</span>
-              </div>
-            </section>
-          ) : null}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <KpiTile label={t("snapshot.kpiIdeas")} value={viable.length} sub={t("snapshot.ofScreened", { t: hs.length })} visual={<MiniBars height={64} data={hs.slice(0, 6).map((h) => ({ label: `#${h.rank}`, value: Math.round(h.score.composite * 100) }))} labelFormatter={(v) => `${v}`} />} />
-            <KpiTile label={t("snapshot.kpiBest")} value={best ? fmtUsd(best.r.adjustedIncrementalProfit) : "—"} sub={best ? t(`hyp.${best.h.slug}.title`) : undefined} visual={scenarioPts.length ? <div><Sparkline points={scenarioPts} height={48} /><div className="mt-1 text-[11px] text-muted">{t("snapshot.scenarios")}</div></div> : null} />
-            <KpiTile label={t("snapshot.kpiTaste")} value={topTaste ? topTaste.affinity!.toFixed(2) : "—"} sub={topTaste?.name} accent="coral" visual={topTaste ? <span className="block text-[12px] leading-4 text-white/80">{t("taste.attributesH")}</span> : null} />
-            <KpiTile label={t("snapshot.kpiData")} value={t("snapshot.stepsDone", { d: stepsOk, n: steps.length })} sub={evidence?.mode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")} accent="navy" visual={<div className="flex gap-1">{steps.map((s) => <span key={s.seq} className={cx("h-2 flex-1 rounded-full", s.status === "succeeded" ? "bg-good" : s.status === "failed" ? "bg-coral" : "bg-white/30")} title={t(`snapshot.agents.${s.agent}`)} />)}</div>} />
-          </div>
+      <div>
+        <h2 className="flex items-center gap-2 text-[24px] font-extrabold tracking-[-0.02em]"><Icon.signals width={24} height={24} className="text-coral" />{t("radar.around", { place })}</h2>
+        <p className="mt-1 max-w-3xl text-[14px] text-ink-2">{t("radar.hint", { place, days: DAYS })}</p>
+      </div>
 
-          <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-            <Card>
-              <H2 hint={t("snapshot.chartH")} right={<Link href={`${base}/taste`} className="text-[13px] font-semibold text-pos">{t("snapshot.seeAll")} →</Link>}>{t("snapshot.chartT")}</H2>
-              {tags.length ? <MiniBars height={180} data={tags.map((x) => ({ label: x.name, value: Math.round((x.affinity ?? 0) * 100) }))} refLine={Math.round(avg * 100)} refLabel={`${t("snapshot.avg")} ${avg.toFixed(2)}`} labelFormatter={(v) => (v / 100).toFixed(2)} /> : <p className="text-[13px] text-muted">{t("taste.noneReturned")}</p>}
-              {evidence?.demographics[0] ? (
-                <div className="mt-5 border-t border-border pt-4">
-                  <div className="mb-2 text-[12.5px] font-semibold text-ink-2">{t("snapshot.audienceT")}</div>
-                  <StackedBar height={10} segments={Object.entries(evidence.demographics[0].age).filter(([, v]) => (v ?? 0) > 0).map(([k, v], i) => ({ label: t(`taste.age.${k}`), value: Math.round((v ?? 0) * 100), color: ["var(--coral)", "#FF9F1C", "#D4A843", "#3B82F6", "#10B981", "#1B2A4A"][i % 6] }))} />
-                </div>
-              ) : null}
-            </Card>
-            <Card>
-              <H2 right={<Link href={`${base}/actions`} className="text-[13px] font-semibold text-pos">{t("snapshot.seeAll")} →</Link>}>{t("snapshot.nextSteps")}</H2>
-              <div className="grid gap-2.5">
-                {next.map((a, i) => (
-                  <div key={a.id} className={cx("rounded-2xl p-3.5", i === 0 ? "bg-coral text-white" : "border border-border bg-surface")}>
-                    <div className="flex items-center justify-between gap-2 text-[11px]"><span className={i === 0 ? "text-white/80" : "text-muted"}>{a.dueDate ?? ""}</span>{i === 0 ? <Chip tone="neutral" className="!bg-white/20 !text-white">● {t("snapshot.now")}</Chip> : a.status === "needs_approval" ? <Chip tone="warn">{t("actions.cols.needs_approval")}</Chip> : null}</div>
-                    <div className="mt-1 text-[14px] font-semibold leading-5">{lt(a.titleLt ?? a.title)}</div>
-                    {a.hypothesisSlug ? <div className={cx("mt-1.5 inline-flex items-center gap-1.5 text-[12px]", i === 0 ? "text-white/85" : "text-ink-2")}>{(() => { const I = Icon[HYP_ICON[a.hypothesisSlug] ?? "ideas"]; return <I width={14} height={14} />; })()}{t(`hyp.${a.hypothesisSlug}.title`)}</div> : null}
-                  </div>
-                ))}
-                {next.length === 0 ? <p className="text-[13px] text-muted">{t("actions.emptyT")}</p> : null}
-              </div>
-            </Card>
-          </div>
+      <div className="grid gap-3 sm:grid-cols-3" data-testid="radar-tiles">
+        <Card className="grid content-start gap-1.5">
+          <div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("radar.momentsT")} · {t("radar.nextDays", { days: CAUSE_DAYS })}</div>
+          <div className="tabular text-[28px] font-extrabold leading-none">{soon.length}</div>
+          <div className="text-[13px] text-ink-2">{soon.length ? soon.slice(0, 2).map((m) => `${date(m.date)} ${m.name}`).join(" · ") : t("radar.momentsNone")}</div>
+          <Link href={`${base}/moments`} className="text-[13px] font-semibold text-pos">{t("radar.seeMoments")} →</Link>
+        </Card>
+        <Card className="grid content-start gap-1.5" data-testid="radar-pulse">
+          <div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("radar.pulseT")}</div>
+          {pulse.status === "ready" && pulse.pct !== null ? (<>
+            <div className={cx("tabular text-[28px] font-extrabold leading-none", pulse.verdict === "down" ? "text-bad" : pulse.verdict === "up" ? "text-good-ink" : "text-ink")}>{pct(pulse.pct)}</div>
+            <div className="text-[13px] text-ink-2">{t("radar.pulseReady", { pct: t(`radar.pulse${pulse.verdict === "up" ? "Up" : pulse.verdict === "down" ? "Down" : "Flat"}`) })} · {t("radar.pulseWindow", { from: date(pulse.from), to: date(pulse.to) })}</div>
+          </>) : (<>
+            <div className="text-[20px] font-extrabold leading-tight text-muted">—</div>
+            <div className="text-[13px] text-ink-2">{pulse.status === "short_history" ? t("radar.pulseShort") : t("radar.pulseNone")}</div>
+          </>)}
+          <Link href={`${base}/data`} className="text-[13px] font-semibold text-pos">{t("nav.data")} →</Link>
+        </Card>
+        <Card className="grid content-start gap-1.5">
+          <div className="text-[12px] font-bold uppercase tracking-wide text-muted">{t("radar.schoolT")}</div>
+          <div className="text-[20px] font-extrabold leading-tight">{brk ? t(brk.state === "in_break" ? "radar.schoolIn" : "radar.schoolSoon", { kind: t(`radar.breaks.${brk.brk.kind}`), date: date(brk.state === "in_break" ? brk.brk.to : brk.brk.from) }) : t("radar.schoolNone")}</div>
+          <div className="text-[12px] text-muted">{t("radar.schoolHint")}</div>
+        </Card>
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {econ.map(({ h, r }) => { const I = Icon[HYP_ICON[h.slug] ?? "ideas"]; return (
-              <Link key={h.id} href={`${base}/opportunities/${h.id}`} className="card flex items-center gap-3 p-4 hover:border-coral/50">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-coral-soft text-coral-ink"><I width={22} height={22} /></span>
-                <span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-semibold">{t(`hyp.${h.slug}.title`)}</span><span className="mt-0.5 flex items-center gap-1.5"><Chip tone={LABEL_TONE[h.evidenceLabel]}>{t(`opps.labels.${h.evidenceLabel}`)}</Chip></span></span>
-                <span className={cx("tabular text-[18px] font-extrabold", r.adjustedIncrementalProfit >= 0 ? "text-ink" : "text-bad")}>{fmtUsd(r.adjustedIncrementalProfit)}</span>
-              </Link>); })}
-          </div>
-        </>
+      <Card data-testid="radar-causes">
+        <H2 hint={t("radar.causeNote")}>{t("radar.causesT")}</H2>
+        {causes.length ? (
+          <ul className="grid gap-2">
+            {causes.map((c) => <li key={c.key} className={cx("flex items-start gap-2 rounded-xl px-3 py-2 text-[13.5px]", dirCls[c.direction])}><span className="font-extrabold">{c.direction === "up" ? "↑" : c.direction === "down" ? "↓" : "↕"}</span><span>{t(`radar.cause.${c.key}`, { detail: c.key.startsWith("school") ? t(`radar.breaks.${c.detail}`) : c.detail, date: c.date ? date(c.date) : "", n: c.n ?? 0 })}</span></li>)}
+          </ul>
+        ) : <p className="text-[13.5px] text-ink-2">{t("radar.causesNone")}</p>}
+      </Card>
+
+      {done && plays.length ? <RadarPlays restaurantId={id} plays={plays} days={DAYS} /> : (
+        <Card className="flex flex-wrap items-center justify-between gap-4" data-testid="recommended-experiment">
+          <div><div className="text-[18px] font-bold">{t("snapshot.noRunT")}</div><p className="text-[13.5px] text-ink-2">{done ? t("radar.noPlays") : t("snapshot.noRunB")}</p></div>
+          <RunAnalysisButton restaurantId={id} hasRun={!!run} />
+        </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
-        <Card><H2>{t("snapshot.profile")}</H2><dl className="grid grid-cols-[6.5rem_1fr] gap-y-1.5 text-[13.5px]"><dt className="text-muted">{t("snapshot.formats")}</dt><dd className="flex flex-wrap gap-1">{p.serviceFormats.map((f) => <Chip key={f}>{t(`onboarding.formatLabel.${f}`)}</Chip>)}</dd><dt className="text-muted">{t("snapshot.hours")}</dt><dd>{p.hoursSummary ?? t("common.unknown")}</dd><dt className="text-muted">{t("snapshot.avgTicket")}</dt><dd className="tabular">{p.costAssumptions.avg_ticket ? fmtUsd(p.costAssumptions.avg_ticket) : t("common.unknown")}</dd><dt className="text-muted">{t("snapshot.pos")}</dt><dd>{p.posPreference && p.posPreference !== "none" ? t("snapshot.posPlanned", { pos: p.posPreference }) : t("snapshot.posNone")}</dd></dl></Card>
-        <Card><H2>{t("snapshot.goal")}</H2><p className="text-[13.5px]">{p.objectives.primary ?? <span className="text-muted">{t("snapshot.noGoal")}</span>}</p><div className="mt-2 flex flex-wrap gap-1.5">{(p.objectives.constraints ?? []).map((c) => <Chip key={c} tone="warn">{c}</Chip>)}</div><div className="mt-2 flex flex-wrap gap-1.5">{Array.from(new Set(overview.menu.map((m) => m.category))).map((c) => <Chip key={c}>{c.replace(/_/g, " ")} · {overview.menu.filter((m) => m.category === c).length}</Chip>)}</div></Card>
-        <Card className="flex flex-col justify-center gap-2"><div className="text-[12.5px] text-ink-2">{t("snapshot.runHint")}</div><RunAnalysisButton restaurantId={id} hasRun={!!run} />{done ? <Button href={`${base}/opportunities`} variant="secondary" size="sm">{t("snapshot.viewOpps")}</Button> : null}</Card>
+      <Card>
+        <H2 hint={t("radar.agentsHint")} right={<span className="text-[12.5px] text-muted">{run?.startedAt ? t("radar.lastRun", { at: stamp(run.startedAt) }) : t("radar.neverRun")}</span>}>{t("radar.agentsT")}</H2>
+        <div className="flex flex-wrap items-center gap-2">
+          {AGENTS.map((a, i) => { const s = steps.find((x) => x.agent === a); const st = s?.status === "succeeded" ? "ok" : s?.status === "failed" ? "bad" : "todo"; return (
+            <span key={a} className={cx("inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-semibold", st === "ok" ? "border-border bg-surface text-good-ink" : st === "bad" ? "border-bad/40 bg-bad-soft text-bad" : "border-border bg-surface text-muted")} title={s ? `${s.status}` : ""}>
+              <span className={cx("grid h-4 w-4 place-items-center rounded-full text-[10px]", st === "ok" ? "bg-good-soft" : st === "bad" ? "bg-white/60" : "bg-surface-2")}>{st === "ok" ? <Icon.check width={10} height={10} /> : i + 1}</span>{t(`radar.agent.${a}`)}
+            </span>); })}
+          {done ? <RunAnalysisButton restaurantId={id} hasRun={!!run} variant="secondary" /> : null}
+        </div>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card data-testid="radar-learn">
+          <H2 hint={t("radar.learnHint")}>{t("radar.learnT")}</H2>
+          {learned.length ? (
+            <ul className="grid gap-2 text-[13.5px]">{learned.map(({ c, redeemed, verdict }) => <li key={c.id}><Link href={`${base}/passes/${c.id}`} className="font-semibold text-pos">{c.offerName}</Link> · {redeemed} {t("pass.redeemed").toLowerCase()} · <Chip tone={verdict === "above" ? "good" : verdict === "below" ? "bad" : "neutral"}>{t(`radar.verdict.${verdict}`)}</Chip></li>)}</ul>
+          ) : <p className="text-[13.5px] text-ink-2">{t("radar.learnNone")}</p>}
+          <div className="mt-3 flex items-center gap-3 text-[13px]"><span className="text-muted">{t("radar.memories", { n: memories.length })}</span><Link href={`${base}/memory`} className="font-semibold text-pos">{t("radar.seeMemory")} →</Link></div>
+        </Card>
+        <Card>
+          <H2 right={<Link href={`${base}/taste`} className="text-[13px] font-semibold text-pos">{t("radar.seeTaste")} →</Link>}>{t("radar.tasteT")}</H2>
+          {tags.length ? <div className="flex flex-wrap gap-1.5">{tags.map((x) => <Chip key={x.name} tone="coral" ring={x.affinity}>{x.name} · {(x.affinity ?? 0).toFixed(2)}</Chip>)}</div> : <p className="text-[13px] text-muted">{done ? t("taste.noneReturned") : t("snapshot.noIdeasYet")}</p>}
+          {evidence ? <div className="mt-3 text-[12px] text-muted">{evidence.mode === "live" ? t("mode.liveBadge") : t("mode.sampleBadge")}</div> : null}
+        </Card>
+        <Card>
+          <H2>{t("snapshot.profile")}</H2>
+          <dl className="grid grid-cols-[6.5rem_1fr] gap-y-1.5 text-[13.5px]">
+            <dt className="text-muted">{t("snapshot.formats")}</dt><dd className="flex flex-wrap gap-1">{p.serviceFormats.map((f) => <Chip key={f}>{t(`onboarding.formatLabel.${f}`)}</Chip>)}</dd>
+            <dt className="text-muted">{t("snapshot.menu")}</dt><dd>{t("snapshot.items", { n: overview.menu.length })}</dd>
+            <dt className="text-muted">{t("snapshot.hours")}</dt><dd>{p.hoursSummary ?? t("common.unknown")}</dd>
+            <dt className="text-muted">{t("radar.posT")}</dt><dd>{p.posPreference && p.posPreference !== "none" ? t("snapshot.posPlanned", { pos: p.posPreference }) : t("snapshot.posNone")}</dd>
+          </dl>
+          <p className="mt-2 text-[12px] text-muted">{t("radar.posHint")}</p>
+          <div className="mt-3"><Button href={`${base}/opportunities`} variant="secondary" size="sm">{t("snapshot.viewOpps")}</Button></div>
+        </Card>
       </div>
     </div>
   );

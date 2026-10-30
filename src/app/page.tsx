@@ -22,7 +22,7 @@ export default async function Home() {
             <Chip tone="coral">{t("landing.kicker")}</Chip>
             <h1 className="mt-4 text-[36px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[50px]">{t("landing.h1a")}<br /><span className="text-coral">{t("landing.h1b")}</span></h1>
             <p className="mt-5 max-w-xl text-[17px] text-ink-2">{t("landing.lead")}</p>
-            <div className="mt-7 flex flex-wrap gap-3"><Button href="/front" variant="coral" size="lg">{t("landing.ctaFront")}<Icon.arrowRight /></Button><Button href="/m/chuan-lane-san-bruno" variant="secondary" size="lg">{t("landing.ctaMenu")}</Button><Button href="/demo" variant="ghost" size="lg">{t("landing.ctaDemo")}</Button></div>
+            <div className="mt-7 flex flex-wrap gap-3"><Button href="/demo" variant="coral" size="lg">{t("landing.ctaDemo")}<Icon.arrowRight /></Button><Button href="/front" variant="secondary" size="lg">{t("landing.ctaFront")}</Button><Button href="/m/chuan-lane-san-bruno" variant="ghost" size="lg">{t("landing.ctaMenu")}</Button></div>
             <p className="mt-3 text-[13px] text-muted">{t("landing.noAccount")}</p>
           </div>
           {/* product composition: the three acts, built from our own UI pieces (no stored Qloo data) */}

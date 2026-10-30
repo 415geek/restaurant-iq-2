@@ -2,6 +2,14 @@
 
 Open https://restaurant-iq-2.vercel.app. Everything below runs on a synthetic demo tenant (three invented brands with invented menus on real Bay Area neighborhoods). Qloo calls are live; sales for the settlement are a labeled synthetic sample.
 
+## Radar in 60 seconds (start here)
+
+1. **Open the demo radar** (home page button, or `/demo`). Tiles: moments nearby (14 days), sales pulse (last 7 days vs prior 4 weeks on the demo's synthetic sales), school calendar (labeled heuristic). **Why this week may be slow or busy** names outside causes with ↑ ↓ ↕.
+2. **Plays.** Each card pairs a moment with the costed idea that fits it. Press **Who does this draw? Ask Qloo** on a card with a theme: live demographics for the theme and the cuisine, one-line fit verdict, mode badge.
+3. **Launch a pass** → the form arrives prefilled with the moment and dates. $1 → NO-GO. Press and hold **Approve**.
+4. **Post it** on the pass page: Instagram / Facebook / 小红书 / WeChat / Nextdoor copy with the pass link; language toggle; character count. Claim on a phone, redeem at the counter.
+5. **Six agents, one run** and **What the system learned** close the loop: step status, last run, ended passes with their verdict.
+
 ## TasteFront in 60 seconds
 
 1. **Replays (home page).** Three cards: *Chuan Lane* (1 Sichuan store, San Bruno), *Cloud Nine Tea* (5 boba stores), *Bamboo Bowl* (40-store fast-casual brand). Click one. The agent log is a recorded real run; the menu on the right turns from "as printed" into the published storefront. Each change names the Qloo tag or lift term behind it.

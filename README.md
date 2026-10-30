@@ -1,14 +1,28 @@
-# TasteFront by Restaurant IQ
+# Restaurant IQ — Radar, TasteFront and TastePass
 
-> Every storefront tuned to its neighborhood on Qloo's taste graph, published live, proven in dollars.
+> See what is coming to your block. Act before the slow week does. Prove it in dollars.
 
-TasteFront is an agent fleet that rewrites each restaurant's money-making surface, the public online menu, to match what its neighborhood leans toward on Qloo's taste graph, publishes the change as a versioned **Storefront**, and proves the lift against a holdout in dollars from the POS. Every other restaurant agent hands the owner a report. TasteFront edits the menu the customer is about to order from. One product serves a single mom-and-pop store, a 5-store chain and a 40-store franchise; the only differences are who approves, how many stores, and how strict the HQ guardrails are.
+Most owners only see the inside of their restaurant. When a week goes quiet they wait, or discount on a hunch, and the discount does nothing because the cause was outside: the school emptied for break, offices closed for a Tuesday holiday, or the festival crowd walked past a dark door at 10 pm. Restaurant IQ watches the outside for them and turns it into one approved action at a time.
 
-- **Live demo (no account):** https://restaurant-iq-2.vercel.app · customer menu `/m/chuan-lane-san-bruno` · owner card `/front` · HQ fleet `/front/fleet`
-- **Public repository:** https://github.com/415geek/restaurant-iq-2 · MIT · built during the Qloo Agentic Hackathon 2026 (first commit 2026-10-23, TasteFront branch merged 2026-10-30)
-- **TastePass** (the proof layer, submitted earlier in the same repo): owner-approved pass → public claim → merchant redemption → experiment review. TasteFront is the headline; TastePass is its second layer of evidence.
+- **Radar** (`/r/<store>`, the home screen): holidays, the school calendar, street and community events, web events and the owner's own sales, in a 21-day window around the store. Each moment gets a plain-language outlook ("ends after 8 pm: the crowd leaves hungry"), the week gets its outside causes named, and Qloo says **who that crowd is** and whether it looks like the store's regulars.
+- **Plays**: every moment is paired with the idea the six agents already costed for it (contribution per order, break-even). Money-losing offers are blocked with a reason.
+- **Launch, with the owner's OK**: press and hold, and the play becomes a **TastePass**: public claim page, QR code, and ready social copy for Instagram, Facebook, 小红书, WeChat and Nextdoor in the right language per platform. Redemption happens at the counter from a phone.
+- **Prove and learn**: live claims and redemptions, then a review against the same hours in the last 4 weeks of sales. Results feed the next recommendation through the Business Brain.
+- **TasteFront**: the same Qloo signals rewrite the public menu per neighborhood, versioned, switchable, settled against a holdout. Chains and franchises are first-class tenants.
 
-## Judge in 60 seconds
+- **Live demo (no account):** https://restaurant-iq-2.vercel.app → *Open the demo radar*. TasteFront: customer menu `/m/chuan-lane-san-bruno` · owner card `/front` · HQ fleet `/front/fleet`
+- **Public repository:** https://github.com/415geek/restaurant-iq-2 · MIT · built during the Qloo Agentic Hackathon 2026 (first commit 2026-10-23)
+
+## Radar in 60 seconds
+
+1. **Open the demo radar.** Three tiles: moments nearby in the next 14 days, the sales pulse (last 7 days vs the prior 4 weeks, from uploaded sales), and the school calendar (a labeled heuristic). Below them, **Why this week may be slow or busy** names the outside causes, with direction.
+2. **Plays.** Each card: the moment and its date, the outlook, the costed idea that fits it, the dish, weekly contribution, the Qloo signal behind the idea. **Who does this draw? Ask Qloo** calls `/v2/insights` demographics for the moment's theme and for the cuisine and answers in one line: looks like your regulars / partly / a different crowd.
+3. **Launch a pass.** The pass form opens prefilled with the moment, the dish and the dates. Set the price to $1: NO-GO. Restore it; press and hold Approve.
+4. **Post it.** On the pass page, the social card gives platform-specific copy with the pass link; the QR goes next to the register. Claim on a phone, redeem at the counter, watch the counter move.
+5. **Six agents, one run.** The strip shows each step (store profile → neighborhood crowd → ideas → money check → launch plan → review) with its status; re-run after changing the menu or uploading sales. **What the system learned** lists ended passes with their verdict against the prior 4 weeks.
+6. **My store** (sign in): three steps, store → menu (paste a menu or delivery-app link and import, or type items) → optional costs.
+
+## TasteFront: judge in 60 seconds
 
 1. **Home page → three replay cards** (a 1-store Sichuan restaurant in San Bruno, a 5-store boba chain, a 40-store Asian fast-casual brand). Click one: the agent log plays a **recorded real run** (live Qloo calls) while the menu on the right turns from "as printed" into the published storefront. Every line names the Qloo tag or lift term behind it.
 2. **Open the customer menu** (`/m/<store>`). Flip **Qloo on / off** at the top: the order, featured items and descriptions change with no network call. Tap a changed item's badge: the evidence popover shows the tag or term, the score, the neighborhood and **✓ verified / ⚠ unverified** against the stored Qloo response.
