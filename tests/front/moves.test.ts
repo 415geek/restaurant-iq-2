@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyGuardrails, applyMoves, verifyEvidence, proposalSchema } from "@/lib/front/moves";
-import { DEFAULT_GUARDRAILS, type MenuItem, type QlooCallRecord } from "@/lib/front/types";
+import { applyGuardrails, applyMoves, deterministicProposal, verifyEvidence, proposalSchema } from "@/lib/front/moves";
+import { DEFAULT_GUARDRAILS, type ItemLift, type MenuItem, type NeighborhoodProfile, type QlooCallRecord } from "@/lib/front/types";
 
 const item = (id: string, name: string, i: number, extra: Partial<MenuItem> = {}): MenuItem => ({ id, storeId: "s", name, nameEn: null, description: null, priceCents: 1400, costCents: 500, category: "Mains", sortIndex: i, qlooTagIds: [], tagCandidates: [], ambiguous: false, ...extra });
 const items = [item("a", "Mapo Tofu", 0), item("b", "Kung Pao Chicken", 1), item("c", "Dan Dan Noodles", 2), item("d", "Egg Fried Rice", 3, { costCents: null })];
@@ -59,5 +59,33 @@ describe("applyMoves", () => {
     const p = proposalSchema.parse({ moves: [{ kind: "rename", itemId: "a", after: { name: "Best Tofu" }, evidence: [], rationale: "r", risk: "low" }] });
     const v = applyMoves(items, applyGuardrails(p, { items, guardrails: DEFAULT_GUARDRAILS, singleStore: true, calls }));
     expect(v[0].name).toBe("Mapo Tofu"); expect(v.every((i) => i.changed.length === 0)).toBe(true);
+  });
+});
+
+describe("deterministicProposal", () => {
+  const prov = calls[0].provenance;
+  const rank: QlooCallRecord = { id: "c2", purpose: "rank", provenance: prov, facts: [{ name: "mapo tofu", score: 2.1 }, { name: "kung pao chicken", score: 1.9 }, { name: "noodles", score: 1.5 }] };
+  const term = (t: string, lift: number, lowCount: boolean) => ({ term: t, crowd: lowCount ? 2 : 30, city: lowCount ? 1 : 10, crowdTotal: 145, cityTotal: 139, lift, lowCount });
+  const lifts: ItemLift[] = [
+    { itemId: "a", lift: 2.1, lowCount: false, terms: [term("mapo tofu", 2.1, false)] },
+    { itemId: "b", lift: 1.9, lowCount: true, terms: [term("kung pao chicken", 1.9, true)] },
+    { itemId: "c", lift: 1.5, lowCount: false, terms: [term("noodles", 1.5, false)] },
+  ];
+  const ranked = [{ itemId: "a", score: null, tags: [], lift: 2.1 }, { itemId: "b", score: null, tags: [], lift: 1.9 }, { itemId: "c", score: null, tags: [], lift: 1.5 }];
+  const profile: NeighborhoodProfile = { storeId: "s", mode: "sample", tags: [], demographics: null, calls: [], caveats: [] };
+  it("features only well-supported lift; a low-count item may only move up; every move carries a structured why that verifies", () => {
+    const p = deterministicProposal({ items, ranked, lifts, profile, calls: [...calls, rank] });
+    expect(p.moves.filter((m) => m.kind === "feature").map((m) => m.itemId)).toEqual(["a", "c"]);
+    expect(p.moves.find((m) => m.itemId === "b")?.kind).toBe("reorder");
+    expect(p.moves[0].why).toEqual({ term: "mapo tofu", lift: 2.1, affinity: null, lowCount: false });
+    expect(p.moves.find((m) => m.itemId === "b")?.why?.lowCount).toBe(true);
+    const out = applyGuardrails(p, { items, guardrails: DEFAULT_GUARDRAILS, singleStore: true, calls: [...calls, rank] });
+    expect(out.every((m) => m.verified && m.guardrail?.ok)).toBe(true);
+    expect(out[0].why?.term).toBe("mapo tofu");
+  });
+  it("says so in a caveat when nothing is strong enough to feature", () => {
+    const p = deterministicProposal({ items, ranked: [ranked[1]], lifts: [lifts[1]], profile, calls: [...calls, rank] });
+    expect(p.moves.map((m) => m.kind)).toEqual(["reorder"]);
+    expect(p.caveats.some((c) => /Nothing featured/.test(c))).toBe(true);
   });
 });

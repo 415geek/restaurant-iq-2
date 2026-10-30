@@ -74,6 +74,8 @@ export type MoveKind = (typeof MOVE_KINDS)[number];
 export type Risk = "low" | "mid";
 
 export interface Evidence { callId: string; name: string; score: number | null; sentence: string; verified?: boolean }
+/** Structured reason behind a move so every surface can phrase it in the owner's language: a lift term (×{lift} vs the city) or a neighborhood tag (affinity). */
+export interface MoveWhy { term: string; lift: number | null; affinity: number | null; lowCount: boolean }
 
 export interface MoveBefore { sortIndex?: number; name?: string; description?: string | null; featured?: boolean; priceCents?: number }
 export interface MoveAfter { sortIndex?: number; name?: string; nameEn?: string | null; description?: string | null; featured?: boolean; promoteBudgetCents?: number; passOfferCents?: number }
@@ -83,7 +85,8 @@ export interface Move {
   before: MoveBefore; after: MoveAfter;
   evidence: Evidence[];
   verified: boolean;                      // every evidence line matched a stored Qloo fact
-  rationale: string;                      // ≤ 1 sentence, owner-facing, "this crowd leans toward …"
+  rationale: string;                      // ≤ 1 sentence, owner-facing, "this crowd leans toward …" (English; surfaces prefer `why` when present)
+  why?: MoveWhy;                          // set by the deterministic planner; lets the UI localize the reason
   guardrail?: { ok: boolean; reason?: string };
 }
 

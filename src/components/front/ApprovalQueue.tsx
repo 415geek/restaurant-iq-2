@@ -26,7 +26,7 @@ export function ApprovalQueue({ rows }: { rows: PendingRow[] }) {
         <ul className="grid gap-2">
           {rows.map((r) => (
             <li key={r.versionId} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
-              <div className="min-w-0"><div className="truncate text-[14px] font-bold">{r.storeName}</div><div className="text-[12px] text-ink-2">{r.city} · v{r.versionNo} · {r.moves} moves</div></div>
+              <div className="min-w-0"><div className="truncate text-[14px] font-bold">{r.storeName}</div><div className="text-[12px] text-ink-2">{r.city} · v{r.versionNo} · {t("front.fleet.movesShort", { n: r.moves })}</div></div>
               {done.has(r.versionId) ? <Chip tone="good">{t("front.fleet.approved")}</Chip> : <Button size="sm" variant="primary" disabled={busy !== null} onClick={() => one(r.versionId)}>{busy === r.versionId ? t("front.fleet.approving") : t("front.fleet.approve")}</Button>}
             </li>
           ))}

@@ -27,7 +27,7 @@ export function OwnerActions({ draft, published }: { draft: { id: string; versio
   return (
     <div className="grid gap-3">
       <HoldButton label={t("front.owner.approve")} busyLabel={t("front.owner.approving")} busy={busy === "publish"} disabled={!draft || busy !== null}
-        hint={draft ? t("front.owner.approveHint", { v: draft.versionNo }) : t("front.owner.approveNone")} onConfirm={() => draft && act(draft.id, "publish")} />
+        hint={draft ? t("front.owner.approveHint", { v: draft.versionNo }) : published ? t("front.owner.approveNoneLive", { v: published.versionNo }) : t("front.owner.approveNone")} onConfirm={() => draft && act(draft.id, "publish")} />
       <div className="grid gap-1">
         <span data-testid="front-rollback" className="grid"><Button variant="secondary" disabled={!published || busy !== null} title={published ? undefined : t("front.owner.rollbackNone")} onClick={() => published && act(published.id, "rollback")}>{busy === "rollback" ? t("front.owner.rollingBack") : t("front.owner.rollback")}</Button></span>
         {!published ? <span className="text-[12px] text-muted">{t("front.owner.rollbackNone")}</span> : <span className="text-[12px] text-muted">{t("front.owner.approveLive", { v: published.versionNo })}</span>}

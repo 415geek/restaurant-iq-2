@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MOVE_KINDS, type Evidence, type Guardrails, type ItemLift, type MenuItem, type Move, type NeighborhoodProfile, type QlooCallRecord, type StorefrontVersion } from "./types";
+import { MOVE_KINDS, type Evidence, type Guardrails, type ItemLift, type MenuItem, type Move, type MoveWhy, type NeighborhoodProfile, type QlooCallRecord, type StorefrontVersion } from "./types";
 
 /**
  * Moves: the agent's proposal schema, the guardrail filter, the citation verifier and the deterministic application to a menu.
@@ -26,6 +26,8 @@ export const moveInputSchema = z.object({
   evidence: z.array(evidenceSchema).max(4),
   rationale: z.string().min(1).max(240),
   risk: z.enum(["low", "mid"]),
+  /** structured reason (term + lift or affinity); the UI phrases it in the owner's language */
+  why: z.object({ term: z.string().min(1).max(120), lift: z.number().nullable(), affinity: z.number().nullable(), lowCount: z.boolean() }).optional(),
 });
 export const proposalSchema = z.object({ moves: z.array(moveInputSchema).max(7), caveats: z.array(z.string().max(240)).max(8).default([]) });
 export type ProposalInput = z.infer<typeof proposalSchema>;
@@ -53,7 +55,7 @@ export function applyGuardrails(input: ProposalInput, ctx: { items: MenuItem[]; 
     const item = byId.get(m.itemId);
     const before = item ? { sortIndex: item.sortIndex, name: item.name, description: item.description, featured: false, priceCents: item.priceCents } : {};
     const evidence = m.evidence.map((e) => ({ ...e, verified: verifyEvidence(e, ctx.calls) }));
-    const base: Move = { id: `m${idx + 1}`, kind: m.kind, itemId: m.itemId, risk: m.kind === "promote" || m.kind === "pass" ? "mid" : "low", before, after: m.after, evidence, verified: evidence.length > 0 && evidence.every((e) => e.verified), rationale: m.rationale };
+    const base: Move = { id: `m${idx + 1}`, kind: m.kind, itemId: m.itemId, risk: m.kind === "promote" || m.kind === "pass" ? "mid" : "low", before, after: m.after, evidence, verified: evidence.length > 0 && evidence.every((e) => e.verified), rationale: m.rationale, ...(m.why ? { why: m.why } : {}) };
     const reject = (reason: string): Move => ({ ...base, guardrail: { ok: false, reason } });
     if (!item) return reject("unknown item");
     if (item.ambiguous && m.kind !== "reorder") return reject("item tags are ambiguous; resolve before changing it");
@@ -122,28 +124,38 @@ export function identityItems(items: MenuItem[]): StorefrontVersion["items"] {
 /**
  * Deterministic proposal used when no model is configured (fixture mode) or as the fallback after a malformed model answer:
  * feature the top-ranked items and move high-affinity items up. It never writes copy, so no rename moves.
+ * Only items whose best term rests on enough menus (not lowCount) can be featured; thin evidence may only move an item up.
  */
 export function deterministicProposal(input: { items: MenuItem[]; ranked: Array<{ itemId: string; score: number | null; tags: Array<{ id: string; name: string; affinity: number | null }>; lift: number | null }>; lifts: ItemLift[]; profile: NeighborhoodProfile; calls: QlooCallRecord[] }): ProposalInput {
   const tagCall = input.calls.find((c) => c.purpose === "neighborhood_tags");
   const liftCall = input.calls.find((c) => c.purpose === "rank");
   const liftOf = new Map(input.lifts.map((l) => [l.itemId, l]));
-  const evidenceFor = (r: (typeof input.ranked)[number]): { ev: ProposalInput["moves"][number]["evidence"]; why: string } | null => {
+  type Reason = { ev: ProposalInput["moves"][number]["evidence"]; why: MoveWhy; text: string };
+  const reasonFor = (r: (typeof input.ranked)[number]): Reason | null => {
     const l = liftOf.get(r.itemId);
     const bestTerm = l?.terms.filter((t) => t.lift > 1).sort((a, b) => b.lift - a.lift)[0];
-    if (liftCall && bestTerm) return { ev: [{ callId: liftCall.id, name: bestTerm.term, score: bestTerm.lift, sentence: `Menus near this store mention "${bestTerm.term}" ×${bestTerm.lift} as often as the city${bestTerm.lowCount ? " (low count)" : ""}` }], why: `this crowd leans toward "${bestTerm.term}" (×${bestTerm.lift} vs the city${bestTerm.lowCount ? ", low count" : ""})` };
+    if (liftCall && bestTerm) return { ev: [{ callId: liftCall.id, name: bestTerm.term, score: bestTerm.lift, sentence: `Menus near this store mention "${bestTerm.term}" ×${bestTerm.lift} as often as the city${bestTerm.lowCount ? " (low count)" : ""}` }], why: { term: bestTerm.term, lift: bestTerm.lift, affinity: null, lowCount: bestTerm.lowCount }, text: `this crowd leans toward "${bestTerm.term}" (×${bestTerm.lift} vs the city${bestTerm.lowCount ? ", low count" : ""})` };
     const t = r.tags[0];
-    if (tagCall && t) return { ev: [{ callId: tagCall.id, name: t.name, score: t.affinity, sentence: `Neighborhood tag "${t.name}" affinity ${t.affinity ?? "n/a"}` }], why: `this crowd leans toward ${t.name}${t.affinity !== null ? ` (affinity ${t.affinity})` : ""}` };
+    if (tagCall && t) return { ev: [{ callId: tagCall.id, name: t.name, score: t.affinity, sentence: `Neighborhood tag "${t.name}" affinity ${t.affinity ?? "n/a"}` }], why: { term: t.name, lift: null, affinity: t.affinity, lowCount: false }, text: `this crowd leans toward ${t.name}${t.affinity !== null ? ` (affinity ${t.affinity})` : ""}` };
     return null;
   };
   const moves: ProposalInput["moves"] = [];
   // order: well-supported lift first, then low-count lift, then affinity-only items
   const lowCount = (id: string) => liftOf.get(id)?.lowCount ?? false;
-  const candidates = input.ranked.filter((r) => (r.lift !== null && r.lift > 1) || (r.score !== null && r.tags.length)).sort((a, b) => Number(lowCount(a.itemId)) - Number(lowCount(b.itemId)) || (b.lift ?? 0) - (a.lift ?? 0));
-  for (const r of candidates.slice(0, 2)) { const e = evidenceFor(r); if (e) moves.push({ kind: "feature", itemId: r.itemId, after: { featured: true }, risk: "low", rationale: `Featured: ${e.why}.`, evidence: e.ev }); }
+  const candidates = input.ranked
+    .filter((r) => (r.lift !== null && r.lift > 1) || (r.score !== null && r.tags.length))
+    .sort((a, b) => Number(lowCount(a.itemId)) - Number(lowCount(b.itemId)) || (b.lift ?? 0) - (a.lift ?? 0))
+    .map((r) => ({ r, reason: reasonFor(r) }))
+    .filter((c): c is { r: (typeof input.ranked)[number]; reason: Reason } => c.reason !== null);
+  // feature: lift above the city AND enough menus behind the term. Thin or affinity-only evidence can only move an item up.
+  const featured = candidates.filter((c) => c.r.lift !== null && c.r.lift > 1 && c.reason.why.lift !== null && !c.reason.why.lowCount).slice(0, 2);
+  const featuredIds = new Set(featured.map((c) => c.r.itemId));
+  for (const { r, reason } of featured) moves.push({ kind: "feature", itemId: r.itemId, after: { featured: true }, risk: "low", rationale: `Featured: ${reason.text}.`, evidence: reason.ev, why: reason.why });
   let pos = 0;
-  for (const r of candidates.slice(2, 6)) { const e = evidenceFor(r); if (e) moves.push({ kind: "reorder", itemId: r.itemId, after: { sortIndex: pos++ }, risk: "low", rationale: `Moved up: ${e.why}.`, evidence: e.ev }); }
+  for (const { r, reason } of candidates.filter((c) => !featuredIds.has(c.r.itemId)).slice(0, 4)) moves.push({ kind: "reorder", itemId: r.itemId, after: { sortIndex: pos++ }, risk: "low", rationale: `Moved up: ${reason.text}.`, evidence: reason.ev, why: reason.why });
   const caveats = ["Copy was not rewritten: no language model configured, so only order and featured items changed."];
   if (liftCall && input.lifts.every((l) => l.lift === null)) caveats.push("No menu term matched the crowd/city place sets; lift was not used.");
   if (!candidates.length) caveats.push("Nothing stood out: no menu item leaned above the city baseline and no neighborhood tag matched the menu.");
+  else if (!featured.length) caveats.push("Nothing featured: every lead rests on too few menus; items were only moved up.");
   return { moves: moves.slice(0, 7), caveats };
 }

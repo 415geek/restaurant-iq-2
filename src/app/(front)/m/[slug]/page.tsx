@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MenuView } from "@/components/front/MenuView";
+import { MenuView, type ClaimLink } from "@/components/front/MenuView";
+import { fmtUsd } from "@/components/ui";
 import { getT } from "@/i18n";
 import { getCampaignsForRestaurant } from "@/lib/campaigns";
 import { getSsrClient } from "@/lib/db/ssr";
@@ -34,9 +35,13 @@ export default async function PublicMenuPage({ params }: PageProps<"/m/[slug]">)
   if (published && !moves.length && published.runId) moves = (await getRun(db, published.runId))?.moves ?? [];
   const campaigns = store.restaurantId ? await getCampaignsForRestaurant(store.restaurantId) : [];
   const active = campaigns.find((c) => c.status === "active") ?? null;
+  // the TastePass button appears only when the offer's dish is on this menu (matched by name in either language)
+  const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const offerItem = active ? items.find((i) => norm(i.name) === norm(active.menuItem) || (i.nameEn !== null && norm(i.nameEn) === norm(active.menuItem))) ?? null : null;
+  const claim: ClaimLink | null = active && offerItem ? { href: `/p/${active.slug}`, item: offerItem.name, price: fmtUsd(active.offerPrice, 2) } : null;
   const note = !versions.length ? t("front.menu.noVersions") : !published ? t("front.menu.notPublished") : null;
   return (
     <MenuView storeName={store.name} neighborhood={`${store.neighborhood}, ${store.city}`} qloo={published?.items ?? null} baseline={baseline} moves={moves}
-      claimHref={active ? `/p/${active.slug}` : null} sample={store.organizationId === DEMO_ORG_ID} note={note} />
+      claim={claim} sample={store.organizationId === DEMO_ORG_ID} note={note} />
   );
 }

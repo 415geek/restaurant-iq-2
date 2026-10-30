@@ -49,6 +49,11 @@ describe("extractTerms", () => {
     expect(extractTerms("Grilled Fish 2 pcs", index)).toEqual(["grilled fish"]);
     expect(score(item("x", "Crispy Grilled"))[0]).toMatchObject({ lift: null, reason: "no_terms" });
   });
+  it("a lone word counts only when it is a whole Qloo tag name: fragments such as 'chongqing' or 'chicken' never do", () => {
+    expect(extractTerms("Chongqing Chili Chicken", index)).toEqual([]);   // "chicken" is only ever part of "Crispy Chicken"
+    expect(extractTerms("Twice-Cooked Pork", index)).toEqual([]);         // "cooked"/"twice" are stop words; "pork" is not a tag here
+    expect(extractTerms("Dumplings", index)).toEqual(["dumplings"]);      // whole tag name
+  });
   it("normalizes case, punctuation and whitespace", () => {
     expect(extractTerms("  MAPO-TOFU!! ", index)).toEqual(["mapo tofu"]);
   });

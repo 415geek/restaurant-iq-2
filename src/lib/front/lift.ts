@@ -8,6 +8,8 @@
  *     n-grams become candidate terms. A place "mentions" a term when any of its tag names contains it as a whole-word run.
  *  3. A menu item's English name is split into the same 1–3 word n-grams. A term counts when it exists in the vocabulary,
  *     is not a bare preparation/format word (STOP_WORDS), has no digits, and — when multi-word — appears on ≥ 3 menus.
+ *     A single word counts only when Qloo has a tag with exactly that name ("Dumplings", "Ramen"): fragments such as
+ *     "cooked", "kung" or "chongqing" are never evidence on their own.
  *  4. termLift = share of crowd menus mentioning the term ÷ share of city menus mentioning it, add-one smoothed:
  *     ((crowd+1)/(crowdTotal+1)) / ((city+1)/(cityTotal+1)). No mention anywhere → neutral 1.0. Fewer than 5 mentions in
  *     total flags `lowCount` (a warning only; it never moves the score).
@@ -32,6 +34,7 @@ export const STOP_WORDS: ReadonlySet<string> = new Set([
   "fresh", "seasonal", "daily", "new", "with", "and", "or", "of", "the", "in", "on", "a", "an", "style", "sauce", "soup", "set",
   "lunch", "dinner", "breakfast", "brunch", "side", "sides", "extra", "add", "pc", "pcs", "piece", "pieces", "serving", "size",
   "drink", "drinks", "food", "foods", "dish", "dishes", "meal", "meals", "snack", "snacks", "menu", "item", "items", "threads", "dan",
+  "cooked", "twice", "boiled", "poached", "sliced", "dry", "stir", "pan", "deep", "slow", "cut", "mouthwatering",
 ]);
 const MIN_SINGLE_WORD_CHARS = 4; // "egg", "tea" still count only inside a longer term; fragments like "dan" never do
 const MIN_MULTIWORD_MENUS = 3;
@@ -88,6 +91,8 @@ export function extractTerms(name: string, index: TermIndex): string[] {
     const menus = index.menus.get(g);
     if (menus === undefined) continue;
     if (toks.length > 1 && menus < MIN_MULTIWORD_MENUS) continue;
+    // a lone word is evidence only when it is a whole tag name; otherwise it is a fragment of something else ("chicken" in "Crispy Chicken")
+    if (toks.length === 1 && !index.names.has(g)) continue;
     if (!out.includes(g)) out.push(g);
   }
   // keep the most specific terms: a term that is part of a longer kept term is a fragment ("kung" inside "kung pao chicken")

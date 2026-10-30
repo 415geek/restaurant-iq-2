@@ -37,15 +37,15 @@ export default async function FleetPage({ searchParams }: PageProps<"/front/flee
   const allItems = itemsByStore.flat();
   const tagged = allItems.filter((i) => i.qlooTagIds.length);
   const item = (typeof sp.item === "string" ? tagged.find((i) => i.id === sp.item) : null) ?? tagged[0] ?? null;
-  let z: Record<string, number | null> = {}; let heat: Record<string, number | null> = {}; let mapNote: string | null = null;
+  let z: Record<string, number | null> = {}; let heat: Record<string, number | null> = {}; let mapNote: string | null = null; let mapDetail: string | null = null;
   if (!item) mapNote = t("front.fleet.mapTagsFirst");
   else {
     try {
       const provider = createQlooProvider(process.env, { store: new SupabaseAnalysisStore(getServiceClient()), traceId: `front-fleet-${brand.slug}` });
       const r = await storeHeat(provider, stores, item.qlooTagIds, new CallLog(), stores[0]?.cuisine);
-      z = r.z; heat = r.heat; if (r.call?.error) mapNote = t("front.fleet.mapFailed", { m: r.call.error });
+      z = r.z; heat = r.heat; if (r.call?.error) { mapNote = t("front.fleet.mapFailed"); mapDetail = r.call.error; }
       else if (!Object.values(r.heat).some((v) => v !== null)) mapNote = t("front.fleet.mapEmpty");
-    } catch (e) { mapNote = t("front.fleet.mapFailed", { m: e instanceof Error ? e.message.slice(0, 80) : "error" }); }
+    } catch (e) { mapNote = t("front.fleet.mapFailed"); mapDetail = e instanceof Error ? e.message.slice(0, 80) : "error"; }
   }
   // renamable items are chosen by name at HQ and applied to every store's matching item ids
   const groups = new Map<string, string[]>();
@@ -69,12 +69,12 @@ export default async function FleetPage({ searchParams }: PageProps<"/front/flee
     <div data-testid="front-fleet" className="grid gap-4">
       <div>
         <div className="flex flex-wrap items-center gap-2"><h1 className="text-[22px] font-extrabold leading-tight tracking-[-0.02em]">{brand.name}</h1>{sampleChip}</div>
-        <div className="text-[13px] text-ink-2">{t("front.fleet.stores", { n: stores.length })} · {brand.sizeClass}</div>
+        <div className="text-[13px] text-ink-2">{t("front.fleet.stores", { n: stores.length })} · {t(`front.fleet.size.${brand.sizeClass}`)}</div>
       </div>
       <Card>
         <H2 hint={item ? t("front.fleet.mapTitle", { item: item.nameEn ?? item.name }) : undefined} right={sampleChip}>{t("front.fleetView")}</H2>
         <FleetMap stores={stores} z={z} noHeatLabel={t("front.fleet.noHeat")} />
-        {mapNote ? <p className="mt-2 text-[12.5px] text-warn-ink">{mapNote}</p> : <p className="mt-2 text-[12px] text-muted">{t("front.fleet.legend")}</p>}
+        {mapNote ? <p className="mt-2 text-[12.5px] text-warn-ink" title={mapDetail ?? undefined}>{mapNote}</p> : <p className="mt-2 text-[12px] text-muted">{t("front.fleet.legend")}</p>}
         {tagged.length > 1 ? (
           <form className="mt-2 flex items-center gap-2 text-[12px] font-semibold text-ink-2" method="get">
             <input type="hidden" name="brand" value={brand.slug} />
@@ -107,7 +107,7 @@ export default async function FleetPage({ searchParams }: PageProps<"/front/flee
         <H2 right={sampleChip}>{t("front.fleet.holdout")}</H2>
         <div data-testid="holdout-summary" className="grid gap-2">
           <div className="text-[15px] font-bold">{summary ? t("front.fleet.holdoutSummary", { changed: summary.changed, held: summary.heldOut }) : t("front.fleet.holdoutNone")}</div>
-          {settlement ? <div className="text-[13px] text-ink-2">{settlement.status === "ready" ? t("front.settle.ready", { lift: `${(settlement.netSalesLiftUsd ?? 0) >= 0 ? "+" : ""}$${Math.abs(settlement.netSalesLiftUsd ?? 0).toFixed(0)}`, x: "—", f: settlement.flukeRate === null ? "—" : `${Math.round(settlement.flukeRate * 100)}%` }) : settlement.status === "short_history" ? t("front.settle.shortHistory") : t("front.settle.waiting")}</div> : null}
+          {settlement ? <div className="text-[13px] text-ink-2">{settlement.status === "ready" ? `${t("front.settle.ready", { lift: `${(settlement.netSalesLiftUsd ?? 0) >= 0 ? "+" : ""}$${Math.abs(settlement.netSalesLiftUsd ?? 0).toFixed(0)}` })} · ${settlement.flukeRate === null ? t("front.settle.flukeNone") : t("front.settle.fluke", { f: `${Math.round(settlement.flukeRate * 100)}%` })}` : settlement.status === "short_history" ? t("front.settle.shortHistory") : t("front.settle.waiting")}</div> : null}
           <p className="text-[12px] text-muted">{t("front.fleet.holdoutHint")}</p>
           <PostButton url={`/api/front/brands/${brand.id}/holdout`} body={{ heat }} label={t("front.fleet.createHoldout")} busyLabel={t("front.fleet.creating")} variant="primary" disabled={stores.length < 2} testId="create-holdout" />
         </div>

@@ -5,16 +5,19 @@ import { Icon } from "@/components/ui/Icon";
 import { LocaleSwitch } from "@/components/shell/LocaleSwitch";
 import { useI18n } from "@/i18n/client";
 import type { Move, StorefrontVersion } from "@/lib/front/types";
-import { fmtScore, okMoves } from "./evidence";
+import { fmtScore, menuWhy, okMoves } from "./evidence";
 
 type Items = StorefrontVersion["items"];
 
 /**
  * Public menu. Both versions arrive from the server; the "Qloo on / off" switch is pure client state (no network).
- * Changed items carry a subtle badge; tapping it opens the evidence for that item (tag, score, neighborhood, verified or not).
+ * Items that were renamed, re-described or featured carry a "changed" badge (a bare position change is not worth a badge);
+ * tapping it opens the reason in the diner's language, with whether it was checked against Qloo's answer.
+ * `claim` is only passed when the active TastePass is for a dish on this menu.
  */
-export function MenuView({ storeName, neighborhood, qloo, baseline, moves, claimHref, sample, note }: {
-  storeName: string; neighborhood: string; qloo: Items | null; baseline: Items; moves: Move[]; claimHref: string | null; sample: boolean; note: string | null;
+export type ClaimLink = { href: string; item: string; price: string };
+export function MenuView({ storeName, neighborhood, qloo, baseline, moves, claim, sample, note }: {
+  storeName: string; neighborhood: string; qloo: Items | null; baseline: Items; moves: Move[]; claim: ClaimLink | null; sample: boolean; note: string | null;
 }) {
   const { t } = useI18n();
   const canSwitch = qloo !== null;
@@ -38,10 +41,17 @@ export function MenuView({ storeName, neighborhood, qloo, baseline, moves, claim
   function Evidence({ item }: { item: Items[number] }) {
     const ms = byItem.get(item.id) ?? [];
     const ev = ms.flatMap((m) => m.evidence);
+    const why = menuWhy(ms, t);
+    const checked = ms.length > 0 && ms.every((m) => m.verified);
     return (
       <div data-testid="evidence-pop" role="region" aria-label={t("front.menu.whyTitle")} className="mt-2 rounded-xl border border-border bg-surface-2 p-3 text-[12.5px] leading-5">
-        <div className="mb-1 flex flex-wrap gap-1">{item.changed.map((c) => <Chip key={c} tone="neutral" className="bg-surface">{t(`front.menu.what.${c}`)}</Chip>)}</div>
-        {ev.length ? ev.map((e, i) => (
+        <div className="mb-1 flex flex-wrap gap-1">{item.changed.filter((c) => c !== "sortIndex").map((c) => <Chip key={c} tone="neutral" className="bg-surface">{t(`front.menu.what.${c}`)}</Chip>)}</div>
+        {why ? (
+          <>
+            <div>{why}</div>
+            <div className={checked ? "text-good-ink" : "text-warn-ink"}>{checked ? `✓ ${t("front.menu.verifiedBy")}` : `⚠ ${t("front.menu.unverifiedBy")}`}</div>
+          </>
+        ) : ev.length ? ev.map((e, i) => (
           <div key={i} className="flex flex-wrap items-center gap-x-2">
             <span className="font-semibold">{t("front.menu.leans", { tag: e.name })}</span>
             <span className="tabular text-ink-2">{t("front.menu.score", { s: fmtScore(e.score) })}</span>
@@ -49,12 +59,13 @@ export function MenuView({ storeName, neighborhood, qloo, baseline, moves, claim
             <span className={e.verified ? "text-good-ink" : "text-warn-ink"}>{e.verified ? `✓ ${t("front.menu.verified")}` : `⚠ ${t("front.menu.unverified")}`}</span>
           </div>
         )) : <div className="text-ink-2">{t("front.menu.noEvidence")}</div>}
-        {ms[0]?.rationale ? <div className="mt-1 text-ink-2">{ms[0].rationale}</div> : null}
+        {!why && ms[0]?.rationale ? <div className="mt-1 text-ink-2">{ms[0].rationale}</div> : null}
       </div>
     );
   }
   function Row({ item, hero }: { item: Items[number]; hero?: boolean }) {
-    const changed = on && item.changed.length > 0;
+    // a badge only when something a diner can see changed; a bare position change stays quiet
+    const changed = on && item.changed.some((c) => c !== "sortIndex");
     return (
       <li data-testid="menu-item" data-featured={item.featured || undefined} className={cx("py-3", hero ? "card p-4" : "hairline first:border-t-0")}>
         <div className="flex items-start justify-between gap-3">
@@ -98,7 +109,7 @@ export function MenuView({ storeName, neighborhood, qloo, baseline, moves, claim
           <ul className="grid gap-2">{featured.map((i) => <Row key={i.id} item={i} hero />)}</ul>
         </section>
       ) : null}
-      {claimHref ? <Button variant="coral" href={claimHref} className="w-full">{t("front.menu.claim")}</Button> : null}
+      {claim ? <Button variant="coral" href={claim.href} className="w-full">{t("front.menu.claimItem", { item: claim.item, price: claim.price })}</Button> : null}
       <ul className="card px-4 py-1">
         {rows.map((r, idx) => ("cat" in r ? <li key={`c-${idx}`} className="pt-3 text-[12px] font-semibold uppercase tracking-wide text-muted">{r.cat}</li> : <Row key={r.id} item={r} />))}
       </ul>
